@@ -3,10 +3,10 @@
 
 namespace dual::nds {
 
-class NDS {
-  public:
+  class NDS {
+    public:
 
-  private:
-};
+    private:
+  };
 
 } // namespace dual::nds
