@@ -3,6 +3,8 @@
 
 namespace dual::nds::arm9 {
 
+  namespace bit = atom::bit;
+
   template<typename T> T MemoryBus::Read(u32 address, Bus bus) {
     address &= ~(sizeof(T) - 1u);
 

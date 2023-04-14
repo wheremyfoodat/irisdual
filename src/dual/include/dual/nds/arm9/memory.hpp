@@ -11,8 +11,6 @@
 
 namespace dual::nds::arm9 {
 
-  namespace bit = atom::bit;
-
   class MemoryBus final : public dual::arm::Memory {
     public:
       explicit MemoryBus(SystemMemory& memory) : m_ewram{memory.ewram.data()} {}
