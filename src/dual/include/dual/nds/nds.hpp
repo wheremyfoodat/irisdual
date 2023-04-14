@@ -24,7 +24,7 @@ namespace dual::nds {
         arm9::MemoryBus bus;
 
         explicit ARM9(SystemMemory& memory) : bus{memory} {}
-      } arm9{m_memory};
+      } m_arm9{m_memory};
 
       std::shared_ptr<ROM> m_rom;
   };

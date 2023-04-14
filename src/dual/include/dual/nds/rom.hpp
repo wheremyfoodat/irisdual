@@ -28,7 +28,9 @@ namespace dual::nds {
       }
 
       void Read(u8* destination, u32 address, size_t size) const override {
-        if(address + size > m_size) {
+        const u32 address_hi = address + size;
+
+        if(address_hi > m_size || address_hi < address) {
           ATOM_PANIC("out-of-bounds ROM read request: address=0x{:08X}, size={}", address, size);
         }
         std::memcpy(destination, &m_data[address], size);

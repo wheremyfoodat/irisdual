@@ -22,7 +22,7 @@ namespace dual::nds {
       u32 entrypoint;
       u32 load_address;
       u32 size;
-    } arm9, arm7;
+    } __attribute__((packed)) arm9, arm7;
   } __attribute__((packed));
 
 } // namespace dual::nds
