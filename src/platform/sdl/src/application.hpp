@@ -2,6 +2,7 @@
 #pragma once
 
 #include <dual/nds/nds.hpp>
+#include <memory>
 
 #include <SDL.h>
 
@@ -14,11 +15,12 @@ class Application {
 
   private:
     void CreateWindow();
+    void LoadROM(const char* path);
     void MainLoop();
 
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
     SDL_Texture* m_textures[2];
 
-    dual::nds::NDS nds;
+    std::unique_ptr<dual::nds::NDS> nds{};
 };

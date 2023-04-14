@@ -1,8 +1,13 @@
 
+#include <atom/logger/logger.hpp>
+#include <fstream>
+
 #include "application.hpp"
 
 Application::Application() {
   SDL_Init(SDL_INIT_VIDEO);
+
+  nds = std::make_unique<dual::nds::NDS>();
 }
 
 Application::~Application() {
@@ -15,6 +20,11 @@ Application::~Application() {
 
 int Application::Run(int argc, char **argv) {
   CreateWindow();
+  if(argc < 2) {
+    LoadROM("armwrestler.nds");
+  } else {
+    LoadROM(argv[1]);
+  }
   MainLoop();
   return 0;
 }
@@ -34,6 +44,32 @@ void Application::CreateWindow() {
   for(auto& texture : m_textures) {
     texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 256, 192);
   }
+}
+
+void Application::LoadROM(const char* path) {
+  u8* data;
+  size_t size;
+  std::ifstream file{path, std::ios::binary};
+
+  if(!file.good()) {
+    ATOM_PANIC("Failed to open NDS file: '{}'", path);
+  }
+
+  file.seekg(0, std::ios::end);
+  size = file.tellg();
+  file.seekg(0);
+
+  data = new u8[size];
+  file.read((char*)data, static_cast<std::streamsize>(size));
+
+  if(!file.good()) {
+    ATOM_PANIC("Failed to read NDS file: '{}'", path);
+  }
+
+  nds->LoadROM(std::make_shared<dual::nds::MemoryROM>(data, size));
+  nds->DirectBoot();
+
+  ATOM_TRACE("Successfully loaded '{}'!", path);
 }
 
 void Application::MainLoop() {

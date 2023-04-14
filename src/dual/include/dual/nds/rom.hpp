@@ -3,6 +3,7 @@
 
 #include <atom/integer.hpp>
 #include <atom/panic.hpp>
+#include <cstring>
 
 namespace dual::nds {
 
@@ -18,6 +19,10 @@ namespace dual::nds {
     public:
       MemoryROM(u8* data, size_t size) : m_data{data}, m_size{size} {}
 
+     ~MemoryROM() override {
+        delete m_data;
+      }
+
       size_t Size() const override {
         return m_size;
       }
@@ -26,6 +31,7 @@ namespace dual::nds {
         if(address + size > m_size) {
           ATOM_PANIC("out-of-bounds ROM read request: address=0x{:08X}, size={}", address, size);
         }
+        std::memcpy(destination, &m_data[address], size);
       }
 
     private:
