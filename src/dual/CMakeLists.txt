@@ -18,6 +18,7 @@ set(HEADERS
   src/arm/tablegen/gen_arm.hpp
   src/arm/tablegen/gen_thumb.hpp
   src/arm/arm.hpp
+  src/nds/arm9/memory.cpp
   src/nds/nds.cpp
 )
 
