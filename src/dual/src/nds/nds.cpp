@@ -3,18 +3,26 @@
 #include <dual/nds/nds.hpp>
 #include <dual/nds/header.hpp>
 
+#include "arm/arm.hpp"
+
 namespace dual::nds {
 
-  NDS::NDS() = default;
+  NDS::NDS() {
+    m_arm9.cpu = std::make_unique<arm::ARM>(&m_arm9.bus, arm::CPU::Model::ARM9);
+  }
 
   void NDS::Reset() {
     m_memory.ewram.fill(0);
     m_memory.arm9.dtcm.fill(0);
     m_memory.arm9.itcm.fill(0);
     m_memory.arm7.iwram.fill(0);
+
+    m_arm9.cpu->SetExceptionBase(0xFFFF0000); // @todo: reset CP15 instead
+    m_arm9.cpu->Reset();
   }
 
   void NDS::Step(int cycles) {
+    m_arm9.cpu->Run(cycles);
   }
 
   void NDS::LoadROM(std::shared_ptr<ROM> rom) {
@@ -74,6 +82,14 @@ namespace dual::nds {
 
     LoadBinary(header.arm9, true);
     LoadBinary(header.arm7, false);
+
+    using Mode = arm::CPU::Mode;
+
+    m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::System, 0x03002F7C);
+    m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::IRQ,    0x03003F80);
+    m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::System, 0x03003FC0);
+    m_arm9.cpu->SetGPR(arm::CPU::GPR::PC, header.arm9.entrypoint);
+    m_arm9.cpu->SetCPSR(static_cast<u32>(Mode::System));
 
     /**
      * This is required for direct booting commercial ROMs.

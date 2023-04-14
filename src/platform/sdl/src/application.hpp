@@ -22,5 +22,5 @@ class Application {
     SDL_Renderer* m_renderer;
     SDL_Texture* m_textures[2];
 
-    std::unique_ptr<dual::nds::NDS> nds{};
+    std::unique_ptr<dual::nds::NDS> m_nds{};
 };

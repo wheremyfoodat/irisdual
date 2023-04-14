@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <dual/arm/cpu.hpp>
 #include <dual/nds/arm9/memory.hpp>
 #include <dual/nds/rom.hpp>
 #include <dual/nds/system_memory.hpp>
@@ -21,6 +22,7 @@ namespace dual::nds {
       SystemMemory m_memory{};
 
       struct ARM9 {
+        std::unique_ptr<arm::CPU> cpu{};
         arm9::MemoryBus bus;
 
         explicit ARM9(SystemMemory& memory) : bus{memory} {}

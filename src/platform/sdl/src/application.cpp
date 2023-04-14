@@ -7,7 +7,7 @@
 Application::Application() {
   SDL_Init(SDL_INIT_VIDEO);
 
-  nds = std::make_unique<dual::nds::NDS>();
+  m_nds = std::make_unique<dual::nds::NDS>();
 }
 
 Application::~Application() {
@@ -66,8 +66,8 @@ void Application::LoadROM(const char* path) {
     ATOM_PANIC("Failed to read NDS file: '{}'", path);
   }
 
-  nds->LoadROM(std::make_shared<dual::nds::MemoryROM>(data, size));
-  nds->DirectBoot();
+  m_nds->LoadROM(std::make_shared<dual::nds::MemoryROM>(data, size));
+  m_nds->DirectBoot();
 
   ATOM_TRACE("Successfully loaded '{}'!", path);
 }
@@ -86,6 +86,8 @@ void Application::MainLoop() {
         return;
       }
     }
+
+    m_nds->Step(559241);
 
     SDL_RenderClear(m_renderer);
     SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &rects[0]);
