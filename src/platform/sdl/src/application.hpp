@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <dual/nds/nds.hpp>
+
 #include <SDL.h>
 
 class Application {
@@ -14,7 +16,9 @@ class Application {
     void CreateWindow();
     void MainLoop();
 
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    SDL_Texture* textures[2];
+    SDL_Window* m_window;
+    SDL_Renderer* m_renderer;
+    SDL_Texture* m_textures[2];
+
+    dual::nds::NDS nds;
 };

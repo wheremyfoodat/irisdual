@@ -25,7 +25,9 @@ set(HEADERS_PUBLIC
   include/dual/arm/coprocessor.hpp
   include/dual/arm/cpu.hpp
   include/dual/arm/memory.hpp
+  include/dual/nds/header.hpp
   include/dual/nds/nds.hpp
+  include/dual/nds/rom.hpp
 )
 
 add_library(dual ${SOURCES} ${HEADERS} ${HEADERS_PUBLIC})

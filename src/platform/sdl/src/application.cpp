@@ -6,10 +6,10 @@ Application::Application() {
 }
 
 Application::~Application() {
-  for(auto& texture : textures) SDL_DestroyTexture(texture);
+  for(auto& texture : m_textures) SDL_DestroyTexture(texture);
 
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(window);
+  SDL_DestroyRenderer(m_renderer);
+  SDL_DestroyWindow(m_window);
   SDL_Quit();
 }
 
@@ -20,8 +20,8 @@ int Application::Run(int argc, char **argv) {
 }
 
 void Application::CreateWindow() {
-  window = SDL_CreateWindow(
-    "heterochromia",
+  m_window = SDL_CreateWindow(
+    "ndsemu",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
     512,
@@ -29,10 +29,10 @@ void Application::CreateWindow() {
     SDL_WINDOW_ALLOW_HIGHDPI
   );
 
-  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-  for(auto& texture : textures) {
-    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 256, 192);
+  for(auto& texture : m_textures) {
+    texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 256, 192);
   }
 }
 
@@ -51,9 +51,9 @@ void Application::MainLoop() {
       }
     }
 
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, textures[0], nullptr, &rects[0]);
-    SDL_RenderCopy(renderer, textures[1], nullptr, &rects[1]);
-    SDL_RenderPresent(renderer);
+    SDL_RenderClear(m_renderer);
+    SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &rects[0]);
+    SDL_RenderCopy(m_renderer, m_textures[1], nullptr, &rects[1]);
+    SDL_RenderPresent(m_renderer);
   }
 }
