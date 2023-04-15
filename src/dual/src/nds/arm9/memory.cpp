@@ -5,8 +5,37 @@ namespace dual::nds::arm9 {
 
   namespace bit = atom::bit;
 
+  MemoryBus::MemoryBus(SystemMemory& memory) : m_ewram{memory.ewram.data()} {
+    m_dtcm.data = memory.arm9.dtcm.data();
+    m_itcm.data = memory.arm9.itcm.data();
+  }
+
+  void MemoryBus::SetupDTCM(TCM::Config const& config) {
+    m_dtcm.config = config;
+  }
+
+  void MemoryBus::SetupITCM(TCM::Config const& config) {
+    m_itcm.config = config;
+  }
+
   template<typename T> T MemoryBus::Read(u32 address, Bus bus) {
     address &= ~(sizeof(T) - 1u);
+
+    if(
+      bus != Bus::System && m_itcm.config.readable &&
+      address >= m_itcm.config.base_address &&
+      address <= m_itcm.config.high_address
+    ) {
+      return atom::read<T>(m_itcm.data, (address - m_itcm.config.base_address) & 0x7FFFu);
+    }
+
+    if(
+      bus == Bus::Data && m_dtcm.config.readable &&
+      address >= m_dtcm.config.base_address &&
+      address <= m_dtcm.config.high_address
+    ) {
+      return atom::read<T>(m_dtcm.data, (address - m_dtcm.config.base_address) & 0x3FFFu);
+    }
 
     switch(address >> 24) {
       case 0x02: {
@@ -23,6 +52,25 @@ namespace dual::nds::arm9 {
 
   template<typename T> void MemoryBus::Write(u32 address, T value, Bus bus) {
     address &= ~(sizeof(T) - 1u);
+
+    if(
+      bus != Bus::System && m_itcm.config.writable &&
+      address >= m_itcm.config.base_address &&
+      address <= m_itcm.config.high_address
+    ) {
+      atom::write<T>(m_itcm.data, (address - m_itcm.config.base_address) & 0x7FFFu, value);
+      return;
+    }
+
+    if(
+      bus == Bus::Data && m_dtcm.config.writable &&
+      address >= m_dtcm.config.base_address &&
+      address <= m_dtcm.config.high_address
+    ) {
+      atom::write<T>(m_dtcm.data, (address - m_dtcm.config.base_address) & 0x3FFFu, value);
+      return;
+    }
+
 
     switch(address >> 24) {
       case 0x02: {

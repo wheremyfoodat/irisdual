@@ -13,7 +13,21 @@ namespace dual::nds::arm9 {
 
   class MemoryBus final : public dual::arm::Memory {
     public:
-      explicit MemoryBus(SystemMemory& memory) : m_ewram{memory.ewram.data()} {}
+      struct TCM {
+        u8* data{};
+
+        struct Config {
+          bool readable = false;
+          bool writable = false;
+          u32 base_address = 0u;
+          u32 high_address = 0u;
+        } config{};
+      };
+
+      explicit MemoryBus(SystemMemory& memory);
+
+      void SetupDTCM(TCM::Config const& config);
+      void SetupITCM(TCM::Config const& config);
 
       u8  ReadByte(u32 address, Bus bus) override;
       u16 ReadHalf(u32 address, Bus bus) override;
@@ -26,6 +40,9 @@ namespace dual::nds::arm9 {
     private:
       template<typename T> T    Read (u32 address, Bus bus);
       template<typename T> void Write(u32 address, T value, Bus bus);
+
+      TCM m_dtcm{};
+      TCM m_itcm{};
 
       u8* m_ewram;
   };

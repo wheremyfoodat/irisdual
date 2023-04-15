@@ -7,7 +7,7 @@
 
 namespace dual::nds::arm9 {
 
-  CP15::CP15(arm::CPU* cpu, arm::Memory* bus) : m_cpu{cpu}, m_bus{bus} {
+  CP15::CP15(arm::CPU* cpu, MemoryBus* bus) : m_cpu{cpu}, m_bus{bus} {
   }
 
   void CP15::Reset() {
@@ -34,6 +34,12 @@ namespace dual::nds::arm9 {
       case ID(0, 1, 0, 0): { // Control register
         return m_control.word;
       }
+      case ID(0, 9, 1, 0): { // DTCM region register
+        return m_dtcm_region;
+      }
+      case ID(0, 9, 1, 1): { // ITCM region register
+        return m_itcm_region;
+      }
       default: {
         ATOM_WARN("arm9: CP15: unhandled MRC #{}, C{}, C{}, #{}", opc1, cn, cm, opc2);
       }
@@ -49,6 +55,14 @@ namespace dual::nds::arm9 {
 
         m_cpu->SetExceptionBase(m_control.alternate_vector_select ? 0xFFFF0000u : 0u);
 
+        m_dtcm_config.writable = m_control.enable_dtcm;
+        m_dtcm_config.readable = m_control.enable_dtcm && m_control.dtcm_load_mode == 0u;
+        m_bus->SetupDTCM(m_dtcm_config);
+
+        m_itcm_config.writable = m_control.enable_itcm;
+        m_itcm_config.readable = m_control.enable_itcm && m_control.itcm_load_mode == 0u;
+        m_bus->SetupITCM(m_itcm_config);
+
         if(m_control.enable_big_endian_mode) {
           ATOM_PANIC("arm9: CP15: enabled unemulated big-endian mode");
         }
@@ -60,6 +74,54 @@ namespace dual::nds::arm9 {
       }
       case ID(0, 7, 0, 4): { // Wait for IRQ
         m_cpu->SetWaitingForIRQ(true);
+        break;
+      }
+      case ID(0, 9, 1, 0): { // DTCM region register
+        const int size = static_cast<int>((value >> 1) & 0x1Fu);
+
+        if(size < 3u || size > 23u) {
+          ATOM_PANIC("arm9: CP15: DTCM virtual size was not between 4 KiB (3) and 4 GiB (23)");
+        }
+
+        const u32 base_address = value & ~0xFFFu;
+        const u32 high_address = base_address + (512 << size) - 1;
+
+        if(high_address < base_address) {
+          ATOM_PANIC("arm9: CP15: DTCM high address is below base address")
+        }
+
+        m_dtcm_config.base_address = base_address;
+        m_dtcm_config.high_address = high_address;
+
+        m_bus->SetupDTCM(m_dtcm_config);
+
+        m_dtcm_region = value & ~1u;
+
+        ATOM_DEBUG("arm9: CP15: DTCM mapped @ 0x{:08X} - 0x{:08X}", base_address, high_address);
+        break;
+      }
+      case ID(0, 9, 1, 1): { // ITCM region register
+        const int size = static_cast<int>((value >> 1) & 0x1Fu);
+
+        if(size < 3u || size > 23u) {
+          ATOM_PANIC("arm9: CP15: ITCM virtual size was not between 4 KiB (3) and 4 GiB (23)");
+        }
+
+        const u32 base_address = value & ~0xFFFu;
+        const u32 high_address = base_address + (512 << size) - 1;
+
+        if(high_address < base_address) {
+          ATOM_PANIC("arm9: CP15: ITCM high address is below base address")
+        }
+
+        m_itcm_config.base_address = base_address;
+        m_itcm_config.high_address = high_address;
+
+        m_bus->SetupITCM(m_itcm_config);
+
+        m_itcm_region = value & ~1u;
+
+        ATOM_DEBUG("arm9: CP15: ITCM mapped @ 0x{:08X} - 0x{:08X}", base_address, high_address);
         break;
       }
       default: {
