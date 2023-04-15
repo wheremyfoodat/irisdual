@@ -5,9 +5,10 @@ namespace dual::nds::arm7 {
 
   namespace bit = atom::bit;
 
-  MemoryBus::MemoryBus(SystemMemory& memory)
+  MemoryBus::MemoryBus(SystemMemory& memory, HW const& hw)
       : m_ewram{memory.ewram.data()}
-      , m_iwram{memory.arm7.iwram.data()} {
+      , m_iwram{memory.arm7.iwram.data()}
+      , m_io{hw} {
   }
 
   template<typename T> T MemoryBus::Read(u32 address, Bus bus) {

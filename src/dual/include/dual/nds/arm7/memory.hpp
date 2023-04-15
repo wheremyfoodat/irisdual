@@ -7,13 +7,18 @@
 #include <atom/panic.hpp>
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
+#include <dual/nds/ipc.hpp>
 #include <dual/nds/system_memory.hpp>
 
 namespace dual::nds::arm7 {
 
   class MemoryBus final : public dual::arm::Memory {
     public:
-      explicit MemoryBus(SystemMemory& memory);
+      struct HW {
+        IPC& ipc;
+      };
+
+      MemoryBus(SystemMemory& memory, HW const& hw);
 
       u8  ReadByte(u32 address, Bus bus) override;
       u16 ReadHalf(u32 address, Bus bus) override;
@@ -38,6 +43,8 @@ namespace dual::nds::arm7 {
 
         template<u32 mask> u32  ReadWord (u32 address);
         template<u32 mask> void WriteWord(u32 address, u32 value);
+
+        HW hw;
       } m_io;
 
       u8* m_ewram;

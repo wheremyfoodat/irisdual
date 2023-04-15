@@ -7,12 +7,17 @@
 #include <atom/panic.hpp>
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
+#include <dual/nds/ipc.hpp>
 #include <dual/nds/system_memory.hpp>
 
 namespace dual::nds::arm9 {
 
   class MemoryBus final : public dual::arm::Memory {
     public:
+      struct HW {
+        IPC& ipc;
+      };
+
       struct TCM {
         u8* data{};
 
@@ -24,7 +29,7 @@ namespace dual::nds::arm9 {
         } config{};
       };
 
-      explicit MemoryBus(SystemMemory& memory);
+      MemoryBus(SystemMemory& memory, HW const& hw);
 
       void SetupDTCM(TCM::Config const& config);
       void SetupITCM(TCM::Config const& config);
@@ -52,6 +57,8 @@ namespace dual::nds::arm9 {
 
         template<u32 mask> u32  ReadWord (u32 address);
         template<u32 mask> void WriteWord(u32 address, u32 value);
+
+        HW hw;
       } m_io;
 
       TCM m_dtcm{};

@@ -81,6 +81,12 @@ namespace dual::nds::arm7 {
     u32 value = 0u;
 
     switch(REG(address)) {
+      // IPC
+      case REG(0x04000180): {
+        // IPCSYNC
+        return hw.ipc.IPCSYNC_ReadWord(IPC::CPU::ARM7);
+      }
+
       default: {
         const int access_size = GetAccessSize(mask);
         const u32 access_address = address + GetAccessAddressOffset(mask);
@@ -94,6 +100,13 @@ namespace dual::nds::arm7 {
 
   template<u32 mask> void MemoryBus::IO::WriteWord(u32 address, u32 value) {
     switch(REG(address)) {
+      // IPC
+      case REG(0x04000180): {
+        // IPCSYNC
+        hw.ipc.IPCSYNC_WriteWord(IPC::CPU::ARM7, value, mask);
+        break;
+      }
+
       default: {
         const int access_size = GetAccessSize(mask);
         const u32 access_address = address + GetAccessAddressOffset(mask);

@@ -7,9 +7,10 @@ namespace dual::nds::arm9 {
 
   namespace bit = atom::bit;
 
-  MemoryBus::MemoryBus(SystemMemory& memory)
+  MemoryBus::MemoryBus(SystemMemory& memory, HW const& hw)
       : m_ewram{memory.ewram.data()}
-      , m_lcdc_vram_hack{memory.lcdc_vram_hack.data()} {
+      , m_lcdc_vram_hack{memory.lcdc_vram_hack.data()}
+      , m_io{hw} {
     m_dtcm.data = memory.arm9.dtcm.data();
     m_itcm.data = memory.arm9.itcm.data();
   }
