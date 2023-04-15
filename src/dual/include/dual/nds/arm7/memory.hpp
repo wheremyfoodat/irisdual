@@ -27,6 +27,19 @@ namespace dual::nds::arm7 {
       template<typename T> T    Read (u32 address, Bus bus);
       template<typename T> void Write(u32 address, T value, Bus bus);
 
+      struct IO {
+        u8  ReadByte(u32 address);
+        u16 ReadHalf(u32 address);
+        u32 ReadWord(u32 address);
+
+        void WriteByte(u32 address, u8  value);
+        void WriteHalf(u32 address, u16 value);
+        void WriteWord(u32 address, u32 value);
+
+        template<u32 mask> u32  ReadWord (u32 address);
+        template<u32 mask> void WriteWord(u32 address, u32 value);
+      } m_io;
+
       u8* m_ewram;
       u8* m_iwram;
   };

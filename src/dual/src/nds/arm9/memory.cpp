@@ -78,9 +78,9 @@ namespace dual::nds::arm9 {
           return keyinput;
         }
 
-        if constexpr(std::is_same_v<T, u8 >) return io.ReadByte(address);
-        if constexpr(std::is_same_v<T, u16>) return io.ReadHalf(address);
-        if constexpr(std::is_same_v<T, u32>) return io.ReadWord(address);
+        if constexpr(std::is_same_v<T, u8 >) return m_io.ReadByte(address);
+        if constexpr(std::is_same_v<T, u16>) return m_io.ReadHalf(address);
+        if constexpr(std::is_same_v<T, u32>) return m_io.ReadWord(address);
 
         return 0;
       }
@@ -122,9 +122,9 @@ namespace dual::nds::arm9 {
         break;
       }
       case 0x04: {
-        if constexpr(std::is_same_v<T, u8 >) io.WriteByte(address, value);
-        if constexpr(std::is_same_v<T, u16>) io.WriteHalf(address, value);
-        if constexpr(std::is_same_v<T, u32>) io.WriteWord(address, value);
+        if constexpr(std::is_same_v<T, u8 >) m_io.WriteByte(address, value);
+        if constexpr(std::is_same_v<T, u16>) m_io.WriteHalf(address, value);
+        if constexpr(std::is_same_v<T, u32>) m_io.WriteWord(address, value);
         break;
       }
       case 0x06: {

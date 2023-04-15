@@ -52,7 +52,7 @@ namespace dual::nds::arm9 {
 
         template<u32 mask> u32  ReadWord (u32 address);
         template<u32 mask> void WriteWord(u32 address, u32 value);
-      } io;
+      } m_io;
 
       TCM m_dtcm{};
       TCM m_itcm{};

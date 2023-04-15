@@ -8,6 +8,7 @@ set(SOURCES
   src/arm/tablegen/tablegen.cpp
   src/arm/arm.cpp
   src/common/scheduler.cpp
+  src/nds/arm7/io.cpp
   src/nds/arm7/memory.cpp
   src/nds/arm9/cp15.cpp
   src/nds/arm9/io.cpp
