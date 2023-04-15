@@ -15,6 +15,10 @@ namespace dual {
   void Scheduler::Reset() {
     m_heap_size = 0;
     m_timestamp_now = 0;
+
+    Add(std::numeric_limits<u64>::max(), [](int) {
+      ATOM_PANIC("reached end of the event queue.");
+    });
   }
 
   void Scheduler::Step() {

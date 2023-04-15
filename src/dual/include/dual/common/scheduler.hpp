@@ -27,9 +27,6 @@ namespace dual {
       }
 
       u64 GetTimestampTarget() const {
-        if(m_heap_size == 0) {
-          return std::numeric_limits<u64>::max();
-        }
         return m_heap[0]->timestamp;
       }
 
