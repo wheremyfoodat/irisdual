@@ -23,18 +23,18 @@ namespace dual {
         u64 timestamp;
       };
 
-      auto GetTimestampNow() const -> u64 {
+      u64 GetTimestampNow() const {
         return timestamp_now;
       }
 
-      auto GetTimestampTarget() const -> u64 {
-        if (heap_size == 0) {
+      u64 GetTimestampTarget() const {
+        if(heap_size == 0) {
           return std::numeric_limits<u64>::max();
         }
         return heap[0]->timestamp;
       }
 
-      auto GetRemainingCycleCount() const -> int {
+      int GetRemainingCycleCount() const {
         return int(GetTimestampTarget() - GetTimestampNow());
       }
 
@@ -57,9 +57,17 @@ namespace dual {
     private:
       static constexpr int k_event_limit = 64;
 
-      static constexpr int Parent(int n) { return (n - 1) / 2; }
-      static constexpr int LeftChild(int n) { return n * 2 + 1; }
-      static constexpr int RightChild(int n) { return n * 2 + 2; }
+      static int Parent(int n) {
+        return (n - 1) >> 1;
+      }
+
+      static int LeftChild(int n) {
+        return n * 2 + 1;
+      }
+
+      static int RightChild(int n) {
+        return n * 2 + 2;
+      }
 
       void Remove(int n);
       void Swap(int i, int j);
