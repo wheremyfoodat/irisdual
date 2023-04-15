@@ -24,14 +24,14 @@ namespace dual {
       };
 
       u64 GetTimestampNow() const {
-        return timestamp_now;
+        return m_timestamp_now;
       }
 
       u64 GetTimestampTarget() const {
-        if(heap_size == 0) {
+        if(m_heap_size == 0) {
           return std::numeric_limits<u64>::max();
         }
-        return heap[0]->timestamp;
+        return m_heap[0]->timestamp;
       }
 
       int GetRemainingCycleCount() const {
@@ -39,7 +39,7 @@ namespace dual {
       }
 
       void AddCycles(int cycles) {
-        timestamp_now += cycles;
+        m_timestamp_now += cycles;
       }
 
       void Reset();
@@ -73,9 +73,9 @@ namespace dual {
       void Swap(int i, int j);
       void Heapify(int n);
 
-      int heap_size = 0;
-      Event* heap[k_event_limit]{};
-      u64 timestamp_now = 0u;
+      u64 m_timestamp_now = 0u;
+      int m_heap_size = 0;
+      Event* m_heap[k_event_limit]{};
   };
 
 } // namespace dual

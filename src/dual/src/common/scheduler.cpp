@@ -6,28 +6,26 @@ namespace dual {
 
   Scheduler::Scheduler() {
     for(int i = 0; i < k_event_limit; i++) {
-      heap[i] = new Event();
-      heap[i]->handle = i;
+      m_heap[i] = new Event();
+      m_heap[i]->handle = i;
     }
     Reset();
   }
 
   Scheduler::~Scheduler() {
-    for(int i = 0; i < k_event_limit; i++) {
-      delete heap[i];
-    }
+    for(auto event : m_heap) delete event;
   }
 
   void Scheduler::Reset() {
-    heap_size = 0;
-    timestamp_now = 0;
+    m_heap_size = 0;
+    m_timestamp_now = 0;
   }
 
   void Scheduler::Step() {
     const u64 now = GetTimestampNow();
 
-    while(heap_size > 0 && heap[0]->timestamp <= now) {
-      auto event = heap[0];
+    while(m_heap_size > 0 && m_heap[0]->timestamp <= now) {
+      auto event = m_heap[0];
 
       event->callback(int(now - event->timestamp));
 
@@ -37,18 +35,18 @@ namespace dual {
   }
 
   auto Scheduler::Add(u64 delay, std::function<void(int)> callback) -> Event* {
-    int n = heap_size++;
+    int n = m_heap_size++;
     int p = Parent(n);
 
-    if(heap_size > k_event_limit) {
+    if(m_heap_size > k_event_limit) {
       ATOM_PANIC("exceeded maximum number of scheduler events.");
     }
 
-    auto event = heap[n];
+    auto event = m_heap[n];
     event->timestamp = GetTimestampNow() + delay;
     event->callback = callback;
 
-    while(n != 0 && heap[p]->timestamp > heap[n]->timestamp) {
+    while(n != 0 && m_heap[p]->timestamp > m_heap[n]->timestamp) {
       Swap(n, p);
       n = p;
       p = Parent(n);
@@ -58,39 +56,39 @@ namespace dual {
   }
 
   void Scheduler::Remove(int n) {
-    Swap(n, --heap_size);
+    Swap(n, --m_heap_size);
 
     int p = Parent(n);
 
-    if(n != 0 && heap[p]->timestamp > heap[n]->timestamp) {
+    if(n != 0 && m_heap[p]->timestamp > m_heap[n]->timestamp) {
       do {
         Swap(n, p);
         n = p;
         p = Parent(n);
-      } while (n != 0 && heap[p]->timestamp > heap[n]->timestamp);
+      } while (n != 0 && m_heap[p]->timestamp > m_heap[n]->timestamp);
     } else {
       Heapify(n);
     }
   }
 
   void Scheduler::Swap(int i, int j) {
-    auto tmp = heap[i];
-    heap[i] = heap[j];
-    heap[j] = tmp;
-    heap[i]->handle = i;
-    heap[j]->handle = j;
+    auto tmp = m_heap[i];
+    m_heap[i] = m_heap[j];
+    m_heap[j] = tmp;
+    m_heap[i]->handle = i;
+    m_heap[j]->handle = j;
   }
 
   void Scheduler::Heapify(int n) {
     const int l = LeftChild(n);
     const int r = RightChild(n);
 
-    if(l < heap_size && heap[l]->timestamp < heap[n]->timestamp) {
+    if(l < m_heap_size && m_heap[l]->timestamp < m_heap[n]->timestamp) {
       Swap(l, n);
       Heapify(l);
     }
 
-    if(r < heap_size && heap[r]->timestamp < heap[n]->timestamp) {
+    if(r < m_heap_size && m_heap[r]->timestamp < m_heap[n]->timestamp) {
       Swap(r, n);
       Heapify(r);
     }
