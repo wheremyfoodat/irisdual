@@ -24,7 +24,7 @@ namespace dual::nds::arm7 {
         break;
       }
       case 0x04: {
-        ATOM_ERROR("arm7: unhandled {}-bit IO read from 0x{:08X}", bit::number_of_bits<T>(), address);
+        //ATOM_ERROR("arm7: unhandled {}-bit IO read from 0x{:08X}", bit::number_of_bits<T>(), address);
         return 0;
       }
     }
@@ -49,7 +49,7 @@ namespace dual::nds::arm7 {
         break;
       }
       case 0x04: {
-        ATOM_ERROR("arm7: unhandled {}-bit IO write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
+        //ATOM_ERROR("arm7: unhandled {}-bit IO write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
         break;
       }
       default: {
