@@ -12,6 +12,8 @@ namespace dual::nds {
     m_arm9.cpu = std::make_unique<arm::ARM>(&m_arm9.bus, arm::CPU::Model::ARM9);
     m_arm9.cp15 = std::make_unique<arm9::CP15>(m_arm9.cpu.get(), &m_arm9.bus);
     m_arm9.cpu->SetCoprocessor(15, m_arm9.cp15.get());
+
+    m_arm7.cpu = std::make_unique<arm::ARM>(&m_arm7.bus, arm::CPU::Model::ARM7);
   }
 
   void NDS::Reset() {
@@ -25,6 +27,7 @@ namespace dual::nds {
 
     m_arm9.cp15->Reset();
     m_arm9.cpu->Reset();
+    m_arm7.cpu->Reset();
 
     m_step_target = 0u;
   }
@@ -33,10 +36,12 @@ namespace dual::nds {
     const u64 step_target = m_step_target + cycles_to_run;
 
     while(m_scheduler.GetTimestampNow() < step_target) {
+      // @todo: do not sync so tightly when either CPU is halted.
       const u64 target = std::min(m_scheduler.GetTimestampTarget(), step_target);
-      const int cycles = static_cast<int>(target - m_scheduler.GetTimestampNow());
+      const int cycles = std::min(32, static_cast<int>(target - m_scheduler.GetTimestampNow()));
 
       m_arm9.cpu->Run(cycles * 2);
+      m_arm7.cpu->Run(cycles);
 
       m_scheduler.AddCycles(cycles);
     }
@@ -104,28 +109,34 @@ namespace dual::nds {
 
     using Mode = arm::CPU::Mode;
 
-    m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::System, 0x03002F7C);
-    m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::IRQ,    0x03003F80);
-    m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::System, 0x03003FC0);
+    m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::System,     0x03002F7Cu);
+    m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::IRQ,        0x03003F80u);
+    m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::Supervisor, 0x03003FC0u);
     m_arm9.cpu->SetGPR(arm::CPU::GPR::PC, header.arm9.entrypoint);
     m_arm9.cpu->SetCPSR(static_cast<u32>(Mode::System));
 
     m_arm9.cp15->DirectBoot();
+
+    m_arm7.cpu->SetGPR(arm::CPU::GPR::SP, Mode::System,     0x0380FD80u);
+    m_arm7.cpu->SetGPR(arm::CPU::GPR::SP, Mode::IRQ,        0x0380FF80u);
+    m_arm7.cpu->SetGPR(arm::CPU::GPR::SP, Mode::Supervisor, 0x0380FFC0u);
+    m_arm7.cpu->SetGPR(arm::CPU::GPR::PC, header.arm7.entrypoint);
+    m_arm7.cpu->SetCPSR(static_cast<u32>(Mode::System));
 
     /**
      * This is required for direct booting commercial ROMs.
      * Thank you Hydr8gon for pointing it out to me.
      * @todo: do not write addresses that are not required.
      */
-    atom::write<u32>(m_memory.ewram.data(), 0x3FF800, 0x1FC2); // Chip ID 1
-    atom::write<u32>(m_memory.ewram.data(), 0x3FF804, 0x1FC2); // Chip ID 2
-    atom::write<u16>(m_memory.ewram.data(), 0x3FF850, 0x5835); // ARM7 BIOS CRC
-    atom::write<u16>(m_memory.ewram.data(), 0x3FF880, 0x0007); // Message from ARM9 to ARM7
-    atom::write<u16>(m_memory.ewram.data(), 0x3FF884, 0x0006); // ARM7 boot task
-    atom::write<u32>(m_memory.ewram.data(), 0x3FFC00, 0x1FC2); // Copy of chip ID 1
-    atom::write<u32>(m_memory.ewram.data(), 0x3FFC04, 0x1FC2); // Copy of chip ID 2
-    atom::write<u16>(m_memory.ewram.data(), 0x3FFC10, 0x5835); // Copy of ARM7 BIOS CRC
-    atom::write<u16>(m_memory.ewram.data(), 0x3FFC40, 0x0001); // Boot indicator
+    atom::write<u32>(m_memory.ewram.data(), 0x3FF800u, 0x1FC2u); // Chip ID 1
+    atom::write<u32>(m_memory.ewram.data(), 0x3FF804u, 0x1FC2u); // Chip ID 2
+    atom::write<u16>(m_memory.ewram.data(), 0x3FF850u, 0x5835u); // ARM7 BIOS CRC
+    atom::write<u16>(m_memory.ewram.data(), 0x3FF880u, 0x0007u); // Message from ARM9 to ARM7
+    atom::write<u16>(m_memory.ewram.data(), 0x3FF884u, 0x0006u); // ARM7 boot task
+    atom::write<u32>(m_memory.ewram.data(), 0x3FFC00u, 0x1FC2u); // Copy of chip ID 1
+    atom::write<u32>(m_memory.ewram.data(), 0x3FFC04u, 0x1FC2u); // Copy of chip ID 2
+    atom::write<u16>(m_memory.ewram.data(), 0x3FFC10u, 0x5835u); // Copy of ARM7 BIOS CRC
+    atom::write<u16>(m_memory.ewram.data(), 0x3FFC40u, 0x0001u); // Boot indicator
 
     // @todo: set ARM9 and ARM7 POSTFLG registers to one
   }

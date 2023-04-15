@@ -3,6 +3,7 @@
 
 #include <dual/arm/cpu.hpp>
 #include <dual/common/scheduler.hpp>
+#include <dual/nds/arm7/memory.hpp>
 #include <dual/nds/arm9/cp15.hpp>
 #include <dual/nds/arm9/memory.hpp>
 #include <dual/nds/rom.hpp>
@@ -36,6 +37,13 @@ namespace dual::nds {
 
         explicit ARM9(SystemMemory& memory) : bus{memory} {}
       } m_arm9{m_memory};
+
+      struct ARM7 {
+        std::unique_ptr<arm::CPU> cpu{};
+        arm7::MemoryBus bus;
+
+        explicit ARM7(SystemMemory& memory) : bus{memory} {}
+      } m_arm7{m_memory};
 
       std::shared_ptr<ROM> m_rom;
 

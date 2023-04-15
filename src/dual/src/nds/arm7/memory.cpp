@@ -17,6 +17,12 @@ namespace dual::nds::arm7 {
       case 0x02: {
         return atom::read<T>(m_ewram, address & 0x3FFFFFu);
       }
+      case 0x03: {
+        if(address & 0x00800000u) {
+          return atom::read<T>(m_iwram, address & 0xFFFFu);
+        }
+        break;
+      }
       case 0x04: {
         ATOM_ERROR("arm7: unhandled {}-bit IO read from 0x{:08X}", bit::number_of_bits<T>(), address);
         return 0;
@@ -32,6 +38,14 @@ namespace dual::nds::arm7 {
     switch(address >> 24) {
       case 0x02: {
         atom::write<T>(m_ewram, address & 0x3FFFFFu, value);
+        break;
+      }
+      case 0x03: {
+        if(address & 0x00800000u) {
+          atom::write<T>(m_iwram, address & 0xFFFFu, value);
+        } else {
+          ATOM_PANIC("arm7: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
+        }
         break;
       }
       case 0x04: {
