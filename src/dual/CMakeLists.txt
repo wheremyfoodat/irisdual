@@ -10,6 +10,7 @@ set(SOURCES
   src/common/scheduler.cpp
   src/nds/arm7/memory.cpp
   src/nds/arm9/cp15.cpp
+  src/nds/arm9/io.cpp
   src/nds/arm9/memory.cpp
   src/nds/nds.cpp
 )
