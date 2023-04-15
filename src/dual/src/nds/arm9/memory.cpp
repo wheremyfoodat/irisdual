@@ -46,6 +46,8 @@ namespace dual::nds::arm9 {
         return atom::read<T>(m_ewram, address & 0x3FFFFFu);
       }
       case 0x04: {
+        // @todo: remove hacky IO stubs
+
         // Hah, armwrestler. Such a gullible fool :p
         if(address == 0x04000004) {
           static int vblank = 0;
@@ -58,7 +60,6 @@ namespace dual::nds::arm9 {
         }
 
         if(address == 0x04000130) {
-          // @todo: remove this key input stub
           const u8* key_state = SDL_GetKeyboardState(nullptr);
 
           u16 keyinput = 0x03FFu;
@@ -77,7 +78,10 @@ namespace dual::nds::arm9 {
           return keyinput;
         }
 
-        ATOM_ERROR("arm9: unhandled {}-bit IO read from 0x{:08X}", bit::number_of_bits<T>(), address);
+        if constexpr(std::is_same_v<T, u8 >) return io.ReadByte(address);
+        if constexpr(std::is_same_v<T, u16>) return io.ReadHalf(address);
+        if constexpr(std::is_same_v<T, u32>) return io.ReadWord(address);
+
         return 0;
       }
       case 0x06: {
@@ -118,7 +122,9 @@ namespace dual::nds::arm9 {
         break;
       }
       case 0x04: {
-        ATOM_ERROR("arm9: unhandled {}-bit IO write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
+        if constexpr(std::is_same_v<T, u8 >) io.WriteByte(address, value);
+        if constexpr(std::is_same_v<T, u16>) io.WriteHalf(address, value);
+        if constexpr(std::is_same_v<T, u32>) io.WriteWord(address, value);
         break;
       }
       case 0x06: {
