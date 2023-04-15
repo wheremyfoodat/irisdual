@@ -107,9 +107,8 @@ namespace dual::nds::arm9 {
       }
       default: {
         const int access_size = GetAccessSize(mask);
-        const int access_offset = GetAccessAddressOffset(mask);
-        const u32 access_address = address + access_offset;
-        const u32 access_value = (value & mask) >> (access_offset * 8);
+        const u32 access_address = address + GetAccessAddressOffset(mask);
+        const u32 access_value = (value & mask) >> (GetAccessAddressOffset(mask) * 8);
 
         ATOM_ERROR("arm9: IO: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", access_size, access_address, access_value);
       }
