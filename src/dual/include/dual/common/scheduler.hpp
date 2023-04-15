@@ -10,7 +10,6 @@ namespace dual {
   class Scheduler {
     public:
       Scheduler();
-     ~Scheduler();
 
       template<class T>
       using EventMethod = void (T::*)(int);
@@ -19,8 +18,8 @@ namespace dual {
         std::function<void(int)> callback;
       private:
         friend class Scheduler;
-        int handle;
-        u64 timestamp;
+        int handle{};
+        u64 timestamp{};
       };
 
       u64 GetTimestampNow() const {
@@ -76,6 +75,7 @@ namespace dual {
       u64 m_timestamp_now = 0u;
       int m_heap_size = 0;
       Event* m_heap[k_event_limit]{};
+      Event  m_pool[k_event_limit]{};
   };
 
 } // namespace dual

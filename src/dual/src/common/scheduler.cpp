@@ -6,14 +6,10 @@ namespace dual {
 
   Scheduler::Scheduler() {
     for(int i = 0; i < k_event_limit; i++) {
-      m_heap[i] = new Event();
+      m_heap[i] = &m_pool[i];
       m_heap[i]->handle = i;
     }
     Reset();
-  }
-
-  Scheduler::~Scheduler() {
-    for(auto event : m_heap) delete event;
   }
 
   void Scheduler::Reset() {
