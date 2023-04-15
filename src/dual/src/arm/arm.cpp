@@ -54,8 +54,7 @@ namespace dual::arm {
         const auto condition = static_cast<Condition>(instruction >> 28);
 
         if(EvaluateCondition(condition)) {
-          int hash = ((instruction >> 16) & 0xFF0) |
-                     ((instruction >>  4) & 0x00F);
+          int hash = static_cast<int>(((instruction >> 16) & 0xFF0) | ((instruction >> 4) & 0x00F));
 
           if(condition == Condition::NV) {
             hash |= 4096;
