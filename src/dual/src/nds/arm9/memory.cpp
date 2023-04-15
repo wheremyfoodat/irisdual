@@ -1,4 +1,6 @@
 
+#include <SDL.h>
+
 #include <dual/nds/arm9/memory.hpp>
 
 namespace dual::nds::arm9 {
@@ -47,12 +49,32 @@ namespace dual::nds::arm9 {
         // Hah, armwrestler. Such a gullible fool :p
         if(address == 0x04000004) {
           static int vblank = 0;
-          vblank ^= 1;
+          static int counter = 0;
+          if(++counter == 100000) {
+            vblank ^= 1;
+            counter = 0;
+          }
           return vblank;
         }
 
         if(address == 0x04000130) {
-          return 0x03FFu;
+          // @todo: remove this key input stub
+          const u8* key_state = SDL_GetKeyboardState(nullptr);
+
+          u16 keyinput = 0x03FFu;
+
+          if(key_state[SDL_SCANCODE_A]) keyinput &= ~1u;
+          if(key_state[SDL_SCANCODE_S]) keyinput &= ~2u;
+          if(key_state[SDL_SCANCODE_BACKSPACE]) keyinput &= ~4u;
+          if(key_state[SDL_SCANCODE_RETURN]) keyinput &= ~8u;
+          if(key_state[SDL_SCANCODE_RIGHT]) keyinput &= ~16u;
+          if(key_state[SDL_SCANCODE_LEFT]) keyinput &= ~32u;
+          if(key_state[SDL_SCANCODE_UP]) keyinput &= ~64u;
+          if(key_state[SDL_SCANCODE_DOWN]) keyinput &= ~128u;
+          if(key_state[SDL_SCANCODE_F]) keyinput &= ~256u;
+          if(key_state[SDL_SCANCODE_D]) keyinput &= ~512u;
+
+          return keyinput;
         }
 
         ATOM_ERROR("arm9: unhandled {}-bit IO read from 0x{:08X}", bit::number_of_bits<T>(), address);
