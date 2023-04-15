@@ -45,6 +45,7 @@ namespace dual::arm {
 
       void SetIRQFlag(bool value) override {
         irq_line = value;
+        wait_for_irq &= !value;
       }
 
       u32 GetGPR(GPR reg) const override {

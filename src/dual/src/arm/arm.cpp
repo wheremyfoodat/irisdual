@@ -27,12 +27,14 @@ namespace dual::arm {
   }
 
   void ARM::Run(int cycles) {
-    if(GetWaitingForIRQ() && !GetIRQFlag()) {
+    if(GetWaitingForIRQ()) {
       return;
     }
 
     while(cycles-- > 0) {
-      if(GetIRQFlag()) SignalIRQ();
+      if(GetIRQFlag()) {
+        SignalIRQ();
+      }
 
       const u32 instruction = opcode[0];
 
@@ -61,7 +63,9 @@ namespace dual::arm {
 
           (this->*s_opcode_lut_32[hash])(instruction);
 
-          if(GetWaitingForIRQ()) return;
+          if(GetWaitingForIRQ()) {
+            return;
+          }
         } else {
           state.r15 += 4;
         }
@@ -70,8 +74,6 @@ namespace dual::arm {
   }
 
   void ARM::SignalIRQ() {
-    wait_for_irq = false;
-
     if(state.cpsr.mask_irq) {
       return;
     }
