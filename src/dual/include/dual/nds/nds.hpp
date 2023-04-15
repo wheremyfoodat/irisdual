@@ -20,6 +20,10 @@ namespace dual::nds {
       void LoadROM(std::shared_ptr<ROM> rom);
       void DirectBoot();
 
+      SystemMemory& GetSystemMemory() {
+        return m_memory;
+      }
+
     private:
       Scheduler m_scheduler{};
 

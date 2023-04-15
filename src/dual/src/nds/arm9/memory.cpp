@@ -5,7 +5,9 @@ namespace dual::nds::arm9 {
 
   namespace bit = atom::bit;
 
-  MemoryBus::MemoryBus(SystemMemory& memory) : m_ewram{memory.ewram.data()} {
+  MemoryBus::MemoryBus(SystemMemory& memory)
+      : m_ewram{memory.ewram.data()}
+      , m_lcdc_vram_hack{memory.lcdc_vram_hack.data()} {
     m_dtcm.data = memory.arm9.dtcm.data();
     m_itcm.data = memory.arm9.itcm.data();
   }
@@ -49,7 +51,17 @@ namespace dual::nds::arm9 {
           return vblank;
         }
 
+        if(address == 0x04000130) {
+          return 0x03FFu;
+        }
+
         ATOM_ERROR("arm9: unhandled {}-bit IO read from 0x{:08X}", bit::number_of_bits<T>(), address);
+        return 0;
+      }
+      case 0x06: {
+        if(address >= 0x06800000 && address < 0x06818000) {
+          return atom::read<T>(m_lcdc_vram_hack, address - 0x06800000);
+        }
         return 0;
       }
     }
@@ -85,6 +97,12 @@ namespace dual::nds::arm9 {
       }
       case 0x04: {
         ATOM_ERROR("arm9: unhandled {}-bit IO write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
+        break;
+      }
+      case 0x06: {
+        if(address >= 0x06800000 && address < 0x06818000) {
+          atom::write<T>(m_lcdc_vram_hack, address - 0x06800000, value);
+        }
         break;
       }
       default: {

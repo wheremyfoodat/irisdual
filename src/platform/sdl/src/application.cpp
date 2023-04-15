@@ -80,6 +80,10 @@ void Application::MainLoop() {
 
   SDL_Event event;
 
+  u16* vram = (u16*)m_nds->GetSystemMemory().lcdc_vram_hack.data();
+
+  u32 framebuffer[256 * 192];
+
   while(true) {
     while(SDL_PollEvent(&event)) {
       if(event.type == SDL_QUIT) {
@@ -88,6 +92,18 @@ void Application::MainLoop() {
     }
 
     m_nds->Step(559241);
+
+    for(int i = 0; i < 256 * 192; i++) {
+      const u16 rgb555 = vram[i];
+
+      const int r = (rgb555 >>  0) & 31;
+      const int g = (rgb555 >>  5) & 31;
+      const int b = (rgb555 >> 10) & 31;
+
+      framebuffer[i] = 0xFF000000 | r << 19 | g << 11 | b << 3;
+    }
+
+    SDL_UpdateTexture(m_textures[0], nullptr, framebuffer, 256 * sizeof(u32));
 
     SDL_RenderClear(m_renderer);
     SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &rects[0]);

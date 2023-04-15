@@ -8,6 +8,7 @@ namespace dual::nds {
 
   struct SystemMemory {
     std::array<u8, 0x400000> ewram{};
+    std::array<u8, 0x18000> lcdc_vram_hack{};
 
     struct ARM9 {
       std::array<u8, 0x8000> bios{};
