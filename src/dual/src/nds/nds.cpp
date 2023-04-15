@@ -9,6 +9,8 @@ namespace dual::nds {
 
   NDS::NDS() {
     m_arm9.cpu = std::make_unique<arm::ARM>(&m_arm9.bus, arm::CPU::Model::ARM9);
+    m_arm9.cp15 = std::make_unique<arm9::CP15>(m_arm9.cpu.get(), &m_arm9.bus);
+    m_arm9.cpu->SetCoprocessor(15, m_arm9.cp15.get());
   }
 
   void NDS::Reset() {
@@ -90,6 +92,8 @@ namespace dual::nds {
     m_arm9.cpu->SetGPR(arm::CPU::GPR::SP, Mode::System, 0x03003FC0);
     m_arm9.cpu->SetGPR(arm::CPU::GPR::PC, header.arm9.entrypoint);
     m_arm9.cpu->SetCPSR(static_cast<u32>(Mode::System));
+
+    m_arm9.cp15->DirectBoot();
 
     /**
      * This is required for direct booting commercial ROMs.
