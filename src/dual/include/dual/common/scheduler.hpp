@@ -39,10 +39,10 @@ namespace dual {
 
       void AddCycles(int cycles) {
         m_timestamp_now += cycles;
+        Step();
       }
 
       void Reset();
-      void Step();
       auto Add(u64 delay, std::function<void(int)> callback) -> Event*;
       void Cancel(Event* event) { Remove(event->handle); }
 
@@ -68,6 +68,7 @@ namespace dual {
         return n * 2 + 2;
       }
 
+      void Step();
       void Remove(int n);
       void Swap(int i, int j);
       void Heapify(int n);

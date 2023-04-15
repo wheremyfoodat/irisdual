@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <atom/punning.hpp>
 #include <dual/nds/nds.hpp>
 #include <dual/nds/header.hpp>
@@ -14,17 +15,32 @@ namespace dual::nds {
   }
 
   void NDS::Reset() {
+    m_scheduler.Reset();
+
     m_memory.ewram.fill(0);
     m_memory.arm9.dtcm.fill(0);
     m_memory.arm9.itcm.fill(0);
     m_memory.arm7.iwram.fill(0);
 
-    m_arm9.cpu->SetExceptionBase(0xFFFF0000); // @todo: reset CP15 instead
+    m_arm9.cp15->Reset();
     m_arm9.cpu->Reset();
+
+    m_step_target = 0u;
   }
 
-  void NDS::Step(int cycles) {
-    m_arm9.cpu->Run(cycles);
+  void NDS::Step(int cycles_to_run) {
+    const u64 step_target = m_step_target + cycles_to_run;
+
+    while(m_scheduler.GetTimestampNow() < step_target) {
+      const u64 target = std::min(m_scheduler.GetTimestampTarget(), step_target);
+      const int cycles = static_cast<int>(target - m_scheduler.GetTimestampNow());
+
+      m_arm9.cpu->Run(cycles * 2);
+
+      m_scheduler.AddCycles(cycles);
+    }
+
+    m_step_target = step_target;
   }
 
   void NDS::LoadROM(std::shared_ptr<ROM> rom) {
