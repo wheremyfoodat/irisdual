@@ -42,6 +42,13 @@ namespace dual::nds::arm9 {
         return atom::read<T>(m_ewram, address & 0x3FFFFFu);
       }
       case 0x04: {
+        // Hah, armwrestler. Such a gullible fool :p
+        if(address == 0x04000004) {
+          static int vblank = 0;
+          vblank ^= 1;
+          return vblank;
+        }
+
         ATOM_ERROR("arm9: unhandled {}-bit IO read from 0x{:08X}", bit::number_of_bits<T>(), address);
         return 0;
       }
@@ -70,7 +77,6 @@ namespace dual::nds::arm9 {
       atom::write<T>(m_dtcm.data, (address - m_dtcm.config.base_address) & 0x3FFFu, value);
       return;
     }
-
 
     switch(address >> 24) {
       case 0x02: {
