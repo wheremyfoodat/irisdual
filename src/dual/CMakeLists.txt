@@ -8,6 +8,7 @@ set(SOURCES
   src/arm/tablegen/tablegen.cpp
   src/arm/arm.cpp
   src/common/scheduler.cpp
+  src/nds/arm7/memory.cpp
   src/nds/arm9/cp15.cpp
   src/nds/arm9/memory.cpp
   src/nds/nds.cpp
@@ -29,6 +30,7 @@ set(HEADERS_PUBLIC
   include/dual/arm/cpu.hpp
   include/dual/arm/memory.hpp
   include/dual/common/scheduler.hpp
+  include/dual/nds/arm7/memory.hpp
   include/dual/nds/arm9/cp15.hpp
   include/dual/nds/arm9/memory.hpp
   include/dual/nds/header.hpp
