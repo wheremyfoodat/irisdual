@@ -87,6 +87,20 @@ namespace dual::nds::arm7 {
         return hw.ipc.m_io.ipcsync.ReadWord(IPC::CPU::ARM7);
       }
 
+      // IRQ
+      case REG(0x04000208): {
+        // IME
+        return hw.irq.ReadIME();
+      }
+      case REG(0x04000210): {
+        // IE
+        return hw.irq.ReadIE();
+      }
+      case REG(0x04000214): {
+        // IF
+        return hw.irq.ReadIF();
+      }
+
       default: {
         const int access_size = GetAccessSize(mask);
         const u32 access_address = address + GetAccessAddressOffset(mask);
@@ -104,6 +118,23 @@ namespace dual::nds::arm7 {
       case REG(0x04000180): {
         // IPCSYNC
         hw.ipc.m_io.ipcsync.WriteWord(IPC::CPU::ARM7, value, mask);
+        break;
+      }
+
+      // IRQ
+      case REG(0x04000208): {
+        // IME
+        hw.irq.WriteIME(value, mask);
+        break;
+      }
+      case REG(0x04000210): {
+        // IE
+        hw.irq.WriteIE(value, mask);
+        break;
+      }
+      case REG(0x04000214): {
+        // IF
+        hw.irq.WriteIF(value, mask);
         break;
       }
 

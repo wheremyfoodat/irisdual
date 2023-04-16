@@ -142,6 +142,10 @@ namespace dual::nds::arm9 {
         break;
       }
       default: {
+        if(address == 0x08005500 && value == 0x08005500) {
+          break; // weird rockwrestler write
+        }
+
         ATOM_PANIC("arm9: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
       }
     }

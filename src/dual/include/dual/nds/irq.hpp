@@ -3,6 +3,7 @@
 
 #include <atom/integer.hpp>
 #include <atom/panic.hpp>
+#include <dual/arm/cpu.hpp>
 
 namespace dual::nds {
 
@@ -30,14 +31,31 @@ namespace dual::nds {
         SPI = 1 << 23
       };
 
-      void Reset() {
-        // @todo
-      }
+      explicit IRQ(bool arm9) : m_arm9{arm9} {}
 
-      void Raise(Source source) {
-        // @todo
-        ATOM_PANIC("IRQ: raised interrupt: 0x{:08X}", (u32)source);
-      }
+      void Reset();
+      void SetCPU(arm::CPU* cpu);
+      void Raise(Source source);
+
+      u32  ReadIME();
+      void WriteIME(u32 value, u32 mask);
+
+      u32  ReadIE();
+      void WriteIE(u32 value, u32 mask);
+
+      u32  ReadIF();
+      void WriteIF(u32 value, u32 mask);
+
+    private:
+
+      void UpdateIRQLine();
+
+      bool m_arm9;
+      arm::CPU* m_cpu{};
+
+      u32 m_reg_ime{};
+      u32 m_reg_ie{};
+      u32 m_reg_if{};
   };
 
 } // namespace dual::nds

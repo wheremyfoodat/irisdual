@@ -39,18 +39,18 @@ namespace dual::nds {
         std::unique_ptr<arm::CPU> cpu{};
         std::unique_ptr<arm9::CP15> cp15{};
         arm9::MemoryBus bus;
-        IRQ irq;
+        IRQ irq{true};
 
-        ARM9(SystemMemory& memory, arm9::MemoryBus::HW const& hw) : bus{memory, hw} {}
-      } m_arm9{m_memory, {m_ipc}};
+        ARM9(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc}} {}
+      } m_arm9{m_memory, m_ipc};
 
       struct ARM7 {
         std::unique_ptr<arm::CPU> cpu{};
         arm7::MemoryBus bus;
-        IRQ irq;
+        IRQ irq{false};
 
-        ARM7(SystemMemory& memory, arm7::MemoryBus::HW const& hw) : bus{memory, hw} {}
-      } m_arm7{m_memory, {m_ipc}};
+        ARM7(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc}} {}
+      } m_arm7{m_memory, m_ipc};
 
       IPC m_ipc{m_arm9.irq, m_arm7.irq};
 

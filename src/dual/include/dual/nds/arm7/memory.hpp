@@ -7,6 +7,7 @@
 #include <atom/panic.hpp>
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
+#include <dual/nds/irq.hpp>
 #include <dual/nds/ipc.hpp>
 #include <dual/nds/system_memory.hpp>
 
@@ -15,6 +16,7 @@ namespace dual::nds::arm7 {
   class MemoryBus final : public dual::arm::Memory {
     public:
       struct HW {
+        IRQ& irq;
         IPC& ipc;
       };
 
