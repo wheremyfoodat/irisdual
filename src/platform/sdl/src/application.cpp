@@ -21,7 +21,7 @@ Application::~Application() {
 int Application::Run(int argc, char **argv) {
   CreateWindow();
   if(argc < 2) {
-    LoadROM("armwrestler.nds");
+    LoadROM("rockwrestler.nds");
   } else {
     LoadROM(argv[1]);
   }

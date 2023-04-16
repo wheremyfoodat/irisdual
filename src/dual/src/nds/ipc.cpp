@@ -16,23 +16,20 @@ namespace dual::nds {
   }
 
   u32 IPC::IO::IPCSYNC::ReadWord(CPU cpu) {
-    auto& sync_tx = self->m_sync[(int)cpu];
-    auto& sync_rx = self->m_sync[(int)cpu ^ 1];
-
-    return sync_rx.send | (sync_tx.enable_irq_from_remote ? 0x4000u : 0u);
+    return self->m_sync[(int)cpu].word;
   }
 
   void IPC::IO::IPCSYNC::WriteWord(CPU cpu, u32 value, u32 mask) {
     auto& sync_tx = self->m_sync[(int)cpu];
     auto& sync_rx = self->m_sync[(int)cpu ^ 1];
 
-    if(mask & 0xFF00u) {
-      sync_tx.send = (value >> 8) & 0xFu;
-      sync_tx.enable_irq_from_remote = value & (1 << 14);
+    const u32 write_mask = 0x4F00u & mask;
 
-      if(sync_rx.enable_irq_from_remote) {
-        self->m_irq[(int)cpu ^ 1]->Raise(IRQ::Source::IPC_Sync);
-      }
+    sync_tx.word = (value & write_mask) | (sync_tx.word & ~write_mask);
+    sync_rx.recv = sync_tx.send;
+
+    if(((value & mask) & 0x2000u) && sync_rx.enable_remote_irq) {
+      self->m_irq[(int)cpu ^ 1]->Raise(IRQ::Source::IPC_Sync);
     }
   }
 
