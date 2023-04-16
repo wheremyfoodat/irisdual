@@ -3,6 +3,7 @@
 
 #include <atom/bit.hpp>
 #include <dual/common/fifo.hpp>
+#include <dual/nds/enums.hpp>
 #include <dual/nds/irq.hpp>
 
 namespace dual::nds {
@@ -10,11 +11,6 @@ namespace dual::nds {
   // Inter-Process Communication hardware for ARM9 and ARM7 synchronization and message passing.
   class IPC {
     public:
-      enum CPU {
-        ARM7 = 0,
-        ARM9 = 1
-      };
-
       IPC(IRQ& irq9, IRQ& irq7);
 
       void Reset();
@@ -29,10 +25,6 @@ namespace dual::nds {
       void Write_FIFOSEND(CPU cpu, u32 value);
 
     private:
-      static constexpr auto GetCPUName(CPU cpu) {
-        return cpu == CPU::ARM9 ? "arm9" : "arm7";
-      }
-
       union IPCSYNC {
         atom::Bits< 0, 4, u32> recv;
         atom::Bits< 8, 4, u32> send;

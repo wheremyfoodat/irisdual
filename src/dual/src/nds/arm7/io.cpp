@@ -82,9 +82,9 @@ namespace dual::nds::arm7 {
 
     switch(REG(address)) {
       // IPC
-      case REG(0x04000180): return hw.ipc.Read_SYNC(IPC::CPU::ARM7);
-      case REG(0x04000184): return hw.ipc.Read_FIFOCNT(IPC::CPU::ARM7);
-      case REG(0x04100000): return hw.ipc.Read_FIFORECV(IPC::CPU::ARM7);
+      case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM7);
+      case REG(0x04000184): return hw.ipc.Read_FIFOCNT(CPU::ARM7);
+      case REG(0x04100000): return hw.ipc.Read_FIFORECV(CPU::ARM7);
 
       // IRQ
       case REG(0x04000208): return hw.irq.Read_IME();
@@ -105,9 +105,9 @@ namespace dual::nds::arm7 {
   template<u32 mask> void MemoryBus::IO::WriteWord(u32 address, u32 value) {
     switch(REG(address)) {
       // IPC
-      case REG(0x04000180): hw.ipc.Write_SYNC(IPC::CPU::ARM7, value, mask); break;
-      case REG(0x04000184): hw.ipc.Write_FIFOCNT(IPC::CPU::ARM7, value, mask); break;
-      case REG(0x04000188): hw.ipc.Write_FIFOSEND(IPC::CPU::ARM7, value); break;
+      case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM7, value, mask); break;
+      case REG(0x04000184): hw.ipc.Write_FIFOCNT(CPU::ARM7, value, mask); break;
+      case REG(0x04000188): hw.ipc.Write_FIFOSEND(CPU::ARM7, value); break;
 
       // IRQ
       case REG(0x04000208): hw.irq.Write_IME(value, mask); break;

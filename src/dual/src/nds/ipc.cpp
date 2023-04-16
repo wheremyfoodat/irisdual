@@ -81,12 +81,12 @@ namespace dual::nds {
     auto& fifo_rx = m_fifo[(int)cpu ^ 1];
 
     if(!fifo_tx.control.enable) {
-      ATOM_ERROR("{}: IPC: attempted to read FIFO but FIFOs are disabled", GetCPUName(cpu));
+      ATOM_ERROR("{}: IPC: attempted to read FIFO but FIFOs are disabled", cpu);
       return fifo_rx.send.Peek();
     }
 
     if(fifo_rx.send.IsEmpty()) {
-      ATOM_ERROR("{}: IPC: attempted to read an empty FIFO", GetCPUName(cpu));
+      ATOM_ERROR("{}: IPC: attempted to read an empty FIFO", cpu);
       fifo_tx.control.error_flag = 1u;
       return fifo_tx.latch;
     }
@@ -105,13 +105,13 @@ namespace dual::nds {
     auto& fifo_rx = m_fifo[(int)cpu ^ 1];
 
     if(!fifo_tx.control.enable) {
-      ATOM_ERROR("{}: IPC: attempted to write FIFO but FIFOs are disabled", GetCPUName(cpu));
+      ATOM_ERROR("{}: IPC: attempted to write FIFO but FIFOs are disabled", cpu);
       return;
     }
 
     if(fifo_tx.send.IsFull()) {
       fifo_tx.control.error_flag = 1u;
-      ATOM_ERROR("{}: IPC: attempted to write to an already full FIFO", GetCPUName(cpu));
+      ATOM_ERROR("{}: IPC: attempted to write to an already full FIFO", cpu);
       return;
     }
 
