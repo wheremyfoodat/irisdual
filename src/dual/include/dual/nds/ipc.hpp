@@ -29,30 +29,32 @@ namespace dual::nds {
       void Write_FIFOSEND(CPU cpu, u32 value);
 
     private:
-
       static constexpr auto GetCPUName(CPU cpu) {
         return cpu == CPU::ARM9 ? "arm9" : "arm7";
       }
 
-      union {
+      union IPCSYNC {
         atom::Bits< 0, 4, u32> recv;
         atom::Bits< 8, 4, u32> send;
         atom::Bits<14, 1, u32> enable_remote_irq;
 
         u32 word = 0u;
-      } m_ipcsync[2];
+      } m_sync[2];
 
-      union {
-        atom::Bits< 2, 1, u32> enable_send_fifo_irq;
-        atom::Bits<10, 1, u32> enable_recv_fifo_irq;
-        atom::Bits<14, 1, u32> error_flag;
-        atom::Bits<15, 1, u32> enable;
+      struct IPCFIFO {
+        FIFO<u32, 16> send{};
 
-        u32 word = 0u;
-      } m_ipcfifocnt[2];
+        u32 latch = 0u;
 
-      FIFO<u32, 16> m_fifo[2];
-      u32 m_fifo_latch[2];
+        union {
+          atom::Bits< 2, 1, u32> enable_send_fifo_irq;
+          atom::Bits<10, 1, u32> enable_recv_fifo_irq;
+          atom::Bits<14, 1, u32> error_flag;
+          atom::Bits<15, 1, u32> enable;
+
+          u32 word = 0u;
+        } control{};
+      } m_fifo[2];
 
       IRQ* m_irq[2]{};
   };
