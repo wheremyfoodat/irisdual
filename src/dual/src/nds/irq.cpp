@@ -18,11 +18,11 @@ namespace dual::nds {
     UpdateIRQLine();
   }
 
-  u32 IRQ::ReadIME() {
+  u32 IRQ::Read_IME() {
     return m_reg_ime;
   }
 
-  void IRQ::WriteIME(u32 value, u32 mask) {
+  void IRQ::Write_IME(u32 value, u32 mask) {
     const u32 write_mask = 1u & mask;
 
     m_reg_ime = (value & write_mask) | (m_reg_ime & ~write_mask);
@@ -30,23 +30,23 @@ namespace dual::nds {
     UpdateIRQLine();
   }
 
-  u32 IRQ::ReadIE() {
+  u32 IRQ::Read_IE() {
     return m_reg_ie;
   }
 
-  void IRQ::WriteIE(u32 value, u32 mask) {
-    const u32 write_mask = (m_arm9 ? 0xFFFFFF7Fu : 0xFFFFFFFF) & mask;
+  void IRQ::Write_IE(u32 value, u32 mask) {
+    const u32 write_mask = (m_arm9 ? 0xFFFFFF7Fu : 0xFFFFFFFFu) & mask;
 
     m_reg_ie = (value & write_mask) | (m_reg_ie & ~write_mask);
 
     UpdateIRQLine();
   }
 
-  u32 IRQ::ReadIF() {
+  u32 IRQ::Read_IF() {
     return m_reg_if;
   }
 
-  void IRQ::WriteIF(u32 value, u32 mask) {
+  void IRQ::Write_IF(u32 value, u32 mask) {
     m_reg_if &= ~(value & mask);
 
     UpdateIRQLine();

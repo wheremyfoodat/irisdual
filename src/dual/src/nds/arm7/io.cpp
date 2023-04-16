@@ -84,21 +84,21 @@ namespace dual::nds::arm7 {
       // IPC
       case REG(0x04000180): {
         // IPCSYNC
-        return hw.ipc.m_io.ipcsync.ReadWord(IPC::CPU::ARM7);
+        return hw.ipc.Read_IPCSYNC(IPC::CPU::ARM7);
       }
 
       // IRQ
       case REG(0x04000208): {
         // IME
-        return hw.irq.ReadIME();
+        return hw.irq.Read_IME();
       }
       case REG(0x04000210): {
         // IE
-        return hw.irq.ReadIE();
+        return hw.irq.Read_IE();
       }
       case REG(0x04000214): {
         // IF
-        return hw.irq.ReadIF();
+        return hw.irq.Read_IF();
       }
 
       default: {
@@ -117,24 +117,24 @@ namespace dual::nds::arm7 {
       // IPC
       case REG(0x04000180): {
         // IPCSYNC
-        hw.ipc.m_io.ipcsync.WriteWord(IPC::CPU::ARM7, value, mask);
+        hw.ipc.Write_IPCSYNC(IPC::CPU::ARM7, value, mask);
         break;
       }
 
       // IRQ
       case REG(0x04000208): {
         // IME
-        hw.irq.WriteIME(value, mask);
+        hw.irq.Write_IME(value, mask);
         break;
       }
       case REG(0x04000210): {
         // IE
-        hw.irq.WriteIE(value, mask);
+        hw.irq.Write_IE(value, mask);
         break;
       }
       case REG(0x04000214): {
         // IF
-        hw.irq.WriteIF(value, mask);
+        hw.irq.Write_IF(value, mask);
         break;
       }
 

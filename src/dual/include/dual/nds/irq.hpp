@@ -37,14 +37,14 @@ namespace dual::nds {
       void SetCPU(arm::CPU* cpu);
       void Raise(Source source);
 
-      u32  ReadIME();
-      void WriteIME(u32 value, u32 mask);
+      u32   Read_IME();
+      void Write_IME(u32 value, u32 mask);
 
-      u32  ReadIE();
-      void WriteIE(u32 value, u32 mask);
+      u32   Read_IE();
+      void Write_IE(u32 value, u32 mask);
 
-      u32  ReadIF();
-      void WriteIF(u32 value, u32 mask);
+      u32   Read_IF();
+      void Write_IF(u32 value, u32 mask);
 
     private:
 

@@ -18,14 +18,8 @@ namespace dual::nds {
 
       void Reset();
 
-      struct IO {
-        struct IPCSYNC {
-          IPC* self{};
-
-          u32  ReadWord(CPU cpu);
-          void WriteWord(CPU cpu, u32 value, u32 mask);
-        } ipcsync{};
-      } m_io;
+      u32   Read_IPCSYNC(CPU cpu);
+      void Write_IPCSYNC(CPU cpu, u32 value, u32 mask);
 
     private:
 
@@ -35,7 +29,7 @@ namespace dual::nds {
         atom::Bits<14, 1, u32> enable_remote_irq;
 
         u32 word = 0u;
-      } m_sync[2];
+      } m_ipcsync[2];
 
       IRQ* m_irq[2]{};
   };
