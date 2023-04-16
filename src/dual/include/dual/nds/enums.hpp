@@ -10,6 +10,10 @@ namespace dual::nds {
     ARM9 = 1
   };
 
+  constexpr CPU operator~(CPU cpu) {
+    return (CPU)((int)cpu ^ 1);
+  }
+
 } // namespace dual::nds
 
 template<> struct fmt::formatter<dual::nds::CPU> : formatter<std::string_view> {

@@ -21,20 +21,20 @@ namespace dual::nds {
   void IPC::Write_SYNC(CPU cpu, u32 value, u32 mask) {
     const u32 write_mask = 0x4F00u & mask;
 
-    auto& sync_tx = m_sync[(int)cpu];
-    auto& sync_rx = m_sync[(int)cpu ^ 1];
+    auto& sync_tx = m_sync[(int) cpu];
+    auto& sync_rx = m_sync[(int)~cpu];
 
     sync_tx.word = (value & write_mask) | (sync_tx.word & ~write_mask);
     sync_rx.recv = sync_tx.send;
 
     if(((value & mask) & 0x2000u) && sync_rx.enable_remote_irq) {
-      m_irq[(int)cpu ^ 1]->Raise(IRQ::Source::IPC_Sync);
+      m_irq[(int)~cpu]->Raise(IRQ::Source::IPC_Sync);
     }
   }
 
   u32 IPC::Read_FIFOCNT(CPU cpu) {
-    auto const& fifo_tx = m_fifo[(int)cpu];
-    auto const& fifo_rx = m_fifo[(int)cpu ^ 1];
+    auto const& fifo_tx = m_fifo[(int) cpu];
+    auto const& fifo_rx = m_fifo[(int)~cpu];
 
     u32 word = fifo_tx.control.word;
 
@@ -49,8 +49,8 @@ namespace dual::nds {
   void IPC::Write_FIFOCNT(CPU cpu, u32 value, u32 mask) {
     const u32 write_mask = 0x8404u & mask;
 
-    auto& fifo_tx = m_fifo[(int)cpu];
-    auto& fifo_rx = m_fifo[(int)cpu ^ 1];
+    auto& fifo_tx = m_fifo[(int) cpu];
+    auto& fifo_rx = m_fifo[(int)~cpu];
 
     auto& control = fifo_tx.control;
 
@@ -77,8 +77,8 @@ namespace dual::nds {
   }
 
   u32 IPC::Read_FIFORECV(CPU cpu) {
-    auto& fifo_tx = m_fifo[(int)cpu];
-    auto& fifo_rx = m_fifo[(int)cpu ^ 1];
+    auto& fifo_tx = m_fifo[(int) cpu];
+    auto& fifo_rx = m_fifo[(int)~cpu];
 
     if(!fifo_tx.control.enable) {
       ATOM_ERROR("{}: IPC: attempted to read FIFO but FIFOs are disabled", cpu);
@@ -94,15 +94,15 @@ namespace dual::nds {
     fifo_tx.latch = fifo_rx.send.Read();
 
     if(fifo_rx.send.IsEmpty() && fifo_rx.control.enable_send_fifo_irq) {
-      m_irq[(int)cpu ^ 1]->Raise(IRQ::Source::IPC_SendEmpty);
+      m_irq[(int)~cpu]->Raise(IRQ::Source::IPC_SendEmpty);
     }
 
     return fifo_tx.latch;
   }
 
   void IPC::Write_FIFOSEND(CPU cpu, u32 value) {
-    auto& fifo_tx = m_fifo[(int)cpu];
-    auto& fifo_rx = m_fifo[(int)cpu ^ 1];
+    auto& fifo_tx = m_fifo[(int) cpu];
+    auto& fifo_rx = m_fifo[(int)~cpu];
 
     if(!fifo_tx.control.enable) {
       ATOM_ERROR("{}: IPC: attempted to write FIFO but FIFOs are disabled", cpu);
@@ -116,7 +116,7 @@ namespace dual::nds {
     }
 
     if(fifo_tx.send.IsEmpty() && fifo_rx.control.enable_recv_fifo_irq) {
-      m_irq[(int)cpu ^ 1]->Raise(IRQ::Source::IPC_ReceiveNotEmpty);
+      m_irq[(int)~cpu]->Raise(IRQ::Source::IPC_ReceiveNotEmpty);
     }
 
     fifo_tx.send.Write(value);
