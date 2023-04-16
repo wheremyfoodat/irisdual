@@ -13,11 +13,11 @@ namespace dual::nds {
     for(auto& ipcsync : m_ipcsync) ipcsync = {};
   }
 
-  u32 IPC::Read_IPCSYNC(CPU cpu) {
+  u32 IPC::Read_SYNC(CPU cpu) {
     return m_ipcsync[(int)cpu].word;
   }
 
-  void IPC::Write_IPCSYNC(CPU cpu, u32 value, u32 mask) {
+  void IPC::Write_SYNC(CPU cpu, u32 value, u32 mask) {
     const u32 write_mask = 0x4F00u & mask;
 
     auto& sync_tx = m_ipcsync[(int)cpu];

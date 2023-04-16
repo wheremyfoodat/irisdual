@@ -82,24 +82,12 @@ namespace dual::nds::arm7 {
 
     switch(REG(address)) {
       // IPC
-      case REG(0x04000180): {
-        // IPCSYNC
-        return hw.ipc.Read_IPCSYNC(IPC::CPU::ARM7);
-      }
+      case REG(0x04000180): return hw.ipc.Read_SYNC(IPC::CPU::ARM7);
 
       // IRQ
-      case REG(0x04000208): {
-        // IME
-        return hw.irq.Read_IME();
-      }
-      case REG(0x04000210): {
-        // IE
-        return hw.irq.Read_IE();
-      }
-      case REG(0x04000214): {
-        // IF
-        return hw.irq.Read_IF();
-      }
+      case REG(0x04000208): return hw.irq.Read_IME();
+      case REG(0x04000210): return hw.irq.Read_IE();
+      case REG(0x04000214): return hw.irq.Read_IF();
 
       default: {
         const int access_size = GetAccessSize(mask);
@@ -115,28 +103,12 @@ namespace dual::nds::arm7 {
   template<u32 mask> void MemoryBus::IO::WriteWord(u32 address, u32 value) {
     switch(REG(address)) {
       // IPC
-      case REG(0x04000180): {
-        // IPCSYNC
-        hw.ipc.Write_IPCSYNC(IPC::CPU::ARM7, value, mask);
-        break;
-      }
+      case REG(0x04000180): hw.ipc.Write_SYNC(IPC::CPU::ARM7, value, mask); break;
 
       // IRQ
-      case REG(0x04000208): {
-        // IME
-        hw.irq.Write_IME(value, mask);
-        break;
-      }
-      case REG(0x04000210): {
-        // IE
-        hw.irq.Write_IE(value, mask);
-        break;
-      }
-      case REG(0x04000214): {
-        // IF
-        hw.irq.Write_IF(value, mask);
-        break;
-      }
+      case REG(0x04000208): hw.irq.Write_IME(value, mask); break;
+      case REG(0x04000210): hw.irq.Write_IE(value, mask); break;
+      case REG(0x04000214): hw.irq.Write_IF(value, mask); break;
 
       default: {
         const int access_size = GetAccessSize(mask);

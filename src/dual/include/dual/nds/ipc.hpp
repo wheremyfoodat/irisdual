@@ -18,8 +18,8 @@ namespace dual::nds {
 
       void Reset();
 
-      u32   Read_IPCSYNC(CPU cpu);
-      void Write_IPCSYNC(CPU cpu, u32 value, u32 mask);
+      u32   Read_SYNC(CPU cpu);
+      void Write_SYNC(CPU cpu, u32 value, u32 mask);
 
     private:
 
