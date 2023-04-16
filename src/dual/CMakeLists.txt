@@ -33,6 +33,7 @@ set(HEADERS_PUBLIC
   include/dual/arm/coprocessor.hpp
   include/dual/arm/cpu.hpp
   include/dual/arm/memory.hpp
+  include/dual/common/fifo.hpp
   include/dual/common/scheduler.hpp
   include/dual/nds/arm7/memory.hpp
   include/dual/nds/arm9/cp15.hpp
