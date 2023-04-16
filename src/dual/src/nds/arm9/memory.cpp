@@ -8,7 +8,8 @@ namespace dual::nds::arm9 {
   namespace bit = atom::bit;
 
   MemoryBus::MemoryBus(SystemMemory& memory, HW const& hw)
-      : m_ewram{memory.ewram.data()}
+      : m_boot_rom{memory.arm9.bios.data()}
+      , m_ewram{memory.ewram.data()}
       , m_lcdc_vram_hack{memory.lcdc_vram_hack.data()}
       , m_io{hw} {
     m_dtcm.data = memory.arm9.dtcm.data();
@@ -83,13 +84,19 @@ namespace dual::nds::arm9 {
         if constexpr(std::is_same_v<T, u16>) return m_io.ReadHalf(address);
         if constexpr(std::is_same_v<T, u32>) return m_io.ReadWord(address);
 
-        return 0;
+        return 0u;
       }
       case 0x06: {
         if(address >= 0x06800000 && address < 0x06818000) {
-          return atom::read<T>(m_lcdc_vram_hack, address - 0x06800000);
+          return atom::read<T>(m_lcdc_vram_hack, address - 0x06800000u);
         }
-        return 0;
+        return 0u;
+      }
+      case 0xFF: {
+        if(address >= 0xFFFF0000u) {
+          return atom::read<T>(m_boot_rom, address & 0x7FFFu);
+        }
+        return 0u;
       }
     }
 

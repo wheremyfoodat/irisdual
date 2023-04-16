@@ -25,6 +25,8 @@ int Application::Run(int argc, char **argv) {
   } else {
     LoadROM(argv[1]);
   }
+  LoadBootROM("boot9.bin", true);
+  LoadBootROM("boot7.bin", false);
   MainLoop();
   return 0;
 }
@@ -68,8 +70,40 @@ void Application::LoadROM(const char* path) {
 
   m_nds->LoadROM(std::make_shared<dual::nds::MemoryROM>(data, size));
   m_nds->DirectBoot();
+}
 
-  ATOM_TRACE("Successfully loaded '{}'!", path);
+void Application::LoadBootROM(const char* path, bool arm9) {
+  const size_t maximum_size = arm9 ? 0x8000 : 0x4000;
+
+  std::ifstream file{path, std::ios::binary};
+
+  if(!file.good()) {
+    ATOM_PANIC("Failed to open boot ROM: '{}'", path);
+  }
+
+  size_t size;
+
+  file.seekg(0, std::ios::end);
+  size = file.tellg();
+  file.seekg(0);
+
+  if(size > maximum_size) {
+    ATOM_PANIC("Boot ROM is too big, expected {} bytes but got {} bytes", maximum_size, size);
+  }
+
+  std::array<u8, 0x8000> boot_rom{};
+
+  file.read((char*)boot_rom.data(), static_cast<std::streamsize>(size));
+
+  if(!file.good()) {
+    ATOM_PANIC("Failed to read Boot ROM: '{}'", path);
+  }
+
+  if(arm9) {
+    m_nds->LoadBootROM9(boot_rom);
+  } else {
+    m_nds->LoadBootROM7(std::span<u8, 0x4000>{boot_rom.data(), 0x4000});
+  }
 }
 
 void Application::MainLoop() {

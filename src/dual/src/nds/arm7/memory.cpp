@@ -6,7 +6,8 @@ namespace dual::nds::arm7 {
   namespace bit = atom::bit;
 
   MemoryBus::MemoryBus(SystemMemory& memory, HW const& hw)
-      : m_ewram{memory.ewram.data()}
+      : m_boot_rom{memory.arm7.bios.data()}
+      , m_ewram{memory.ewram.data()}
       , m_iwram{memory.arm7.iwram.data()}
       , m_io{hw} {
   }
@@ -15,6 +16,9 @@ namespace dual::nds::arm7 {
     address &= ~(sizeof(T) - 1u);
 
     switch(address >> 24) {
+      case 0x00: {
+        return atom::read<T>(m_boot_rom, address & 0x3FFFu);
+      }
       case 0x02: {
         return atom::read<T>(m_ewram, address & 0x3FFFFFu);
       }

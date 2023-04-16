@@ -11,6 +11,7 @@
 #include <dual/nds/rom.hpp>
 #include <dual/nds/system_memory.hpp>
 #include <memory>
+#include <span>
 
 namespace dual::nds {
 
@@ -20,6 +21,8 @@ namespace dual::nds {
 
       void Reset();
       void Step(int cycles_to_run);
+      void LoadBootROM9(std::span<u8, 0x8000> data);
+      void LoadBootROM7(std::span<u8, 0x4000> data);
       void LoadROM(std::shared_ptr<ROM> rom);
       void DirectBoot();
 

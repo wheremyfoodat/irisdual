@@ -17,7 +17,7 @@ namespace dual::nds {
     } arm9{};
 
     struct ARM7 {
-      std::array<u8, 0x8000> bios{};
+      std::array<u8, 0x4000> bios{};
       std::array<u8, 0x10000> iwram{};
     } arm7{};
   };

@@ -64,6 +64,7 @@ namespace dual::nds::arm9 {
       TCM m_dtcm{};
       TCM m_itcm{};
 
+      u8* m_boot_rom;
       u8* m_ewram;
       u8* m_lcdc_vram_hack;
   };

@@ -16,6 +16,7 @@ class Application {
   private:
     void CreateWindow();
     void LoadROM(const char* path);
+    void LoadBootROM(const char* path, bool arm9);
     void MainLoop();
 
     SDL_Window* m_window;

@@ -54,6 +54,14 @@ namespace dual::nds {
     m_step_target = step_target;
   }
 
+  void NDS::LoadBootROM9(std::span<u8, 0x8000> data) {
+    std::copy(data.begin(), data.end(), m_memory.arm9.bios.begin());
+  }
+
+  void NDS::LoadBootROM7(std::span<u8, 0x4000> data) {
+    std::copy(data.begin(), data.end(), m_memory.arm7.bios.begin());
+  }
+
   void NDS::LoadROM(std::shared_ptr<ROM> rom) {
     m_rom = std::move(rom);
   }

@@ -47,6 +47,7 @@ namespace dual::nds::arm7 {
         HW hw;
       } m_io;
 
+      u8* m_boot_rom;
       u8* m_ewram;
       u8* m_iwram;
   };
