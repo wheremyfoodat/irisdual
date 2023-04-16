@@ -11,6 +11,7 @@ namespace dual::nds::arm9 {
       : m_boot_rom{memory.arm9.bios.data()}
       , m_ewram{memory.ewram.data()}
       , m_lcdc_vram_hack{memory.lcdc_vram_hack.data()}
+      , m_swram{hw.swram}
       , m_io{hw} {
     m_dtcm.data = memory.arm9.dtcm.data();
     m_itcm.data = memory.arm9.itcm.data();
@@ -46,6 +47,12 @@ namespace dual::nds::arm9 {
     switch(address >> 24) {
       case 0x02: {
         return atom::read<T>(m_ewram, address & 0x3FFFFFu);
+      }
+      case 0x03: {
+        if(!m_swram.arm9.data) {
+          return 0u;
+        }
+        return atom::read<T>(m_swram.arm9.data, address & m_swram.arm9.mask);
       }
       case 0x04: {
         // @todo: remove hacky IO stubs
@@ -127,6 +134,13 @@ namespace dual::nds::arm9 {
     switch(address >> 24) {
       case 0x02: {
         atom::write<T>(m_ewram, address & 0x3FFFFFu, value);
+        break;
+      }
+      case 0x03: {
+        if(!m_swram.arm9.data) {
+          return;
+        }
+        atom::write<T>(m_swram.arm9.data, address & m_swram.arm9.mask, value);
         break;
       }
       case 0x04: {

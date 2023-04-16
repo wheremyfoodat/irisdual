@@ -9,6 +9,7 @@
 #include <dual/arm/memory.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/ipc.hpp>
+#include <dual/nds/swram.hpp>
 #include <dual/nds/system_memory.hpp>
 
 namespace dual::nds::arm7 {
@@ -18,6 +19,7 @@ namespace dual::nds::arm7 {
       struct HW {
         IRQ& irq;
         IPC& ipc;
+        SWRAM& swram;
       };
 
       MemoryBus(SystemMemory& memory, HW const& hw);
@@ -52,6 +54,7 @@ namespace dual::nds::arm7 {
       u8* m_boot_rom;
       u8* m_ewram;
       u8* m_iwram;
+      SWRAM& m_swram;
   };
 
 } // namespace dual::nds::arm7

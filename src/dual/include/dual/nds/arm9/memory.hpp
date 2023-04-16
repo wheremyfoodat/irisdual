@@ -9,6 +9,7 @@
 #include <dual/arm/memory.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/ipc.hpp>
+#include <dual/nds/swram.hpp>
 #include <dual/nds/system_memory.hpp>
 
 namespace dual::nds::arm9 {
@@ -18,6 +19,7 @@ namespace dual::nds::arm9 {
       struct HW {
         IRQ& irq;
         IPC& ipc;
+        SWRAM& swram;
       };
 
       struct TCM {
@@ -69,6 +71,7 @@ namespace dual::nds::arm9 {
       u8* m_boot_rom;
       u8* m_ewram;
       u8* m_lcdc_vram_hack;
+      SWRAM& m_swram;
   };
 
 } // namespace dual::nds::arm9

@@ -16,6 +16,7 @@ set(SOURCES
   src/nds/ipc.cpp
   src/nds/irq.cpp
   src/nds/nds.cpp
+  src/nds/swram.cpp
 )
 
 set(HEADERS
@@ -41,6 +42,7 @@ set(HEADERS_PUBLIC
   include/dual/nds/header.hpp
   include/dual/nds/nds.hpp
   include/dual/nds/rom.hpp
+  include/dual/nds/swram.hpp
   include/dual/nds/system_memory.hpp
 )
 

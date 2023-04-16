@@ -80,6 +80,13 @@ namespace dual::nds::arm7 {
   template<u32 mask> u32 MemoryBus::IO::ReadWord(u32 address) {
     u32 value = 0u;
 
+    const auto Unhandled = [&]() {
+      const int access_size = GetAccessSize(mask);
+      const u32 access_address = address + GetAccessAddressOffset(mask);
+
+      ATOM_ERROR("arm7: IO: unhandled {}-bit read from 0x{:08X}", access_size, access_address);
+    };
+
     switch(REG(address)) {
       // IPC
       case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM7);
@@ -91,11 +98,15 @@ namespace dual::nds::arm7 {
       case REG(0x04000210): return hw.irq.Read_IE();
       case REG(0x04000214): return hw.irq.Read_IF();
 
-      default: {
-        const int access_size = GetAccessSize(mask);
-        const u32 access_address = address + GetAccessAddressOffset(mask);
+      // VRAMSTAT and WRAMSTAT
+      case REG(0x04000240): {
+        if(mask & 0x000000FFu) Unhandled();
+        if(mask & 0x0000FF00u) value |= hw.swram.Read_WRAMCNT() << 8;
+        return value;
+      }
 
-        ATOM_ERROR("arm7: IO: unhandled {}-bit read from 0x{:08X}", access_size, access_address);
+      default: {
+        Unhandled();
       }
     }
 

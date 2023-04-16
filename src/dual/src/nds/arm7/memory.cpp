@@ -9,6 +9,7 @@ namespace dual::nds::arm7 {
       : m_boot_rom{memory.arm7.bios.data()}
       , m_ewram{memory.ewram.data()}
       , m_iwram{memory.arm7.iwram.data()}
+      , m_swram{memory.swram}
       , m_io{hw} {
   }
 
@@ -23,10 +24,10 @@ namespace dual::nds::arm7 {
         return atom::read<T>(m_ewram, address & 0x3FFFFFu);
       }
       case 0x03: {
-        if(address & 0x00800000u) {
+        if((address & 0x00800000u) || !m_swram.arm7.data) {
           return atom::read<T>(m_iwram, address & 0xFFFFu);
         }
-        break;
+        return atom::read<T>(m_swram.arm7.data, address & m_swram.arm7.mask);
       }
       case 0x04: {
         if constexpr(std::is_same_v<T, u8 >) return m_io.ReadByte(address);
@@ -49,10 +50,10 @@ namespace dual::nds::arm7 {
         break;
       }
       case 0x03: {
-        if(address & 0x00800000u) {
+        if((address & 0x00800000u) || !m_swram.arm7.data) {
           atom::write<T>(m_iwram, address & 0xFFFFu, value);
         } else {
-          ATOM_PANIC("arm7: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
+          atom::write<T>(m_swram.arm7.data, address & m_swram.arm7.mask, value);
         }
         break;
       }

@@ -41,7 +41,7 @@ namespace dual::nds {
         arm9::MemoryBus bus;
         IRQ irq{true};
 
-        ARM9(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc}} {}
+        ARM9(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc, memory.swram}} {}
       } m_arm9{m_memory, m_ipc};
 
       struct ARM7 {
@@ -49,7 +49,7 @@ namespace dual::nds {
         arm7::MemoryBus bus;
         IRQ irq{false};
 
-        ARM7(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc}} {}
+        ARM7(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc, memory.swram}} {}
       } m_arm7{m_memory, m_ipc};
 
       IPC m_ipc{m_arm9.irq, m_arm7.irq};

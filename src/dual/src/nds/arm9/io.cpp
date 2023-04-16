@@ -80,6 +80,13 @@ namespace dual::nds::arm9 {
   template<u32 mask> u32 MemoryBus::IO::ReadWord(u32 address) {
     u32 value = 0u;
 
+    const auto Unhandled = [&]() {
+      const int access_size = GetAccessSize(mask);
+      const u32 access_address = address + GetAccessAddressOffset(mask);
+
+      ATOM_ERROR("arm9: IO: unhandled {}-bit read from 0x{:08X}", access_size, access_address);
+    };
+
     switch(REG(address)) {
       // IPC
       case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM9);
@@ -91,11 +98,17 @@ namespace dual::nds::arm9 {
       case REG(0x04000210): return hw.irq.Read_IE();
       case REG(0x04000214): return hw.irq.Read_IF();
 
-      default: {
-        const int access_size = GetAccessSize(mask);
-        const u32 access_address = address + GetAccessAddressOffset(mask);
+      // VRAMCNT and WRAMCNT
+      case REG(0x04000244): {
+        if(mask & 0x000000FFu) Unhandled();
+        if(mask & 0x0000FF00u) Unhandled();
+        if(mask & 0x00FF0000u) Unhandled();
+        if(mask & 0xFF000000u) value |= hw.swram.Read_WRAMCNT() << 24;
+        return value;
+      }
 
-        ATOM_ERROR("arm9: IO: unhandled {}-bit read from 0x{:08X}", access_size, access_address);
+      default: {
+        Unhandled();
       }
     }
 
@@ -103,6 +116,14 @@ namespace dual::nds::arm9 {
   }
 
   template<u32 mask> void MemoryBus::IO::WriteWord(u32 address, u32 value) {
+    const auto Unhandled = [&]() {
+      const int access_size = GetAccessSize(mask);
+      const u32 access_address = address + GetAccessAddressOffset(mask);
+      const u32 access_value = (value & mask) >> (GetAccessAddressOffset(mask) * 8);
+
+      ATOM_ERROR("arm9: IO: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", access_size, access_address, access_value);
+    };
+
     switch(REG(address)) {
       // IPC
       case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM9, value, mask); break;
@@ -114,12 +135,17 @@ namespace dual::nds::arm9 {
       case REG(0x04000210): hw.irq.Write_IE(value, mask); break;
       case REG(0x04000214): hw.irq.Write_IF(value, mask); break;
 
-      default: {
-        const int access_size = GetAccessSize(mask);
-        const u32 access_address = address + GetAccessAddressOffset(mask);
-        const u32 access_value = (value & mask) >> (GetAccessAddressOffset(mask) * 8);
+      // VRAMCNT and WRAMCNT
+      case REG(0x04000244): {
+        if(mask & 0x000000FFu) Unhandled();
+        if(mask & 0x0000FF00u) Unhandled();
+        if(mask & 0x00FF0000u) Unhandled();
+        if(mask & 0xFF000000u) hw.swram.Write_WRAMCNT(value >> 24);
+        break;
+      }
 
-        ATOM_ERROR("arm9: IO: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", access_size, access_address, access_value);
+      default: {
+        Unhandled();
       }
     }
   }
