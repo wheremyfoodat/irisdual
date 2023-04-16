@@ -2,6 +2,7 @@
 #pragma once
 
 #include <atom/integer.hpp>
+#include <atom/panic.hpp>
 
 namespace dual::nds {
 
@@ -35,6 +36,7 @@ namespace dual::nds {
 
       void Raise(Source source) {
         // @todo
+        ATOM_PANIC("IRQ: raised interrupt: 0x{:08X}", (u32)source);
       }
   };
 

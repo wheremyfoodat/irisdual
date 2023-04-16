@@ -17,12 +17,23 @@ namespace dual::nds {
 
       void Reset();
 
-      u32  IPCSYNC_ReadWord(CPU cpu);
-      void IPCSYNC_WriteWord(CPU cpu, u32 value, u32 mask);
+      struct IO {
+        struct IPCSYNC {
+          IPC* self{};
+
+          u32  ReadWord(CPU cpu);
+          void WriteWord(CPU cpu, u32 value, u32 mask);
+        } ipcsync{};
+      } m_io;
 
     private:
 
-      IRQ* irq[2]{};
+      struct {
+        bool enable_irq_from_remote = false;
+        uint send = 0u;
+      } m_sync[2];
+
+      IRQ* m_irq[2]{};
   };
 
 } // namespace dual::nds

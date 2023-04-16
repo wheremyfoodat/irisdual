@@ -84,7 +84,7 @@ namespace dual::nds::arm9 {
       // IPC
       case REG(0x04000180): {
         // IPCSYNC
-        return hw.ipc.IPCSYNC_ReadWord(IPC::CPU::ARM9);
+        return hw.ipc.m_io.ipcsync.ReadWord(IPC::CPU::ARM9);
       }
 
       default: {
@@ -103,7 +103,7 @@ namespace dual::nds::arm9 {
       // IPC
       case REG(0x04000180): {
         // IPCSYNC
-        hw.ipc.IPCSYNC_WriteWord(IPC::CPU::ARM9, value, mask);
+        hw.ipc.m_io.ipcsync.WriteWord(IPC::CPU::ARM9, value, mask);
         break;
       }
 
