@@ -7,6 +7,7 @@
 #include <atom/panic.hpp>
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
+#include <dual/nds/arm9/math.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/ipc.hpp>
 #include <dual/nds/swram.hpp>
@@ -20,6 +21,7 @@ namespace dual::nds::arm9 {
         IRQ& irq;
         IPC& ipc;
         SWRAM& swram;
+        Math& math;
       };
 
       struct TCM {

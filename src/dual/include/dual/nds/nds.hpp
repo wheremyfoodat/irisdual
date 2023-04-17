@@ -5,6 +5,7 @@
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/arm7/memory.hpp>
 #include <dual/nds/arm9/cp15.hpp>
+#include <dual/nds/arm9/math.hpp>
 #include <dual/nds/arm9/memory.hpp>
 #include <dual/nds/ipc.hpp>
 #include <dual/nds/irq.hpp>
@@ -40,8 +41,9 @@ namespace dual::nds {
         std::unique_ptr<arm9::CP15> cp15{};
         arm9::MemoryBus bus;
         IRQ irq{true};
+        arm9::Math math{};
 
-        ARM9(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc, memory.swram}} {}
+        ARM9(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc, memory.swram, math}} {}
       } m_arm9{m_memory, m_ipc};
 
       struct ARM7 {

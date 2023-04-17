@@ -12,6 +12,7 @@ set(SOURCES
   src/nds/arm7/memory.cpp
   src/nds/arm9/cp15.cpp
   src/nds/arm9/io.cpp
+  src/nds/arm9/math.cpp
   src/nds/arm9/memory.cpp
   src/nds/ipc.cpp
   src/nds/irq.cpp
@@ -38,6 +39,7 @@ set(HEADERS_PUBLIC
   include/dual/common/scheduler.hpp
   include/dual/nds/arm7/memory.hpp
   include/dual/nds/arm9/cp15.hpp
+  include/dual/nds/arm9/math.hpp
   include/dual/nds/arm9/memory.hpp
   include/dual/nds/header.hpp
   include/dual/nds/nds.hpp

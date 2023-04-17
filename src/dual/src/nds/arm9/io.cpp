@@ -107,6 +107,21 @@ namespace dual::nds::arm9 {
         return value;
       }
 
+      // ARM9 Math
+      case REG(0x04000280): return hw.math.Read_DIVCNT();
+      case REG(0x04000290): return hw.math.Read_DIV_NUMER() >>  0;
+      case REG(0x04000294): return hw.math.Read_DIV_NUMER() >> 32;
+      case REG(0x04000298): return hw.math.Read_DIV_DENOM() >>  0;
+      case REG(0x0400029C): return hw.math.Read_DIV_DENOM() >> 32;
+      case REG(0x040002A0): return hw.math.Read_DIV_RESULT() >>  0;
+      case REG(0x040002A4): return hw.math.Read_DIV_RESULT() >> 32;
+      case REG(0x040002A8): return hw.math.Read_DIVREM_RESULT() >>  0;
+      case REG(0x040002AC): return hw.math.Read_DIVREM_RESULT() >> 32;
+      case REG(0x040002B0): return hw.math.Read_SQRTCNT();
+      case REG(0x040002B4): return hw.math.Read_SQRT_RESULT();
+      case REG(0x040002B8): return hw.math.Read_SQRT_PARAM() >>  0;
+      case REG(0x040002BC): return hw.math.Read_SQRT_PARAM() >> 32;
+
       default: {
         Unhandled();
       }
@@ -143,6 +158,16 @@ namespace dual::nds::arm9 {
         if(mask & 0xFF000000u) hw.swram.Write_WRAMCNT(value >> 24);
         break;
       }
+
+      // ARM9 Math
+      case REG(0x04000280): hw.math.Write_DIVCNT(value, mask); break;
+      case REG(0x04000290): hw.math.Write_DIV_NUMER((u64)value <<  0, ((u64)mask <<  0) & 0x00000000FFFFFFFFu); break;
+      case REG(0x04000294): hw.math.Write_DIV_NUMER((u64)value << 32, ((u64)mask << 32) & 0xFFFFFFFF00000000u); break;
+      case REG(0x04000298): hw.math.Write_DIV_DENOM((u64)value <<  0, ((u64)mask <<  0) & 0x00000000FFFFFFFFu); break;
+      case REG(0x0400029C): hw.math.Write_DIV_DENOM((u64)value << 32, ((u64)mask << 32) & 0xFFFFFFFF00000000u); break;
+      case REG(0x040002B0): hw.math.Write_SQRTCNT(value, mask); break;
+      case REG(0x040002B8): hw.math.Write_SQRT_PARAM((u64)value <<  0, ((u64)mask <<  0) & 0x00000000FFFFFFFFu); break;
+      case REG(0x040002BC): hw.math.Write_SQRT_PARAM((u64)value << 32, ((u64)mask << 32) & 0xFFFFFFFF00000000u); break;
 
       default: {
         Unhandled();
