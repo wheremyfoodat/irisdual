@@ -41,6 +41,8 @@ set(HEADERS_PUBLIC
   include/dual/nds/arm9/cp15.hpp
   include/dual/nds/arm9/math.hpp
   include/dual/nds/arm9/memory.hpp
+  include/dual/nds/vram/region.hpp
+  include/dual/nds/vram/vram.hpp
   include/dual/nds/header.hpp
   include/dual/nds/nds.hpp
   include/dual/nds/rom.hpp
