@@ -100,7 +100,7 @@ namespace dual::nds::arm7 {
 
       // VRAMSTAT and WRAMSTAT
       case REG(0x04000240): {
-        if(mask & 0x000000FFu) Unhandled();
+        if(mask & 0x000000FFu) value |= hw.vram.Read_VRAMSTAT() << 0;
         if(mask & 0x0000FF00u) value |= hw.swram.Read_WRAMCNT() << 8;
         return value;
       }

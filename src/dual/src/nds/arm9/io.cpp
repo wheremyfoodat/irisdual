@@ -99,11 +99,23 @@ namespace dual::nds::arm9 {
       case REG(0x04000214): return hw.irq.Read_IF();
 
       // VRAMCNT and WRAMCNT
+      case REG(0x04000240): {
+        if(mask & 0x000000FFu) value |= hw.vram.Read_VRAMCNT(VRAM::Bank::A) <<  0;
+        if(mask & 0x0000FF00u) value |= hw.vram.Read_VRAMCNT(VRAM::Bank::B) <<  8;
+        if(mask & 0x00FF0000u) value |= hw.vram.Read_VRAMCNT(VRAM::Bank::C) << 16;
+        if(mask & 0xFF000000u) value |= hw.vram.Read_VRAMCNT(VRAM::Bank::D) << 24;
+        return value;
+      }
       case REG(0x04000244): {
-        if(mask & 0x000000FFu) Unhandled();
-        if(mask & 0x0000FF00u) Unhandled();
-        if(mask & 0x00FF0000u) Unhandled();
+        if(mask & 0x000000FFu) value |= hw.vram.Read_VRAMCNT(VRAM::Bank::E) <<  0;
+        if(mask & 0x0000FF00u) value |= hw.vram.Read_VRAMCNT(VRAM::Bank::F) <<  8;
+        if(mask & 0x00FF0000u) value |= hw.vram.Read_VRAMCNT(VRAM::Bank::G) << 16;
         if(mask & 0xFF000000u) value |= hw.swram.Read_WRAMCNT() << 24;
+        return value;
+      }
+      case REG(0x04000248): {
+        if(mask & 0x000000FFu) value |= hw.vram.Read_VRAMCNT(VRAM::Bank::H) << 0;
+        if(mask & 0x0000FF00u) value |= hw.vram.Read_VRAMCNT(VRAM::Bank::I) << 8;
         return value;
       }
 
@@ -151,11 +163,23 @@ namespace dual::nds::arm9 {
       case REG(0x04000214): hw.irq.Write_IF(value, mask); break;
 
       // VRAMCNT and WRAMCNT
+      case REG(0x04000240): {
+        if(mask & 0x000000FFu) hw.vram.Write_VRAMCNT(VRAM::Bank::A, value >>  0);
+        if(mask & 0x0000FF00u) hw.vram.Write_VRAMCNT(VRAM::Bank::B, value >>  8);
+        if(mask & 0x00FF0000u) hw.vram.Write_VRAMCNT(VRAM::Bank::C, value >> 16);
+        if(mask & 0xFF000000u) hw.vram.Write_VRAMCNT(VRAM::Bank::D, value >> 24);
+        break;
+      }
       case REG(0x04000244): {
-        if(mask & 0x000000FFu) Unhandled();
-        if(mask & 0x0000FF00u) Unhandled();
-        if(mask & 0x00FF0000u) Unhandled();
+        if(mask & 0x000000FFu) hw.vram.Write_VRAMCNT(VRAM::Bank::E, value >>  0);
+        if(mask & 0x0000FF00u) hw.vram.Write_VRAMCNT(VRAM::Bank::F, value >>  8);
+        if(mask & 0x00FF0000u) hw.vram.Write_VRAMCNT(VRAM::Bank::G, value >> 16);
         if(mask & 0xFF000000u) hw.swram.Write_WRAMCNT(value >> 24);
+        break;
+      }
+      case REG(0x04000248): {
+        if(mask & 0x000000FFu) hw.vram.Write_VRAMCNT(VRAM::Bank::H, value >> 0);
+        if(mask & 0x0000FF00u) hw.vram.Write_VRAMCNT(VRAM::Bank::I, value >> 8);
         break;
       }
 

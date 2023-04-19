@@ -3,6 +3,7 @@
 
 #include <array>
 #include <atom/integer.hpp>
+#include <dual/nds/vram/vram.hpp>
 #include <dual/nds/swram.hpp>
 
 namespace dual::nds {
@@ -12,6 +13,8 @@ namespace dual::nds {
     std::array<u8, 0x18000> lcdc_vram_hack{};
 
     SWRAM swram{};
+
+    VRAM vram{};
 
     struct ARM9 {
       std::array<u8, 0x8000> bios{};

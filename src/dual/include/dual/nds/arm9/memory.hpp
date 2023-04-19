@@ -7,6 +7,7 @@
 #include <atom/panic.hpp>
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
+#include <dual/nds/vram/vram.hpp>
 #include <dual/nds/arm9/math.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/ipc.hpp>
@@ -21,6 +22,7 @@ namespace dual::nds::arm9 {
         IRQ& irq;
         IPC& ipc;
         SWRAM& swram;
+        VRAM& vram;
         Math& math;
       };
 
