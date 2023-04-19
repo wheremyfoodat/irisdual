@@ -12,6 +12,7 @@ namespace dual::nds::arm9 {
       , m_ewram{memory.ewram.data()}
       , m_lcdc_vram_hack{memory.lcdc_vram_hack.data()}
       , m_swram{hw.swram}
+      , m_vram{hw.vram}
       , m_io{hw} {
     m_dtcm.data = memory.arm9.dtcm.data();
     m_itcm.data = memory.arm9.itcm.data();
@@ -94,10 +95,14 @@ namespace dual::nds::arm9 {
         return 0u;
       }
       case 0x06: {
-        if(address >= 0x06800000 && address < 0x06818000) {
-          return atom::read<T>(m_lcdc_vram_hack, address - 0x06800000u);
+        switch((address >> 20) & 15) {
+          case 0: case 1: return  m_vram.region_ppu_bg[0].Read<T>(address & 0x1FFFFFu);
+          case 2: case 3: return  m_vram.region_ppu_bg[1].Read<T>(address & 0x1FFFFFu);
+          case 4: case 5: return m_vram.region_ppu_obj[0].Read<T>(address & 0x1FFFFFu);
+          case 6: case 7: return m_vram.region_ppu_obj[1].Read<T>(address & 0x1FFFFFu);
+          default:        return       m_vram.region_lcdc.Read<T>(address & 0x0FFFFFu);
         }
-        return 0u;
+        break;
       }
       case 0xFF: {
         if(address >= 0xFFFF0000u) {
@@ -150,8 +155,17 @@ namespace dual::nds::arm9 {
         break;
       }
       case 0x06: {
+        // @todo: remove this hack
         if(address >= 0x06800000 && address < 0x06818000) {
           atom::write<T>(m_lcdc_vram_hack, address - 0x06800000, value);
+        }
+
+        switch((address >> 20) & 15) {
+          case 0: case 1:  m_vram.region_ppu_bg[0].Write<T>(address & 0x1FFFFFu, value); break;
+          case 2: case 3:  m_vram.region_ppu_bg[1].Write<T>(address & 0x1FFFFFu, value); break;
+          case 4: case 5: m_vram.region_ppu_obj[0].Write<T>(address & 0x1FFFFFu, value); break;
+          case 6: case 7: m_vram.region_ppu_obj[1].Write<T>(address & 0x1FFFFFu, value); break;
+          default:              m_vram.region_lcdc.Write<T>(address & 0x0FFFFFu, value); break;
         }
         break;
       }

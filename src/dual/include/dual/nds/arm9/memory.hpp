@@ -76,6 +76,7 @@ namespace dual::nds::arm9 {
       u8* m_ewram;
       u8* m_lcdc_vram_hack;
       SWRAM& m_swram;
+      VRAM& m_vram;
   };
 
 } // namespace dual::nds::arm9

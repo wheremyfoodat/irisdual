@@ -10,6 +10,7 @@ namespace dual::nds::arm7 {
       , m_ewram{memory.ewram.data()}
       , m_iwram{memory.arm7.iwram.data()}
       , m_swram{memory.swram}
+      , m_vram{memory.vram}
       , m_io{hw} {
   }
 
@@ -36,6 +37,9 @@ namespace dual::nds::arm7 {
 
         return 0;
       }
+      case 0x06: {
+        return m_vram.region_arm7_wram.Read<T>(address);
+      }
     }
 
     ATOM_PANIC("arm7: unhandled {}-bit read from 0x{:08X}", bit::number_of_bits<T>(), address);
@@ -61,6 +65,10 @@ namespace dual::nds::arm7 {
         if constexpr(std::is_same_v<T, u8 >) m_io.WriteByte(address, value);
         if constexpr(std::is_same_v<T, u16>) m_io.WriteHalf(address, value);
         if constexpr(std::is_same_v<T, u32>) m_io.WriteWord(address, value);
+        break;
+      }
+      case 0x06: {
+        m_vram.region_arm7_wram.Write<T>(address, value);
         break;
       }
       default: {

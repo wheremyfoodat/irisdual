@@ -57,6 +57,7 @@ namespace dual::nds::arm7 {
       u8* m_ewram;
       u8* m_iwram;
       SWRAM& m_swram;
+      VRAM& m_vram;
   };
 
 } // namespace dual::nds::arm7
