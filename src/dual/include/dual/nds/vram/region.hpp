@@ -15,7 +15,7 @@ namespace dual::nds {
     public:
       using Callback = std::function<void(u32, size_t)>;
 
-      explicit Region(size_t mask) : m_mask(mask) {}
+      Region(size_t mask) : m_mask{mask} {}
 
       template<typename T>
       T Read(u32 offset) const {

@@ -18,6 +18,7 @@ set(SOURCES
   src/nds/irq.cpp
   src/nds/nds.cpp
   src/nds/swram.cpp
+  src/nds/vram.cpp
 )
 
 set(HEADERS
