@@ -1,32 +1,17 @@
-/*
- * Copyright (C) 2022 fleroviux.
- *
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
- */
 
 #pragma once
 
+#include <atom/integer.hpp>
 #include <atom/punning.hpp>
 #include <atomic>
 #include <condition_variable>
+#include <dual/nds/video_unit/ppu/registers.hpp>
+#include <dual/nds/vram/vram.hpp>
 #include <functional>
-#include <lunar/device/video_device.hpp>
-#include <atom/integer.hpp>
 #include <mutex>
 #include <thread>
 
-#include "common/ogl/buffer_object.hpp"
-#include "common/ogl/frame_buffer_object.hpp"
-#include "common/ogl/program_object.hpp"
-#include "common/ogl/texture_2d.hpp"
-#include "common/ogl/vertex_array_object.hpp"
-#include "nds/video_unit/gpu/color.hpp"
-#include "nds/video_unit/gpu/gpu.hpp"
-#include "nds/video_unit/vram.hpp"
-#include "registers.hpp"
-
-namespace lunar::nds {
+namespace dual::nds {
 
 /* 2D picture processing unit (PPU).
  * The Nintendo DS has two PPUs (PPU A and PPU B), one for each screen.
@@ -37,8 +22,8 @@ class PPU {
       int id,
       VRAM const& vram,
       u8   const* pram,
-      u8   const* oam,
-      GPU* gpu = nullptr
+      u8   const* oam/*,
+      GPU* gpu = nullptr*/
     );
 
    ~PPU();
@@ -74,7 +59,11 @@ class PPU {
 
     void Reset();
 
-    auto GetOutput() const -> void const* {
+    const u32* GetOutput() const {
+      return &output[frame][0];
+    }
+
+    /*auto GetOutput() const -> void const* {
       if(ogl.enabled) {
         return (void const*)ogl.output_texture->Handle();
       }
@@ -83,7 +72,7 @@ class PPU {
 
     auto GetOutputImageType() const -> VideoDevice::ImageType {
       return ogl.enabled ? VideoDevice::ImageType::OpenGL : VideoDevice::ImageType::Software;
-    }
+    }*/
 
     void SwapBuffers() {
       frame ^= 1;
@@ -364,37 +353,12 @@ class PPU {
 
     int current_vcount;
 
-    GPU* gpu;
+    // GPU* gpu;
 
     int frame = 0;
-
-    // For compositing with OpenGL rendered 3D
-    struct OpenGL {
-      bool enabled = false;
-      bool initialized = false;
-      bool done = true;
-      FrameBufferObject* fbo = nullptr;
-      Texture2D* output_texture = nullptr;
-      ProgramObject* program = nullptr;
-      VertexArrayObject* vao = nullptr;
-      BufferObject* vbo = nullptr;
-      Texture2D* input_color_texture[2] {nullptr};
-      Texture2D* input_attribute_texture = nullptr;
-
-     ~OpenGL() {
-        delete fbo;
-        delete output_texture;
-        delete program;
-        delete vao;
-        delete vbo;
-        delete input_color_texture[0];
-        delete input_color_texture[1];
-        delete input_attribute_texture;
-      }
-    } ogl;
 
     static constexpr u16 s_color_transparent = 0x8000;
     static const int s_obj_size[4][4][2];
 };
 
-} // namespace lunar::nds
+} // namespace dual::nds

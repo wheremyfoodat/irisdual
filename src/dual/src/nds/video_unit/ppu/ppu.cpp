@@ -1,24 +1,17 @@
-/*
- * Copyright (C) 2022 fleroviux.
- *
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
- */
 
 #include <atom/panic.hpp>
 #include <algorithm>
+#include <dual/nds/video_unit/ppu/ppu.hpp>
 #include <string.h>
 
-#include "ppu.hpp"
-
-namespace lunar::nds {
+namespace dual::nds {
 
 PPU::PPU(
   int id,
   VRAM const& vram,
   u8   const* pram,
-  u8   const* oam,
-  GPU* gpu
+  u8   const* oam/*,
+  GPU* gpu*/
 )   : id(id)
     , vram_bg(vram.region_ppu_bg[id])
     , vram_obj(vram.region_ppu_obj[id])
@@ -27,7 +20,7 @@ PPU::PPU(
     , vram_lcdc(vram.region_lcdc)
     , pram(pram)
     , oam(oam)
-    , gpu(gpu) {
+    /*, gpu(gpu)*/ {
   if (id == 0) {
     mmio.dispcnt = {};
   } else {
@@ -96,12 +89,12 @@ void PPU::Reset() {
 void PPU::OnDrawScanlineBegin(u16 vcount, bool capture_bg_and_3d) {
   current_vcount = vcount;
 
-  if (vcount == 0) {
+  /*if (vcount == 0) {
     ogl.enabled = gpu && gpu->GetOutputImageType() == VideoDevice::ImageType::OpenGL &&
                   mmio.dispcnt.display_mode == 1 &&
                  !capture_bg_and_3d;
     ogl.done = false;
-  }
+  }*/
 
   SubmitScanline(vcount, capture_bg_and_3d);
 }
@@ -162,10 +155,10 @@ void PPU::OnBlankScanlineBegin(u16 vcount) {
     bgy[1]._current = bgy[1].initial;
   }
 
-  if (ogl.enabled && !ogl.done && render_worker.vcount >= 192) {
+  /*if (ogl.enabled && !ogl.done && render_worker.vcount >= 192) {
     Merge2DWithOpenGL3D();
     ogl.done = true;
-  }
+  }*/
 
   SubmitScanline(vcount, false);
 }
@@ -273,8 +266,8 @@ void PPU::RenderBackgroundsAndComposite(u16 vcount) {
   if(mmio.dispcnt.enable[ENABLE_BG0]) {
     // TODO: what does HW do if "enable BG0 3D" is disabled in mode 6.
     if(mmio.dispcnt.enable_bg0_3d || mmio.dispcnt.bg_mode == 6) {
-      gpu->CaptureColor(buffer_bg[0], vcount, 256, false);
-      gpu->CaptureAlpha(buffer_3d_alpha, vcount);
+      // gpu->CaptureColor(buffer_bg[0], vcount, 256, false);
+      // gpu->CaptureAlpha(buffer_3d_alpha, vcount);
     } else {
       RenderLayerText(0, vcount);
     }
@@ -377,11 +370,11 @@ void PPU::SubmitScanline(u16 vcount, bool capture_bg_and_3d) {
   }
 
   if (vcount == 0) {
-    // @hack: make sure that glReadPixels() is called on the main thread,
+    /*// @hack: make sure that glReadPixels() is called on the main thread,
     // by issuing a dummy call to CaptureColor()
     if(capture_bg_and_3d && gpu->GetOutputImageType() == VideoDevice::ImageType::OpenGL) {
       gpu->CaptureColor(nullptr, 0, 0, false);
-    }
+    }*/
 
     CopyVRAM(vram_bg, render_vram_bg, vram_bg_dirty);
     CopyVRAM(vram_obj, render_vram_obj, vram_obj_dirty);
@@ -431,4 +424,4 @@ void PPU::RegisterMapUnmapCallbacks() {
   });
 }
 
-} // namespace lunar::nds
+} // namespace dual::nds

@@ -1,13 +1,7 @@
-/*
- * Copyright (C) 2022 fleroviux.
- *
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
- */
 
-#include "nds/video_unit/ppu/ppu.hpp"
+#include <dual/nds/video_unit/ppu/ppu.hpp>
 
-namespace lunar::nds {
+namespace dual::nds {
 
 void PPU::RenderLayerText(uint id, u16 vcount) {
   auto const& mmio = mmio_copy[vcount];
@@ -129,4 +123,4 @@ void PPU::RenderLayerText(uint id, u16 vcount) {
   }
 }
 
-} // namespace lunar::nds
+} // namespace dual::nds

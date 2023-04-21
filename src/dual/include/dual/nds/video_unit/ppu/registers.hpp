@@ -1,13 +1,7 @@
-/*
- * Copyright (C) 2022 fleroviux.
- *
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
- */
 
 #include <atom/integer.hpp>
 
-namespace lunar::nds {
+namespace dual::nds {
 
 struct DisplayControl {
   enum class Mapping {
@@ -165,4 +159,4 @@ struct MasterBrightness {
   void WriteByte(uint offset, u8 value);
 };
 
-} // namespace lunar::nds
+} // namespace dual::nds

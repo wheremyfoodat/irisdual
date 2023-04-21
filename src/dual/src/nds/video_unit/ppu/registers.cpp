@@ -1,15 +1,8 @@
-/*
- * Copyright (C) 2022 fleroviux.
- *
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
- */
 
 #include <atom/panic.hpp>
+#include <dual/nds/video_unit/ppu/registers.hpp>
 
-#include "registers.hpp"
-
-namespace lunar::nds {
+namespace dual::nds {
 
 void DisplayControl::Reset() {
   WriteByte(0, 0);
@@ -397,4 +390,4 @@ void MasterBrightness::WriteByte(uint offset, u8 value) {
   }
 }
 
-} // namespace lunar::nds
+} // namespace dual::nds

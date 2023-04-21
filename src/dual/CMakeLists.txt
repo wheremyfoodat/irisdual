@@ -14,6 +14,13 @@ set(SOURCES
   src/nds/arm9/io.cpp
   src/nds/arm9/math.cpp
   src/nds/arm9/memory.cpp
+  src/nds/video_unit/ppu/render/affine.cpp
+  src/nds/video_unit/ppu/render/oam.cpp
+  src/nds/video_unit/ppu/render/text.cpp
+  src/nds/video_unit/ppu/render/window.cpp
+  src/nds/video_unit/ppu/composer.cpp
+  src/nds/video_unit/ppu/ppu.cpp
+  src/nds/video_unit/ppu/registers.cpp
   src/nds/video_unit/video_unit.cpp
   src/nds/ipc.cpp
   src/nds/irq.cpp
@@ -43,6 +50,8 @@ set(HEADERS_PUBLIC
   include/dual/nds/arm9/cp15.hpp
   include/dual/nds/arm9/math.hpp
   include/dual/nds/arm9/memory.hpp
+  include/dual/nds/video_unit/ppu/ppu.hpp
+  include/dual/nds/video_unit/ppu/registers.hpp
   include/dual/nds/video_unit/video_unit.hpp
   include/dual/nds/vram/region.hpp
   include/dual/nds/vram/vram.hpp

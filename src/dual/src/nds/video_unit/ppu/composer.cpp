@@ -1,14 +1,7 @@
-/*
- * Copyright (C) 2022 fleroviux.
- *
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
- */
 
-#include "shader/merge_3d.glsl.hpp"
-#include "ppu.hpp"
+#include <dual/nds/video_unit/ppu/ppu.hpp>
 
-namespace lunar::nds {
+namespace dual::nds {
 
 template<bool window, bool blending, bool opengl>
 void PPU::ComposeScanlineTmpl(u16 vcount, int bg_min, int bg_max) {
@@ -246,9 +239,9 @@ void PPU::ComposeScanline(u16 vcount, int bg_min, int bg_max) {
     key |= 2;
   }
 
-  if (ogl.enabled) {
+  /*if (ogl.enabled) {
     key |= 4;
-  }
+  }*/
 
   switch (key) {
     case 0b000: ComposeScanlineTmpl<false, false, false>(vcount, bg_min, bg_max); break;
@@ -307,80 +300,4 @@ void PPU::Blend(u16  vcount,
   target1 = r1 | (g1 << 5) | (b1 << 10);
 }
 
-void PPU::Merge2DWithOpenGL3D() {
-  // @todo: get the real dimensions from the GPU or config:
-  const int output_width  = 512;
-  const int output_height = 384;
-
-  if (!gpu) {
-    return;
-  }
-
-  if (!ogl.initialized) {
-    ogl.fbo = FrameBufferObject::Create();
-    ogl.output_texture = Texture2D::Create(output_width, output_height, GL_RGBA, GL_BGRA, GL_UNSIGNED_BYTE);
-    ogl.fbo->Attach(GL_COLOR_ATTACHMENT0, ogl.output_texture);
-
-    ogl.program = ProgramObject::Create(merge_3d_vert, merge_3d_frag);
-    ogl.program->SetUniformInt("u_color2d_1st_map", 0);
-    ogl.program->SetUniformInt("u_color2d_2nd_map", 1);
-    ogl.program->SetUniformInt("u_color3d_map", 2);
-    ogl.program->SetUniformInt("u_attribute_map", 3);
-
-    // @todo: abstract fullscreen quad creation
-    {
-      static constexpr float k_quad_vertices[] {
-        // POSITION | UV
-        -1.0, -1.0,    0.0, 0.0,
-         1.0, -1.0,    1.0, 0.0,
-         1.0,  1.0,    1.0, 1.0,
-        -1.0,  1.0,    0.0, 1.0
-      };
-
-      ogl.vao = VertexArrayObject::Create();
-      ogl.vbo = BufferObject::CreateArrayBuffer(sizeof(k_quad_vertices), GL_STATIC_DRAW);
-      ogl.vao->SetAttribute(0, VertexArrayObject::Attribute{ogl.vbo, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0});
-      ogl.vao->SetAttribute(1, VertexArrayObject::Attribute{ogl.vbo, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 2 * sizeof(float)});
-      ogl.vbo->Upload(k_quad_vertices, sizeof(k_quad_vertices) / sizeof(float));
-    }
-
-    for(int i = 0; i < 2; i++) {
-      ogl.input_color_texture[i] = Texture2D::Create(256, 192, GL_RGBA, GL_BGRA, GL_UNSIGNED_BYTE);
-    }
-    ogl.input_attribute_texture = Texture2D::Create(256, 192, GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT);
-
-    ogl.initialized = true;
-  }
-
-  for(int i = 0; i < 2; i++) {
-    ogl.input_color_texture[i]->Upload(buffer_ogl_color[i]);
-  }
-  ogl.input_attribute_texture->Upload(buffer_ogl_attribute);
-
-  glViewport(0, 0, output_width, output_height);
-  ogl.fbo->Bind();
-  ogl.program->Use();
-  ogl.program->SetUniformBool("u_enable_bg0_3d", mmio.dispcnt.enable[ENABLE_BG0] &&
-                                                (mmio.dispcnt.enable_bg0_3d || mmio.dispcnt.bg_mode == 6));
-  ogl.program->SetUniformUInt("u_bg0_priority", mmio.bgcnt[0].priority);
-  ogl.program->SetUniformInt("u_blend_control", mmio.bldcnt.hword);
-  ogl.program->SetUniformFloat("u_blend_eva", (float)std::min<int>(16, mmio.bldalpha.a) / 16.0f);
-  ogl.program->SetUniformFloat("u_blend_evb", (float)std::min<int>(16, mmio.bldalpha.b) / 16.0f);
-  ogl.program->SetUniformFloat("u_blend_evy", (float)std::min<int>(16, mmio.bldy.y) / 16.0f);
-  ogl.program->SetUniformUInt("u_master_bright_mode", (uint)mmio.master_bright.mode);
-  ogl.program->SetUniformFloat("u_master_bright_factor", (float)std::min<int>(16, mmio.master_bright.factor) / 16.0f);
-
-  ogl.input_color_texture[0]->Bind(GL_TEXTURE0);
-  ogl.input_color_texture[1]->Bind(GL_TEXTURE1);
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_2D, (GLuint)(std::uintptr_t)gpu->GetOutput());
-  ogl.input_attribute_texture->Bind(GL_TEXTURE3);
-
-  ogl.vao->Bind();
-  glDrawArrays(GL_QUADS, 0, 4);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glUseProgram(0);
-};
-
-} // namespace lunar::nds
+} // namespace nds::nds
