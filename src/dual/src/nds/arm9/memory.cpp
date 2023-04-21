@@ -58,16 +58,16 @@ namespace dual::nds::arm9 {
       case 0x04: {
         // @todo: remove hacky IO stubs
 
-        // Hah, armwrestler. Such a gullible fool :p
-        if(address == 0x04000004) {
-          static int vblank = 0;
-          static int counter = 0;
-          if(++counter == 100000) {
-            vblank ^= 1;
-            counter = 0;
-          }
-          return vblank;
-        }
+//        // Hah, armwrestler. Such a gullible fool :p
+//        if(address == 0x04000004) {
+//          static int vblank = 0;
+//          static int counter = 0;
+//          if(++counter == 100000) {
+//            vblank ^= 1;
+//            counter = 0;
+//          }
+//          return vblank;
+//        }
 
         if(address == 0x04000130) {
           const u8* key_state = SDL_GetKeyboardState(nullptr);

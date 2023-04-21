@@ -1,4 +1,5 @@
 
+#include <atom/logger/logger.hpp>
 #include <dual/nds/video_unit/video_unit.hpp>
 
 namespace dual::nds {
@@ -10,6 +11,10 @@ namespace dual::nds {
 
   void VideoUnit::Reset() {
     for(auto& dispstat : m_dispstat) dispstat = {};
+
+    m_vcount = 0u;
+
+    BeginHDraw(0);
   }
 
   void VideoUnit::UpdateVerticalCounterMatchFlag(CPU cpu) {
@@ -22,6 +27,51 @@ namespace dual::nds {
     }
 
     dispstat.vmatch_flag = new_vmatch_flag;
+  }
+
+  void VideoUnit::BeginHDraw(int late) {
+    if(++m_vcount == k_total_lines) {
+      m_vcount = 0u;
+    }
+
+    UpdateVerticalCounterMatchFlag(CPU::ARM9);
+    UpdateVerticalCounterMatchFlag(CPU::ARM7);
+
+    if(m_vcount == k_drawing_lines) {
+      for(auto cpu : {CPU::ARM9, CPU::ARM7}) {
+        auto& dispstat = m_dispstat[(int)cpu];
+
+        if(dispstat.enable_vblank_irq) {
+          m_irq[(int)cpu]->Raise(IRQ::Source::VBlank);
+        }
+
+        dispstat.vblank_flag = true;
+      }
+    }
+
+    if(m_vcount == k_total_lines - 1) {
+      m_dispstat[(int)CPU::ARM9].vblank_flag = false;
+      m_dispstat[(int)CPU::ARM7].vblank_flag = false;
+    }
+
+    m_dispstat[(int)CPU::ARM9].hblank_flag = false;
+    m_dispstat[(int)CPU::ARM7].hblank_flag = false;
+
+    m_scheduler.Add(1606 - late, this, &VideoUnit::BeginHBlank);
+  }
+
+  void VideoUnit::BeginHBlank(int late) {
+    for(auto cpu : {CPU::ARM9, CPU::ARM7}) {
+      auto& dispstat = m_dispstat[(int)cpu];
+
+      if(dispstat.enable_hblank_irq) {
+        m_irq[(int)cpu]->Raise(IRQ::Source::HBlank);
+      }
+
+      dispstat.hblank_flag = true;
+    }
+
+    m_scheduler.Add(524 - late, this, &VideoUnit::BeginHDraw);
   }
 
   u16 VideoUnit::Read_DISPSTAT(CPU cpu) {

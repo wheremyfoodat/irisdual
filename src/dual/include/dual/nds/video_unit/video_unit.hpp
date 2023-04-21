@@ -22,11 +22,18 @@ namespace dual::nds {
       u16 Read_VCOUNT();
 
     private:
+      static constexpr int k_drawing_lines = 192;
+      static constexpr int k_blanking_lines = 71;
+      static constexpr int k_total_lines = k_drawing_lines + k_blanking_lines;
+
       void UpdateVerticalCounterMatchFlag(CPU cpu);
+
+      void BeginHDraw(int late);
+      void BeginHBlank(int late);
 
       Scheduler& m_scheduler;
 
-      struct DISPSTAT {
+      union DISPSTAT {
         atom::Bits<0, 1, u16> vblank_flag;
         atom::Bits<1, 1, u16> hblank_flag;
         atom::Bits<2, 1, u16> vmatch_flag;
