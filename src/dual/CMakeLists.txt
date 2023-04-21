@@ -14,6 +14,7 @@ set(SOURCES
   src/nds/arm9/io.cpp
   src/nds/arm9/math.cpp
   src/nds/arm9/memory.cpp
+  src/nds/video_unit/video_unit.cpp
   src/nds/ipc.cpp
   src/nds/irq.cpp
   src/nds/nds.cpp
@@ -42,6 +43,7 @@ set(HEADERS_PUBLIC
   include/dual/nds/arm9/cp15.hpp
   include/dual/nds/arm9/math.hpp
   include/dual/nds/arm9/memory.hpp
+  include/dual/nds/video_unit/video_unit.hpp
   include/dual/nds/vram/region.hpp
   include/dual/nds/vram/vram.hpp
   include/dual/nds/header.hpp

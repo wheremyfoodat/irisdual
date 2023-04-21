@@ -7,6 +7,7 @@
 #include <dual/nds/arm9/cp15.hpp>
 #include <dual/nds/arm9/math.hpp>
 #include <dual/nds/arm9/memory.hpp>
+#include <dual/nds/video_unit/video_unit.hpp>
 #include <dual/nds/ipc.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/rom.hpp>
@@ -36,6 +37,8 @@ namespace dual::nds {
 
       SystemMemory m_memory{};
 
+      VideoUnit m_video_unit{m_scheduler, m_arm9.irq, m_arm7.irq};
+
       struct ARM9 {
         std::unique_ptr<arm::CPU> cpu{};
         std::unique_ptr<arm9::CP15> cp15{};
@@ -43,16 +46,31 @@ namespace dual::nds {
         IRQ irq{true};
         arm9::Math math{};
 
-        ARM9(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc, memory.swram, memory.vram, math}} {}
-      } m_arm9{m_memory, m_ipc};
+        ARM9(SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
+            : bus{memory, {
+                irq,
+                ipc,
+                memory.swram,
+                memory.vram,
+                math,
+                video_unit
+              }} {}
+      } m_arm9{m_memory, m_ipc, m_video_unit};
 
       struct ARM7 {
         std::unique_ptr<arm::CPU> cpu{};
         arm7::MemoryBus bus;
         IRQ irq{false};
 
-        ARM7(SystemMemory& memory, IPC& ipc) : bus{memory, {irq, ipc, memory.swram, memory.vram}} {}
-      } m_arm7{m_memory, m_ipc};
+        ARM7(SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
+            : bus{memory, {
+                irq,
+                ipc,
+                memory.swram,
+                memory.vram,
+                video_unit
+              }} {}
+      } m_arm7{m_memory, m_ipc, m_video_unit};
 
       IPC m_ipc{m_arm9.irq, m_arm7.irq};
 

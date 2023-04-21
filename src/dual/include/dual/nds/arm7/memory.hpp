@@ -7,6 +7,7 @@
 #include <atom/panic.hpp>
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
+#include <dual/nds/video_unit/video_unit.hpp>
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/ipc.hpp>
@@ -22,6 +23,7 @@ namespace dual::nds::arm7 {
         IPC& ipc;
         SWRAM& swram;
         VRAM& vram;
+        VideoUnit& video_unit;
       };
 
       MemoryBus(SystemMemory& memory, HW const& hw);

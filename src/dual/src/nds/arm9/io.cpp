@@ -88,6 +88,13 @@ namespace dual::nds::arm9 {
     };
 
     switch(REG(address)) {
+      // PPU
+      case REG(0x04000004): {
+        if(mask & 0x0000FFFFu) value |= hw.video_unit.Read_DISPSTAT(CPU::ARM9) << 0;
+        if(mask & 0xFFFF0000u) value |= hw.video_unit.Read_VCOUNT() << 16;
+        return value;
+      }
+
       // IPC
       case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM9);
       case REG(0x04000184): return hw.ipc.Read_FIFOCNT(CPU::ARM9);
@@ -152,6 +159,9 @@ namespace dual::nds::arm9 {
     };
 
     switch(REG(address)) {
+      // PPU
+      case REG(0x04000004): hw.video_unit.Write_DISPSTAT(CPU::ARM9, value, (u16)mask);
+
       // IPC
       case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM9, value, mask); break;
       case REG(0x04000184): hw.ipc.Write_FIFOCNT(CPU::ARM9, value, mask); break;

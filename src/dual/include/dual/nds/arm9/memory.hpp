@@ -7,6 +7,7 @@
 #include <atom/panic.hpp>
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
+#include <dual/nds/video_unit/video_unit.hpp>
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/arm9/math.hpp>
 #include <dual/nds/irq.hpp>
@@ -24,6 +25,7 @@ namespace dual::nds::arm9 {
         SWRAM& swram;
         VRAM& vram;
         Math& math;
+        VideoUnit& video_unit;
       };
 
       struct TCM {

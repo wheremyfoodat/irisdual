@@ -21,6 +21,8 @@ namespace dual::nds {
   void NDS::Reset() {
     m_scheduler.Reset();
 
+    m_video_unit.Reset();
+
     m_memory.ewram.fill(0);
     m_memory.lcdc_vram_hack.fill(0);
     m_memory.swram.Reset();
@@ -119,7 +121,6 @@ namespace dual::nds {
           m_arm7.bus.WriteWord(load_address_lo + i, word, dual::arm::Memory::Bus::System);
         }
       }
-
     };
 
     LoadBinary(header.arm9, true);
