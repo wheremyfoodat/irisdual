@@ -17,7 +17,7 @@ namespace dual::nds {
       u32 mask{};
     } arm9{}, arm7{};
 
-  private:
+  //private:
     std::array<u8, 0x8000> m_swram;
 
     u8 m_wramcnt = 0u;

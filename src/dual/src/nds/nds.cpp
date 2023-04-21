@@ -98,25 +98,26 @@ namespace dual::nds {
       bad_header  = file_address_hi > m_rom->Size();
       bad_header |= file_address_hi < file_address_lo;
       bad_header |= load_address_hi < load_address_lo;
+      bad_header |= (size & 3u) != 0u;
 
       if(bad_header) {
         ATOM_PANIC("bad NDS file header (bad {} binary descriptor)", name);
       }
 
-      bool loaded = false;
+      if(arm9) {
+        for(u32 i = 0; i < size; i += 4u) {
+          u32 word;
 
-      if(load_address_lo >= 0x02000000u && load_address_hi < 0x023FFFFFu) {
-        m_rom->Read(&m_memory.ewram[load_address_lo & 0x3FFFFF], file_address_lo, size);
-        loaded = true;
-      }
+          m_rom->Read((u8*)&word, file_address_lo + i, sizeof(u32));
+          m_arm9.bus.WriteWord(load_address_lo + i, word, dual::arm::Memory::Bus::System);
+        }
+      } else {
+        for(u32 i = 0; i < size; i += 4u) {
+          u32 word;
 
-      if(load_address_lo >= 0x03800000u && load_address_hi < 0x03810000u) {
-        m_rom->Read(&m_memory.arm7.iwram[load_address_lo & 0xFFFF], file_address_lo, size);
-        loaded = true;
-      }
-
-      if(!loaded) {
-        ATOM_PANIC("failed to load {} binary into memory: load_address=0x{:08X} size={}", name, load_address_lo, size);
+          m_rom->Read((u8*)&word, file_address_lo + i, sizeof(u32));
+          m_arm7.bus.WriteWord(load_address_lo + i, word, dual::arm::Memory::Bus::System);
+        }
       }
 
     };
