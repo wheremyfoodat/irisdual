@@ -15,6 +15,8 @@ namespace dual::nds {
     SWRAM swram{};
 
     VRAM vram{};
+    std::array<u8, 0x800> pram;
+    std::array<u8, 0x800> oam;
 
     struct ARM9 {
       std::array<u8, 0x8000> bios{};

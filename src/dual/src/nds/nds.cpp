@@ -27,6 +27,8 @@ namespace dual::nds {
     m_memory.lcdc_vram_hack.fill(0);
     m_memory.swram.Reset();
     m_memory.vram.Reset();
+    m_memory.pram.fill(0);
+    m_memory.oam.fill(0);
     m_memory.arm9.dtcm.fill(0);
     m_memory.arm9.itcm.fill(0);
     m_memory.arm7.iwram.fill(0);

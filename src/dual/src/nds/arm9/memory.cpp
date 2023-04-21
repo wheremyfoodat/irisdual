@@ -10,6 +10,8 @@ namespace dual::nds::arm9 {
   MemoryBus::MemoryBus(SystemMemory& memory, HW const& hw)
       : m_boot_rom{memory.arm9.bios.data()}
       , m_ewram{memory.ewram.data()}
+      , m_pram{memory.pram.data()}
+      , m_oam{memory.oam.data()}
       , m_lcdc_vram_hack{memory.lcdc_vram_hack.data()}
       , m_swram{hw.swram}
       , m_vram{hw.vram}
@@ -56,19 +58,6 @@ namespace dual::nds::arm9 {
         return atom::read<T>(m_swram.arm9.data, address & m_swram.arm9.mask);
       }
       case 0x04: {
-        // @todo: remove hacky IO stubs
-
-//        // Hah, armwrestler. Such a gullible fool :p
-//        if(address == 0x04000004) {
-//          static int vblank = 0;
-//          static int counter = 0;
-//          if(++counter == 100000) {
-//            vblank ^= 1;
-//            counter = 0;
-//          }
-//          return vblank;
-//        }
-
         if(address == 0x04000130) {
           const u8* key_state = SDL_GetKeyboardState(nullptr);
 
@@ -94,6 +83,9 @@ namespace dual::nds::arm9 {
 
         return 0u;
       }
+      case 0x05: {
+        return atom::read<T>(m_pram, address & 0x7FFu);
+      }
       case 0x06: {
         switch((address >> 20) & 15) {
           case 0: case 1: return  m_vram.region_ppu_bg[0].Read<T>(address & 0x1FFFFFu);
@@ -102,7 +94,9 @@ namespace dual::nds::arm9 {
           case 6: case 7: return m_vram.region_ppu_obj[1].Read<T>(address & 0x1FFFFFu);
           default:        return       m_vram.region_lcdc.Read<T>(address & 0x0FFFFFu);
         }
-        break;
+      }
+      case 0x07: {
+        return atom::read<T>(m_oam, address & 0x7FFu);
       }
       case 0xFF: {
         if(address >= 0xFFFF0000u) {
@@ -154,11 +148,17 @@ namespace dual::nds::arm9 {
         if constexpr(std::is_same_v<T, u32>) m_io.WriteWord(address, value);
         break;
       }
+      case 0x05: {
+        atom::write<T>(m_pram, address & 0x7FFu, value);
+        break;
+      }
       case 0x06: {
         // @todo: remove this hack
         if(address >= 0x06800000 && address < 0x06818000) {
           atom::write<T>(m_lcdc_vram_hack, address - 0x06800000, value);
         }
+
+        // @todo: disallow 8-bit VRAM writes (unclear whether that should also affect PRAM and OAM)
 
         switch((address >> 20) & 15) {
           case 0: case 1:  m_vram.region_ppu_bg[0].Write<T>(address & 0x1FFFFFu, value); break;
@@ -167,6 +167,10 @@ namespace dual::nds::arm9 {
           case 6: case 7: m_vram.region_ppu_obj[1].Write<T>(address & 0x1FFFFFu, value); break;
           default:              m_vram.region_lcdc.Write<T>(address & 0x0FFFFFu, value); break;
         }
+        break;
+      }
+      case 0x07: {
+        atom::write<T>(m_oam, address & 0x7FFu, value);
         break;
       }
       default: {
