@@ -42,7 +42,8 @@ namespace dual::nds::arm7 {
       }
     }
 
-    ATOM_PANIC("arm7: unhandled {}-bit read from 0x{:08X}", bit::number_of_bits<T>(), address);
+    //ATOM_PANIC("arm7: unhandled {}-bit read from 0x{:08X}", bit::number_of_bits<T>(), address);
+    return 0;
   }
 
   template<typename T> void MemoryBus::Write(u32 address, T value, Bus bus) {

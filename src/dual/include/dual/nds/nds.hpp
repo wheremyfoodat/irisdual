@@ -5,6 +5,7 @@
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/arm7/dma.hpp>
 #include <dual/nds/arm7/memory.hpp>
+#include <dual/nds/arm7/spi.hpp>
 #include <dual/nds/arm9/cp15.hpp>
 #include <dual/nds/arm9/math.hpp>
 #include <dual/nds/arm9/memory.hpp>
@@ -66,11 +67,13 @@ namespace dual::nds {
         arm7::MemoryBus bus;
         IRQ irq{false};
         arm7::DMA dma{bus, irq};
+        arm7::SPI spi{irq};
 
         ARM7(SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
             : bus{memory, {
                 irq,
                 dma,
+                spi,
                 ipc,
                 memory.swram,
                 memory.vram,

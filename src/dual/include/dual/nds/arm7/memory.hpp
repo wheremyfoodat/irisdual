@@ -8,6 +8,7 @@
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
 #include <dual/nds/arm7/dma.hpp>
+#include <dual/nds/arm7/spi.hpp>
 #include <dual/nds/video_unit/video_unit.hpp>
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/irq.hpp>
@@ -22,6 +23,7 @@ namespace dual::nds::arm7 {
       struct HW {
         IRQ& irq;
         arm7::DMA& dma;
+        arm7::SPI& spi;
         IPC& ipc;
         SWRAM& swram;
         VRAM& vram;

@@ -114,6 +114,13 @@ namespace dual::nds::arm7 {
       case REG(0x04000184): return hw.ipc.Read_FIFOCNT(CPU::ARM7);
       case REG(0x04100000): return hw.ipc.Read_FIFORECV(CPU::ARM7);
 
+      // SPI
+      case REG(0x040001C0): {
+        if(mask & 0x0000FFFFu) value |= hw.spi.Read_SPICNT()  <<  0;
+        if(mask & 0xFFFF0000u) value |= hw.spi.Read_SPIDATA() << 16;
+        return value;
+      }
+
       // IRQ
       case REG(0x04000208): return hw.irq.Read_IME();
       case REG(0x04000210): return hw.irq.Read_IE();
@@ -157,6 +164,13 @@ namespace dual::nds::arm7 {
       case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM7, value, mask); break;
       case REG(0x04000184): hw.ipc.Write_FIFOCNT(CPU::ARM7, value, mask); break;
       case REG(0x04000188): hw.ipc.Write_FIFOSEND(CPU::ARM7, value); break;
+
+      // SPI
+      case REG(0x040001C0): {
+        if(mask & 0x0000FFFFu) hw.spi.Write_SPICNT((u16)value, (u16)mask);
+        if(mask & 0xFFFF0000u) hw.spi.Write_SPIDATA((u8)(value >> 16));
+        break;
+      }
 
       // IRQ
       case REG(0x04000208): hw.irq.Write_IME(value, mask); break;

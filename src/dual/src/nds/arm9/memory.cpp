@@ -105,7 +105,8 @@ namespace dual::nds::arm9 {
       }
     }
 
-    ATOM_PANIC("arm9: unhandled {}-bit read from 0x{:08X}", bit::number_of_bits<T>(), address);
+    // ATOM_PANIC("arm9: unhandled {}-bit read from 0x{:08X}", bit::number_of_bits<T>(), address);
+    return 0;
   }
 
   template<typename T> void MemoryBus::Write(u32 address, T value, Bus bus) {
@@ -180,7 +181,7 @@ namespace dual::nds::arm9 {
           break; // weird rockwrestler write
         }
 
-        ATOM_PANIC("arm9: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
+        //ATOM_PANIC("arm9: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
       }
     }
   }
