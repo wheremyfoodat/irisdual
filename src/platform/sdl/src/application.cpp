@@ -114,9 +114,9 @@ void Application::MainLoop() {
 
   SDL_Event event;
 
-  u16* vram = (u16*)m_nds->GetSystemMemory().lcdc_vram_hack.data();
+  // u16* vram =  (u16*)m_nds->GetSystemMemory().lcdc_vram_hack.data();
 
-  u32 framebuffer[256 * 192];
+  // u32 framebuffer[256 * 192];
 
   while(true) {
     while(SDL_PollEvent(&event)) {
@@ -127,7 +127,7 @@ void Application::MainLoop() {
 
     m_nds->Step(559241);
 
-    for(int i = 0; i < 256 * 192; i++) {
+    /*for(int i = 0; i < 256 * 192; i++) {
       const u16 rgb555 = vram[i];
 
       const int r = (rgb555 >>  0) & 31;
@@ -135,7 +135,9 @@ void Application::MainLoop() {
       const int b = (rgb555 >> 10) & 31;
 
       framebuffer[i] = 0xFF000000 | r << 19 | g << 11 | b << 3;
-    }
+    }*/
+
+    const u32* framebuffer = m_nds->GetVideoUnit().GetPPU(1).GetOutput();
 
     SDL_UpdateTexture(m_textures[0], nullptr, framebuffer, 256 * sizeof(u32));
 

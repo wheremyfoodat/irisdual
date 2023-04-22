@@ -3,8 +3,11 @@
 
 #define REG(address) ((address) >> 2)
 
-#define PPU_READ_1616(ppu, reg_lo, reg_hi) ((mask & 0x0000FFFFu ? (ppu.mmio.reg_lo.ReadHalf() <<  0) : 0u) |\
-                                            (mask & 0xFFFF0000u ? (ppu.mmio.reg_hi.ReadHalf() << 16) : 0u))
+#define PPU_READ_16__(ppu, reg) ppu.mmio.reg.ReadHalf()
+
+#define PPU_READ_1616(ppu, reg_lo, reg_hi, mask) \
+  (((mask) & 0x0000FFFFu ? (ppu.mmio.reg_lo.ReadHalf() <<  0) : 0u) |\
+   ((mask) & 0xFFFF0000u ? (ppu.mmio.reg_hi.ReadHalf() << 16) : 0u))
 
 #define PPU_READ_32(ppu, reg) ppu.mmio.reg.ReadWord()
 
@@ -112,17 +115,19 @@ namespace dual::nds::arm9 {
         if(mask & 0xFFFF0000u) value |= hw.video_unit.Read_VCOUNT() << 16;
         return value;
       }
-      case REG(0x04000008): return PPU_READ_1616(ppu_a, bgcnt[0], bgcnt[1]);
-      case REG(0x0400000C): return PPU_READ_1616(ppu_a, bgcnt[2], bgcnt[3]);
-      case REG(0x04000048): return PPU_READ_1616(ppu_a, winin, winout);
-      case REG(0x04000050): return PPU_READ_1616(ppu_a, bldcnt, bldalpha);
+      case REG(0x04000008): return PPU_READ_1616(ppu_a, bgcnt[0], bgcnt[1], mask);
+      case REG(0x0400000C): return PPU_READ_1616(ppu_a, bgcnt[2], bgcnt[3], mask);
+      case REG(0x04000048): return PPU_READ_1616(ppu_a, winin, winout, mask);
+      case REG(0x04000050): return PPU_READ_1616(ppu_a, bldcnt, bldalpha, mask);
+      case REG(0x0400006C): return PPU_READ_16__(ppu_a, master_bright);
 
       // PPU B
       case REG(0x04001000): return PPU_READ_32(ppu_b, dispcnt);
-      case REG(0x04001008): return PPU_READ_1616(ppu_b, bgcnt[0], bgcnt[1]);
-      case REG(0x0400100C): return PPU_READ_1616(ppu_b, bgcnt[2], bgcnt[3]);
-      case REG(0x04001048): return PPU_READ_1616(ppu_b, winin, winout);
-      case REG(0x04001050): return PPU_READ_1616(ppu_b, bldcnt, bldalpha);
+      case REG(0x04001008): return PPU_READ_1616(ppu_b, bgcnt[0], bgcnt[1], mask);
+      case REG(0x0400100C): return PPU_READ_1616(ppu_b, bgcnt[2], bgcnt[3], mask);
+      case REG(0x04001048): return PPU_READ_1616(ppu_b, winin, winout, mask);
+      case REG(0x04001050): return PPU_READ_1616(ppu_b, bldcnt, bldalpha, mask);
+      case REG(0x0400106C): return PPU_READ_16__(ppu_b, master_bright);
 
       // IPC
       case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM9);

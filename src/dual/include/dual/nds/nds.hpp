@@ -32,6 +32,10 @@ namespace dual::nds {
         return m_memory;
       }
 
+      VideoUnit& GetVideoUnit() {
+        return m_video_unit;
+      }
+
     private:
       Scheduler m_scheduler{};
 

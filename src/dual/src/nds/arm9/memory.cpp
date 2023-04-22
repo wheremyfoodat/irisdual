@@ -130,6 +130,8 @@ namespace dual::nds::arm9 {
       return;
     }
 
+    // @todo: cleanup the PPU VRAM write callbacks.
+
     switch(address >> 24) {
       case 0x02: {
         atom::write<T>(m_ewram, address & 0x3FFFFFu, value);
@@ -150,6 +152,8 @@ namespace dual::nds::arm9 {
       }
       case 0x05: {
         atom::write<T>(m_pram, address & 0x7FFu, value);
+
+        m_io.hw.video_unit.GetPPU((int)(address >> 10) & 1).OnWritePRAM(address & 0x3FFu, (address & 0x3FFu) + sizeof(T));
         break;
       }
       case 0x06: {
@@ -167,10 +171,20 @@ namespace dual::nds::arm9 {
           case 6: case 7: m_vram.region_ppu_obj[1].Write<T>(address & 0x1FFFFFu, value); break;
           default:              m_vram.region_lcdc.Write<T>(address & 0x0FFFFFu, value); break;
         }
+
+        switch((address >> 20) & 15) {
+          case 0: case 1:  m_io.hw.video_unit.GetPPU(0).OnWriteVRAM_BG(address & 0x1FFFFFu, (address & 0x1FFFFFu) + sizeof(T)); break;
+          case 2: case 3:  m_io.hw.video_unit.GetPPU(1).OnWriteVRAM_BG(address & 0x1FFFFFu, (address & 0x1FFFFFu) + sizeof(T)); break;
+          case 4: case 5: m_io.hw.video_unit.GetPPU(0).OnWriteVRAM_OBJ(address & 0x1FFFFFu, (address & 0x1FFFFFu) + sizeof(T)); break;
+          case 6: case 7: m_io.hw.video_unit.GetPPU(1).OnWriteVRAM_OBJ(address & 0x1FFFFFu, (address & 0x1FFFFFu) + sizeof(T)); break;
+          default:        m_io.hw.video_unit.GetPPU(0).OnWriteVRAM_LCDC(address & 0xFFFFFu, (address & 0xFFFFFu) + sizeof(T)); break;
+        }
         break;
       }
       case 0x07: {
         atom::write<T>(m_oam, address & 0x7FFu, value);
+
+        m_io.hw.video_unit.GetPPU((int)(address >> 10) & 1).OnWriteOAM(address & 0x3FFu, (address & 0x3FFu) + sizeof(T));
         break;
       }
       default: {
