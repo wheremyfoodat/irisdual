@@ -12,7 +12,6 @@ namespace dual::nds::arm9 {
       , m_ewram{memory.ewram.data()}
       , m_pram{memory.pram.data()}
       , m_oam{memory.oam.data()}
-      , m_lcdc_vram_hack{memory.lcdc_vram_hack.data()}
       , m_swram{hw.swram}
       , m_vram{hw.vram}
       , m_io{hw} {
@@ -84,19 +83,19 @@ namespace dual::nds::arm9 {
         return 0u;
       }
       case 0x05: {
-        return atom::read<T>(m_pram, address & 0x7FFu);
+        return ReadPRAM<T>(address);
       }
       case 0x06: {
         switch((address >> 20) & 15) {
-          case 0: case 1: return  m_vram.region_ppu_bg[0].Read<T>(address & 0x1FFFFFu);
-          case 2: case 3: return  m_vram.region_ppu_bg[1].Read<T>(address & 0x1FFFFFu);
-          case 4: case 5: return m_vram.region_ppu_obj[0].Read<T>(address & 0x1FFFFFu);
-          case 6: case 7: return m_vram.region_ppu_obj[1].Read<T>(address & 0x1FFFFFu);
-          default:        return       m_vram.region_lcdc.Read<T>(address & 0x0FFFFFu);
+          case 0: case 1: return ReadVRAM_PPU_BG <T>(address, 0);
+          case 2: case 3: return ReadVRAM_PPU_BG <T>(address, 1);
+          case 4: case 5: return ReadVRAM_PPU_OBJ<T>(address, 0);
+          case 6: case 7: return ReadVRAM_PPU_OBJ<T>(address, 1);
+          default:        return ReadVRAM_LCDC<T>(address);
         }
       }
       case 0x07: {
-        return atom::read<T>(m_oam, address & 0x7FFu);
+        return ReadOAM<T>(address);
       }
       case 0xFF: {
         if(address >= 0xFFFF0000u) {
@@ -130,8 +129,6 @@ namespace dual::nds::arm9 {
       return;
     }
 
-    // @todo: cleanup the PPU VRAM write callbacks.
-
     switch(address >> 24) {
       case 0x02: {
         atom::write<T>(m_ewram, address & 0x3FFFFFu, value);
@@ -151,40 +148,31 @@ namespace dual::nds::arm9 {
         break;
       }
       case 0x05: {
-        atom::write<T>(m_pram, address & 0x7FFu, value);
-
-        m_io.hw.video_unit.GetPPU((int)(address >> 10) & 1).OnWritePRAM(address & 0x3FFu, (address & 0x3FFu) + sizeof(T));
+        if(std::is_same_v<T, u8>) {
+          return;
+        }
+        WritePRAM(address, value);
         break;
       }
       case 0x06: {
-        // @todo: remove this hack
-        if(address >= 0x06800000 && address < 0x06818000) {
-          atom::write<T>(m_lcdc_vram_hack, address - 0x06800000, value);
-        }
-
-        // @todo: disallow 8-bit VRAM writes (unclear whether that should also affect PRAM and OAM)
-
-        switch((address >> 20) & 15) {
-          case 0: case 1:  m_vram.region_ppu_bg[0].Write<T>(address & 0x1FFFFFu, value); break;
-          case 2: case 3:  m_vram.region_ppu_bg[1].Write<T>(address & 0x1FFFFFu, value); break;
-          case 4: case 5: m_vram.region_ppu_obj[0].Write<T>(address & 0x1FFFFFu, value); break;
-          case 6: case 7: m_vram.region_ppu_obj[1].Write<T>(address & 0x1FFFFFu, value); break;
-          default:              m_vram.region_lcdc.Write<T>(address & 0x0FFFFFu, value); break;
+        if(std::is_same_v<T, u8>) {
+          return;
         }
 
         switch((address >> 20) & 15) {
-          case 0: case 1:  m_io.hw.video_unit.GetPPU(0).OnWriteVRAM_BG(address & 0x1FFFFFu, (address & 0x1FFFFFu) + sizeof(T)); break;
-          case 2: case 3:  m_io.hw.video_unit.GetPPU(1).OnWriteVRAM_BG(address & 0x1FFFFFu, (address & 0x1FFFFFu) + sizeof(T)); break;
-          case 4: case 5: m_io.hw.video_unit.GetPPU(0).OnWriteVRAM_OBJ(address & 0x1FFFFFu, (address & 0x1FFFFFu) + sizeof(T)); break;
-          case 6: case 7: m_io.hw.video_unit.GetPPU(1).OnWriteVRAM_OBJ(address & 0x1FFFFFu, (address & 0x1FFFFFu) + sizeof(T)); break;
-          default:        m_io.hw.video_unit.GetPPU(0).OnWriteVRAM_LCDC(address & 0xFFFFFu, (address & 0xFFFFFu) + sizeof(T)); break;
+          case 0: case 1: WriteVRAM_PPU_BG (address, value, 0); break;
+          case 2: case 3: WriteVRAM_PPU_BG (address, value, 1); break;
+          case 4: case 5: WriteVRAM_PPU_OBJ(address, value, 0); break;
+          case 6: case 7: WriteVRAM_PPU_OBJ(address, value, 1); break;
+          default:        WriteVRAM_LCDC(address, value); break;
         }
         break;
       }
       case 0x07: {
-        atom::write<T>(m_oam, address & 0x7FFu, value);
-
-        m_io.hw.video_unit.GetPPU((int)(address >> 10) & 1).OnWriteOAM(address & 0x3FFu, (address & 0x3FFu) + sizeof(T));
+        if(std::is_same_v<T, u8>) {
+          return;
+        }
+        WriteOAM(address, value);
         break;
       }
       default: {

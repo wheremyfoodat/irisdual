@@ -56,6 +56,73 @@ namespace dual::nds::arm9 {
       template<typename T> T    Read (u32 address, Bus bus);
       template<typename T> void Write(u32 address, T value, Bus bus);
 
+      template<typename T>
+      T ReadVRAM_PPU_BG(u32 address, int ppu_id) {
+        return m_vram.region_ppu_bg[ppu_id].Read<T>(address & 0x1FFFFFu);
+      }
+
+      template<typename T>
+      T ReadVRAM_PPU_OBJ(u32 address, int ppu_id) {
+        return m_vram.region_ppu_obj[ppu_id].Read<T>(address & 0x1FFFFFu);
+      }
+
+      template<typename T>
+      T ReadVRAM_LCDC(u32 address) {
+        return m_vram.region_lcdc.Read<T>(address & 0xFFFFFu);
+      }
+
+      template<typename T>
+      T ReadPRAM(u32 address) {
+        return atom::read<T>(m_pram, address & 0x7FFu);
+      }
+
+      template<typename T>
+      T ReadOAM(u32 address) {
+        return atom::read<T>(m_oam, address & 0x7FFu);
+      }
+
+      template<typename T>
+      void WriteVRAM_PPU_BG(u32 address, T value, int ppu_id) {
+        const u32 offset = address & 0x1FFFFFu;
+
+        m_vram.region_ppu_bg[ppu_id].Write<T>(offset, value);
+        m_io.hw.video_unit.GetPPU(ppu_id).OnWriteVRAM_BG((size_t)offset, (size_t)offset + sizeof(T));
+      }
+
+      template<typename T>
+      void WriteVRAM_PPU_OBJ(u32 address, T value, int ppu_id) {
+        const u32 offset = address & 0x1FFFFFu;
+
+        m_vram.region_ppu_obj[ppu_id].Write<T>(offset, value);
+        m_io.hw.video_unit.GetPPU(ppu_id).OnWriteVRAM_OBJ((size_t)offset, (size_t)offset + sizeof(T));
+      }
+
+      template<typename T>
+      void WriteVRAM_LCDC(u32 address, T value) {
+        const u32 offset = address & 0xFFFFFu;
+
+        m_vram.region_lcdc.Write<T>(offset, value);
+        m_io.hw.video_unit.GetPPU(0).OnWriteVRAM_LCDC((size_t)offset, (size_t)offset + sizeof(T));
+      }
+
+      template<typename T>
+      void WritePRAM(u32 address, T value) {
+        const u32 offset = address & 0x7FFu;
+        const int ppu_id = (int)(offset >> 10);
+
+        atom::write<T>(m_pram, offset, value);
+        m_io.hw.video_unit.GetPPU(ppu_id).OnWritePRAM(offset & 0x3FFu, (offset & 0x3FFu) + sizeof(T));
+      }
+
+      template<typename T>
+      void WriteOAM(u32 address, T value) {
+        const u32 offset = address & 0x7FFu;
+        const int ppu_id = (int)(offset >> 10);
+
+        atom::write<T>(m_oam, offset, value);
+        m_io.hw.video_unit.GetPPU(ppu_id).OnWriteOAM(offset & 0x3FFu, (offset & 0x3FFu) + sizeof(T));
+      }
+
       struct IO {
         u8  ReadByte(u32 address);
         u16 ReadHalf(u32 address);
@@ -78,7 +145,6 @@ namespace dual::nds::arm9 {
       u8* m_ewram;
       u8* m_pram;
       u8* m_oam;
-      u8* m_lcdc_vram_hack;
       SWRAM& m_swram;
       VRAM& m_vram;
   };

@@ -24,7 +24,6 @@ namespace dual::nds {
     m_video_unit.Reset();
 
     m_memory.ewram.fill(0);
-    m_memory.lcdc_vram_hack.fill(0);
     m_memory.swram.Reset();
     m_memory.vram.Reset();
     m_memory.pram.fill(0);
