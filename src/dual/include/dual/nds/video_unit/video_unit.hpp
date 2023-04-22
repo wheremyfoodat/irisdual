@@ -20,7 +20,7 @@ namespace dual::nds {
         SystemMemory& memory,
         IRQ& irq9,
         IRQ& irq7,
-        DMA& dma9
+        arm9::DMA& dma9
       );
 
       void Reset();
@@ -64,7 +64,7 @@ namespace dual::nds {
       u16 m_vcount{};
 
       IRQ* m_irq[2]{};
-      DMA& m_dma9;
+      arm9::DMA& m_dma9;
   };
 
 } // namespace dual::nds

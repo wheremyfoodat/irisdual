@@ -6,7 +6,7 @@
 #include <dual/arm/memory.hpp>
 #include <dual/nds/irq.hpp>
 
-namespace dual::nds {
+namespace dual::nds::arm9 {
 
   class DMA {
     public:
@@ -69,4 +69,4 @@ namespace dual::nds {
       } m_latch[4]{};
   };
 
-} // namespace dual::nds
+} // namespace dual::nds::arm9

@@ -49,7 +49,7 @@ namespace dual::nds {
         std::unique_ptr<arm9::CP15> cp15{};
         arm9::MemoryBus bus;
         IRQ irq{true};
-        DMA dma{bus, irq};
+        arm9::DMA dma{bus, irq};
         arm9::Math math{};
 
         ARM9(SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)

@@ -22,7 +22,7 @@ namespace dual::nds::arm9 {
     public:
       struct HW {
         IRQ& irq;
-        DMA& dma;
+        arm9::DMA& dma;
         IPC& ipc;
         SWRAM& swram;
         VRAM& vram;

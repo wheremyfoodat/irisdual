@@ -1,7 +1,7 @@
 
 #include <dual/nds/arm9/dma.hpp>
 
-namespace dual::nds {
+namespace dual::nds::arm9 {
 
   void DMA::Reset() {
     for(auto& dmasad : m_dmasad) dmasad = 0u;
@@ -135,4 +135,4 @@ namespace dual::nds {
     }
   }
 
-} // namespace dual::nds
+} // namespace dual::nds::arm9
