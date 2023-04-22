@@ -4,15 +4,22 @@
 #include <atom/bit.hpp>
 #include <atom/integer.hpp>
 #include <dual/common/scheduler.hpp>
+#include <dual/nds/video_unit/ppu/ppu.hpp>
 #include <dual/nds/enums.hpp>
 #include <dual/nds/irq.hpp>
+#include <dual/nds/system_memory.hpp>
 
 namespace dual::nds {
 
   class VideoUnit {
     public:
 
-      VideoUnit(Scheduler& scheduler, IRQ& irq9, IRQ& irq7);
+      VideoUnit(
+        Scheduler& scheduler,
+        SystemMemory& memory,
+        IRQ& irq9,
+        IRQ& irq7
+      );
 
       void Reset();
 
@@ -32,6 +39,8 @@ namespace dual::nds {
       void BeginHBlank(int late);
 
       Scheduler& m_scheduler;
+
+      PPU m_ppu[2];
 
       union DISPSTAT {
         atom::Bits<0, 1, u16> vblank_flag;

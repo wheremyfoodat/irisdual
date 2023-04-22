@@ -4,7 +4,12 @@
 
 namespace dual::nds {
 
-  VideoUnit::VideoUnit(Scheduler& scheduler, IRQ& irq9, IRQ& irq7) : m_scheduler{scheduler} {
+  VideoUnit::VideoUnit(
+    Scheduler& scheduler,
+    SystemMemory& memory,
+    IRQ& irq9,
+    IRQ& irq7
+  )   : m_scheduler{scheduler}, m_ppu{{0, memory}, {1, memory}} {
     m_irq[(int)CPU::ARM9] = &irq9;
     m_irq[(int)CPU::ARM7] = &irq7;
   }
@@ -12,7 +17,9 @@ namespace dual::nds {
   void VideoUnit::Reset() {
     for(auto& dispstat : m_dispstat) dispstat = {};
 
-    m_vcount = 0u;
+    m_vcount = 0xFFFFu;
+
+    for(auto& ppu : m_ppu) ppu.Reset();
 
     BeginHDraw(0);
   }
@@ -20,7 +27,7 @@ namespace dual::nds {
   void VideoUnit::UpdateVerticalCounterMatchFlag(CPU cpu) {
     auto& dispstat = m_dispstat[(int)cpu];
 
-    const bool new_vmatch_flag = m_vcount == dispstat.vmatch_setting;
+    const bool new_vmatch_flag = m_vcount == (dispstat.vmatch_setting_msb << 8 | dispstat.vmatch_setting);
 
     if(dispstat.enable_vmatch_irq && !dispstat.vmatch_flag && new_vmatch_flag) {
       m_irq[(int)cpu]->Raise(IRQ::Source::VMatch);
@@ -31,27 +38,39 @@ namespace dual::nds {
 
   void VideoUnit::BeginHDraw(int late) {
     if(++m_vcount == k_total_lines) {
+      for(auto& ppu : m_ppu) ppu.WaitForRenderWorker();
+
+      for(auto& ppu : m_ppu) ppu.SwapBuffers();
+
       m_vcount = 0u;
     }
 
     UpdateVerticalCounterMatchFlag(CPU::ARM9);
     UpdateVerticalCounterMatchFlag(CPU::ARM7);
 
-    if(m_vcount == k_drawing_lines) {
-      for(auto cpu : {CPU::ARM9, CPU::ARM7}) {
-        auto& dispstat = m_dispstat[(int)cpu];
+    if(m_vcount < k_drawing_lines) {
+      m_ppu[0].OnDrawScanlineBegin(m_vcount, false);
+      m_ppu[1].OnDrawScanlineBegin(m_vcount, false);
+    } else {
+      m_ppu[0].OnBlankScanlineBegin(m_vcount);
+      m_ppu[1].OnBlankScanlineBegin(m_vcount);
 
-        if(dispstat.enable_vblank_irq) {
-          m_irq[(int)cpu]->Raise(IRQ::Source::VBlank);
+      if(m_vcount == k_drawing_lines) {
+        for(auto cpu : {CPU::ARM9, CPU::ARM7}) {
+          auto& dispstat = m_dispstat[(int)cpu];
+
+          if(dispstat.enable_vblank_irq) {
+            m_irq[(int)cpu]->Raise(IRQ::Source::VBlank);
+          }
+
+          dispstat.vblank_flag = true;
         }
-
-        dispstat.vblank_flag = true;
       }
-    }
 
-    if(m_vcount == k_total_lines - 1) {
-      m_dispstat[(int)CPU::ARM9].vblank_flag = false;
-      m_dispstat[(int)CPU::ARM7].vblank_flag = false;
+      if(m_vcount == k_total_lines - 1) {
+        m_dispstat[(int)CPU::ARM9].vblank_flag = false;
+        m_dispstat[(int)CPU::ARM7].vblank_flag = false;
+      }
     }
 
     m_dispstat[(int)CPU::ARM9].hblank_flag = false;
@@ -69,6 +88,10 @@ namespace dual::nds {
       }
 
       dispstat.hblank_flag = true;
+    }
+
+    if(m_vcount < k_drawing_lines) {
+      for(auto& ppu : m_ppu) ppu.OnDrawScanlineEnd();
     }
 
     m_scheduler.Add(524 - late, this, &VideoUnit::BeginHDraw);

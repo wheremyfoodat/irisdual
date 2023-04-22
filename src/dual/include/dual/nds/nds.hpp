@@ -37,7 +37,7 @@ namespace dual::nds {
 
       SystemMemory m_memory{};
 
-      VideoUnit m_video_unit{m_scheduler, m_arm9.irq, m_arm7.irq};
+      VideoUnit m_video_unit{m_scheduler, m_memory, m_arm9.irq, m_arm7.irq};
 
       struct ARM9 {
         std::unique_ptr<arm::CPU> cpu{};

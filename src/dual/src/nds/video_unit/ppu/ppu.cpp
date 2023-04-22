@@ -6,21 +6,15 @@
 
 namespace dual::nds {
 
-PPU::PPU(
-  int id,
-  VRAM const& vram,
-  u8   const* pram,
-  u8   const* oam/*,
-  GPU* gpu*/
-)   : id(id)
-    , vram_bg(vram.region_ppu_bg[id])
-    , vram_obj(vram.region_ppu_obj[id])
-    , extpal_bg(vram.region_ppu_bg_extpal[id])
-    , extpal_obj(vram.region_ppu_obj_extpal[id])
-    , vram_lcdc(vram.region_lcdc)
-    , pram(pram)
-    , oam(oam)
-    /*, gpu(gpu)*/ {
+PPU::PPU(int id, SystemMemory& memory)
+    : id(id)
+    , vram_bg(memory.vram.region_ppu_bg[id])
+    , vram_obj(memory.vram.region_ppu_obj[id])
+    , extpal_bg(memory.vram.region_ppu_bg_extpal[id])
+    , extpal_obj(memory.vram.region_ppu_obj_extpal[id])
+    , vram_lcdc(memory.vram.region_lcdc)
+    , pram(&memory.pram[id * 0x400])
+    , oam(&memory.oam[id * 0x400]) {
   if (id == 0) {
     mmio.dispcnt = {};
   } else {

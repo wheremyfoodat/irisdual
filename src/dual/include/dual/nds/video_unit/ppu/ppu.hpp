@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <dual/nds/video_unit/ppu/registers.hpp>
 #include <dual/nds/vram/vram.hpp>
+#include <dual/nds/system_memory.hpp>
 #include <functional>
 #include <mutex>
 #include <thread>
@@ -18,13 +19,7 @@ namespace dual::nds {
  */
 class PPU {
   public:
-    PPU(
-      int id,
-      VRAM const& vram,
-      u8   const* pram,
-      u8   const* oam/*,
-      GPU* gpu = nullptr*/
-    );
+    PPU(int id, SystemMemory& memory);
 
    ~PPU();
 
@@ -290,7 +285,7 @@ class PPU {
       }
     }
 
-    void Merge2DWithOpenGL3D();
+    // void Merge2DWithOpenGL3D();
 
     int id;
     u32 output[2][256 * 192];
