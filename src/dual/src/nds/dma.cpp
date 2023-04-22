@@ -3,10 +3,6 @@
 
 namespace dual::nds {
 
-  static constexpr int k_address_offset[4] { 1, -1, 0, 1 };
-
-  using Bus = arm::Memory::Bus;
-
   void DMA::Reset() {
     for(auto& dmasad : m_dmasad) dmasad = 0u;
     for(auto& dmadad : m_dmadad) dmadad = 0u;
@@ -88,11 +84,18 @@ namespace dual::nds {
   }
 
   void DMA::Run(int id) {
+    static constexpr int k_address_offset[2][4] {
+      {2, -2, 0, 2},
+      {4, -4, 0, 4}
+    };
+
+    using Bus = arm::Memory::Bus;
+
     auto& dmacnt = m_dmacnt[id];
     auto& latch = m_latch[id];
 
-    const int sad_offset = k_address_offset[dmacnt.src_address_mode] << (1 + dmacnt.transfer_32bits);
-    const int dad_offset = k_address_offset[dmacnt.dst_address_mode] << (1 + dmacnt.transfer_32bits);
+    const int sad_offset = k_address_offset[dmacnt.transfer_32bits][dmacnt.src_address_mode];
+    const int dad_offset = k_address_offset[dmacnt.transfer_32bits][dmacnt.dst_address_mode];
 
     if(dmacnt.transfer_32bits) {
       while(latch.length-- > 0u) {
