@@ -5,6 +5,7 @@
 #include <atom/integer.hpp>
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/video_unit/ppu/ppu.hpp>
+#include <dual/nds/dma.hpp>
 #include <dual/nds/enums.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/system_memory.hpp>
@@ -18,7 +19,8 @@ namespace dual::nds {
         Scheduler& scheduler,
         SystemMemory& memory,
         IRQ& irq9,
-        IRQ& irq7
+        IRQ& irq7,
+        DMA& dma9
       );
 
       void Reset();
@@ -62,6 +64,7 @@ namespace dual::nds {
       u16 m_vcount{};
 
       IRQ* m_irq[2]{};
+      DMA& m_dma9;
   };
 
 } // namespace dual::nds

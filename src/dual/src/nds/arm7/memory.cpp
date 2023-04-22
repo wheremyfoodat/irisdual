@@ -76,7 +76,7 @@ namespace dual::nds::arm7 {
           break; // weird rockwrestler write
         }
 
-        ATOM_PANIC("arm7: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
+        //ATOM_PANIC("arm7: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", bit::number_of_bits<T>(), address, value);
       }
     }
   }

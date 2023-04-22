@@ -8,8 +8,9 @@ namespace dual::nds {
     Scheduler& scheduler,
     SystemMemory& memory,
     IRQ& irq9,
-    IRQ& irq7
-  )   : m_scheduler{scheduler}, m_ppu{{0, memory}, {1, memory}} {
+    IRQ& irq7,
+    DMA& dma9
+  )   : m_scheduler{scheduler}, m_ppu{{0, memory}, {1, memory}}, m_dma9{dma9} {
     m_irq[(int)CPU::ARM9] = &irq9;
     m_irq[(int)CPU::ARM7] = &irq7;
   }
@@ -51,6 +52,9 @@ namespace dual::nds {
     if(m_vcount < k_drawing_lines) {
       m_ppu[0].OnDrawScanlineBegin(m_vcount, false);
       m_ppu[1].OnDrawScanlineBegin(m_vcount, false);
+
+      // @todo: check if this type of DMA has weird start/stop behaviour like on the GBA.
+      m_dma9.Request(DMA::StartTime::HDraw);
     } else {
       m_ppu[0].OnBlankScanlineBegin(m_vcount);
       m_ppu[1].OnBlankScanlineBegin(m_vcount);
@@ -62,6 +66,8 @@ namespace dual::nds {
           if(dispstat.enable_vblank_irq) {
             m_irq[(int)cpu]->Raise(IRQ::Source::VBlank);
           }
+
+          m_dma9.Request(DMA::StartTime::VBlank);
 
           dispstat.vblank_flag = true;
         }
@@ -92,6 +98,8 @@ namespace dual::nds {
 
     if(m_vcount < k_drawing_lines) {
       for(auto& ppu : m_ppu) ppu.OnDrawScanlineEnd();
+
+      m_dma9.Request(DMA::StartTime::HBlank);
     }
 
     m_scheduler.Add(524 - late, this, &VideoUnit::BeginHDraw);

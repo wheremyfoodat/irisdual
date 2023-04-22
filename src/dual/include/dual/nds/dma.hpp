@@ -14,7 +14,7 @@ namespace dual::nds {
         Immediate = 0,
         VBlank = 1,
         HBlank = 2,
-        VideoTransfer = 3,
+        HDraw = 3,
         MainMemoryDisplay = 4,
         Slot1 = 5,
         Slot2 = 6,
