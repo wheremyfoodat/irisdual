@@ -3,6 +3,15 @@
 
 #define REG(address) ((address) >> 2)
 
+#define PPU_WRITE_16__(ppu, reg, value, mask) ppu.mmio.reg.WriteHalf(value, (u16)mask);
+
+#define PPU_WRITE_1616(ppu, reg_lo, reg_hi, value, mask) {\
+  if(mask & 0x0000FFFFu) ppu.mmio.reg_lo.WriteHalf((u16)((value) >>  0), (u16)((mask) >>  0));\
+  if(mask & 0xFFFF0000u) ppu.mmio.reg_hi.WriteHalf((u16)((value) >> 16), (u16)((mask) >> 16));\
+}
+
+#define PPU_WRITE_32(ppu, reg, value, mask) ppu.mmio.reg.WriteWord(value, mask);
+
 namespace dual::nds::arm9 {
 
   static constexpr int GetAccessSize(u32 mask) {
@@ -158,9 +167,34 @@ namespace dual::nds::arm9 {
       ATOM_ERROR("arm9: IO: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", access_size, access_address, access_value);
     };
 
+    auto& ppu_a = hw.video_unit.GetPPU(0);
+    auto& ppu_b = hw.video_unit.GetPPU(1);
+
     switch(REG(address)) {
       // PPU
-      case REG(0x04000004): hw.video_unit.Write_DISPSTAT(CPU::ARM9, value, (u16)mask);
+      case REG(0x04000000): PPU_WRITE_32  (ppu_a, dispcnt, value, mask); break;
+      case REG(0x04000004): hw.video_unit.Write_DISPSTAT(CPU::ARM9, value, (u16)mask); break;
+      case REG(0x04000008): PPU_WRITE_1616(ppu_a, bgcnt[0], bgcnt[1], value, mask); break;
+      case REG(0x0400000C): PPU_WRITE_1616(ppu_a, bgcnt[2], bgcnt[3], value, mask); break;
+      case REG(0x04000010): PPU_WRITE_1616(ppu_a, bghofs[0], bgvofs[0], value, mask); break;
+      case REG(0x04000014): PPU_WRITE_1616(ppu_a, bghofs[1], bgvofs[1], value, mask); break;
+      case REG(0x04000018): PPU_WRITE_1616(ppu_a, bghofs[2], bgvofs[2], value, mask); break;
+      case REG(0x0400001C): PPU_WRITE_1616(ppu_a, bghofs[3], bgvofs[3], value, mask); break;
+      case REG(0x04000020): PPU_WRITE_1616(ppu_a, bgpa[0], bgpb[0], value, mask); break;
+      case REG(0x04000024): PPU_WRITE_1616(ppu_a, bgpc[0], bgpd[0], value, mask); break;
+      case REG(0x04000028): PPU_WRITE_32  (ppu_a, bgx[0], value, mask); break;
+      case REG(0x0400002C): PPU_WRITE_32  (ppu_a, bgy[0], value, mask); break;
+      case REG(0x04000030): PPU_WRITE_1616(ppu_a, bgpa[1], bgpb[1], value, mask); break;
+      case REG(0x04000034): PPU_WRITE_1616(ppu_a, bgpc[1], bgpd[1], value, mask); break;
+      case REG(0x04000038): PPU_WRITE_32  (ppu_a, bgx[1], value, mask); break;
+      case REG(0x0400003C): PPU_WRITE_32  (ppu_a, bgy[1], value, mask); break;
+      case REG(0x04000040): PPU_WRITE_1616(ppu_a, winh[0], winh[1], value, mask); break;
+      case REG(0x04000044): PPU_WRITE_1616(ppu_a, winv[0], winv[1], value, mask); break;
+      case REG(0x04000048): PPU_WRITE_1616(ppu_a, winin, winout, value, mask); break;
+      case REG(0x0400004C): PPU_WRITE_16__(ppu_a, mosaic, value, mask); break;
+      case REG(0x04000050): PPU_WRITE_1616(ppu_a, bldcnt, bldalpha, value, mask); break;
+      case REG(0x04000054): PPU_WRITE_16__(ppu_a, bldy, value, mask); break;
+      case REG(0x0400006C): PPU_WRITE_16__(ppu_a, master_bright, value, mask); break;
 
       // IPC
       case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM9, value, mask); break;
