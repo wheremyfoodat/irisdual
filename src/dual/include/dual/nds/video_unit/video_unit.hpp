@@ -5,7 +5,7 @@
 #include <atom/integer.hpp>
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/video_unit/ppu/ppu.hpp>
-#include <dual/nds/dma.hpp>
+#include <dual/nds/arm9/dma.hpp>
 #include <dual/nds/enums.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/system_memory.hpp>

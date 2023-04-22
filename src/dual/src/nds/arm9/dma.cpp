@@ -1,5 +1,5 @@
 
-#include <dual/nds/dma.hpp>
+#include <dual/nds/arm9/dma.hpp>
 
 namespace dual::nds {
 
