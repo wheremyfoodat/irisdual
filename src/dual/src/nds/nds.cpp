@@ -40,6 +40,7 @@ namespace dual::nds {
     m_arm7.irq.Reset();
 
     m_arm9.dma.Reset();
+    m_arm7.dma.Reset();
 
     m_ipc.Reset();
 

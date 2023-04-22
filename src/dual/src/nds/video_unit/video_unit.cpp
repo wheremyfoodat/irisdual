@@ -9,8 +9,9 @@ namespace dual::nds {
     SystemMemory& memory,
     IRQ& irq9,
     IRQ& irq7,
-    arm9::DMA& dma9
-  )   : m_scheduler{scheduler}, m_ppu{{0, memory}, {1, memory}}, m_dma9{dma9} {
+    arm9::DMA& dma9,
+    arm7::DMA& dma7
+  )   : m_scheduler{scheduler}, m_ppu{{0, memory}, {1, memory}}, m_dma9{dma9}, m_dma7{dma7} {
     m_irq[(int)CPU::ARM9] = &irq9;
     m_irq[(int)CPU::ARM7] = &irq7;
   }
@@ -68,6 +69,7 @@ namespace dual::nds {
           }
 
           m_dma9.Request(arm9::DMA::StartTime::VBlank);
+          m_dma7.Request(arm7::DMA::StartTime::VBlank);
 
           dispstat.vblank_flag = true;
         }

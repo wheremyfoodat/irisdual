@@ -3,6 +3,7 @@
 
 #include <dual/arm/cpu.hpp>
 #include <dual/common/scheduler.hpp>
+#include <dual/nds/arm7/dma.hpp>
 #include <dual/nds/arm7/memory.hpp>
 #include <dual/nds/arm9/cp15.hpp>
 #include <dual/nds/arm9/math.hpp>
@@ -29,10 +30,6 @@ namespace dual::nds {
       void LoadROM(std::shared_ptr<ROM> rom);
       void DirectBoot();
 
-      SystemMemory& GetSystemMemory() {
-        return m_memory;
-      }
-
       VideoUnit& GetVideoUnit() {
         return m_video_unit;
       }
@@ -42,7 +39,7 @@ namespace dual::nds {
 
       SystemMemory m_memory{};
 
-      VideoUnit m_video_unit{m_scheduler, m_memory, m_arm9.irq, m_arm7.irq, m_arm9.dma};
+      VideoUnit m_video_unit{m_scheduler, m_memory, m_arm9.irq, m_arm7.irq, m_arm9.dma, m_arm7.dma};
 
       struct ARM9 {
         std::unique_ptr<arm::CPU> cpu{};
@@ -68,10 +65,12 @@ namespace dual::nds {
         std::unique_ptr<arm::CPU> cpu{};
         arm7::MemoryBus bus;
         IRQ irq{false};
+        arm7::DMA dma{bus, irq};
 
         ARM7(SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
             : bus{memory, {
                 irq,
+                dma,
                 ipc,
                 memory.swram,
                 memory.vram,

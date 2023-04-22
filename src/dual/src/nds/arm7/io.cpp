@@ -95,6 +95,20 @@ namespace dual::nds::arm7 {
         return value;
       }
 
+      // DMA
+      case REG(0x040000B0): return hw.dma.Read_DMASAD(0);
+      case REG(0x040000B4): return hw.dma.Read_DMADAD(0);
+      case REG(0x040000B8): return hw.dma.Read_DMACNT(0);
+      case REG(0x040000BC): return hw.dma.Read_DMASAD(1);
+      case REG(0x040000C0): return hw.dma.Read_DMADAD(1);
+      case REG(0x040000C4): return hw.dma.Read_DMACNT(1);
+      case REG(0x040000C8): return hw.dma.Read_DMASAD(2);
+      case REG(0x040000CC): return hw.dma.Read_DMADAD(2);
+      case REG(0x040000D0): return hw.dma.Read_DMACNT(2);
+      case REG(0x040000D4): return hw.dma.Read_DMASAD(3);
+      case REG(0x040000D8): return hw.dma.Read_DMADAD(3);
+      case REG(0x040000DC): return hw.dma.Read_DMACNT(3);
+
       // IPC
       case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM7);
       case REG(0x04000184): return hw.ipc.Read_FIFOCNT(CPU::ARM7);
@@ -124,6 +138,20 @@ namespace dual::nds::arm7 {
     switch(REG(address)) {
       // PPU
       case REG(0x04000004): hw.video_unit.Write_DISPSTAT(CPU::ARM7, value, (u16)mask);
+
+      // DMA
+      case REG(0x040000B0): hw.dma.Write_DMASAD(0, value, mask); break;
+      case REG(0x040000B4): hw.dma.Write_DMADAD(0, value, mask); break;
+      case REG(0x040000B8): hw.dma.Write_DMACNT(0, value, mask); break;
+      case REG(0x040000BC): hw.dma.Write_DMASAD(1, value, mask); break;
+      case REG(0x040000C0): hw.dma.Write_DMADAD(1, value, mask); break;
+      case REG(0x040000C4): hw.dma.Write_DMACNT(1, value, mask); break;
+      case REG(0x040000C8): hw.dma.Write_DMASAD(2, value, mask); break;
+      case REG(0x040000CC): hw.dma.Write_DMADAD(2, value, mask); break;
+      case REG(0x040000D0): hw.dma.Write_DMACNT(2, value, mask); break;
+      case REG(0x040000D4): hw.dma.Write_DMASAD(3, value, mask); break;
+      case REG(0x040000D8): hw.dma.Write_DMADAD(3, value, mask); break;
+      case REG(0x040000DC): hw.dma.Write_DMACNT(3, value, mask); break;
 
       // IPC
       case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM7, value, mask); break;
