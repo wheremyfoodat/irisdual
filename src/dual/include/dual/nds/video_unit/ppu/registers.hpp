@@ -188,6 +188,10 @@ struct BlendAlpha {
   auto ReadByte(uint offset) -> u8;
   void WriteByte(uint offset, u8 value);
 
+  u16 ReadHalf() {
+    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+  }
+
   void WriteHalf(u16 value, u16 mask) {
     if(mask & 0x00FFu) WriteByte(0, value >> 0);
     if(mask & 0xFF00u) WriteByte(1, value >> 8);

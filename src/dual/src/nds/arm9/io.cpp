@@ -3,6 +3,11 @@
 
 #define REG(address) ((address) >> 2)
 
+#define PPU_READ_1616(ppu, reg_lo, reg_hi) ((mask & 0x0000FFFFu ? (ppu.mmio.reg_lo.ReadHalf() <<  0) : 0u) |\
+                                            (mask & 0xFFFF0000u ? (ppu.mmio.reg_hi.ReadHalf() << 16) : 0u))
+
+#define PPU_READ_32(ppu, reg) ppu.mmio.reg.ReadWord()
+
 #define PPU_WRITE_16__(ppu, reg, value, mask) ppu.mmio.reg.WriteHalf(value, (u16)mask);
 
 #define PPU_WRITE_1616(ppu, reg_lo, reg_hi, value, mask) {\
@@ -96,13 +101,28 @@ namespace dual::nds::arm9 {
       ATOM_ERROR("arm9: IO: unhandled {}-bit read from 0x{:08X}", access_size, access_address);
     };
 
+    auto& ppu_a = hw.video_unit.GetPPU(0);
+    auto& ppu_b = hw.video_unit.GetPPU(1);
+
     switch(REG(address)) {
-      // PPU
+      // PPU A
+      case REG(0x04000000): return PPU_READ_32(ppu_a, dispcnt);
       case REG(0x04000004): {
         if(mask & 0x0000FFFFu) value |= hw.video_unit.Read_DISPSTAT(CPU::ARM9) << 0;
         if(mask & 0xFFFF0000u) value |= hw.video_unit.Read_VCOUNT() << 16;
         return value;
       }
+      case REG(0x04000008): return PPU_READ_1616(ppu_a, bgcnt[0], bgcnt[1]);
+      case REG(0x0400000C): return PPU_READ_1616(ppu_a, bgcnt[2], bgcnt[3]);
+      case REG(0x04000048): return PPU_READ_1616(ppu_a, winin, winout);
+      case REG(0x04000050): return PPU_READ_1616(ppu_a, bldcnt, bldalpha);
+
+      // PPU B
+      case REG(0x04001000): return PPU_READ_32(ppu_b, dispcnt);
+      case REG(0x04001008): return PPU_READ_1616(ppu_b, bgcnt[0], bgcnt[1]);
+      case REG(0x0400100C): return PPU_READ_1616(ppu_b, bgcnt[2], bgcnt[3]);
+      case REG(0x04001048): return PPU_READ_1616(ppu_b, winin, winout);
+      case REG(0x04001050): return PPU_READ_1616(ppu_b, bldcnt, bldalpha);
 
       // IPC
       case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM9);
@@ -171,7 +191,7 @@ namespace dual::nds::arm9 {
     auto& ppu_b = hw.video_unit.GetPPU(1);
 
     switch(REG(address)) {
-      // PPU
+      // PPU A
       case REG(0x04000000): PPU_WRITE_32  (ppu_a, dispcnt, value, mask); break;
       case REG(0x04000004): hw.video_unit.Write_DISPSTAT(CPU::ARM9, value, (u16)mask); break;
       case REG(0x04000008): PPU_WRITE_1616(ppu_a, bgcnt[0], bgcnt[1], value, mask); break;
@@ -196,7 +216,31 @@ namespace dual::nds::arm9 {
       case REG(0x04000054): PPU_WRITE_16__(ppu_a, bldy, value, mask); break;
       case REG(0x0400006C): PPU_WRITE_16__(ppu_a, master_bright, value, mask); break;
 
-      // IPC
+      // PPU B
+      case REG(0x04001000): PPU_WRITE_32  (ppu_b, dispcnt, value, mask); break;
+      case REG(0x04001008): PPU_WRITE_1616(ppu_b, bgcnt[0], bgcnt[1], value, mask); break;
+      case REG(0x0400100C): PPU_WRITE_1616(ppu_b, bgcnt[2], bgcnt[3], value, mask); break;
+      case REG(0x04001010): PPU_WRITE_1616(ppu_b, bghofs[0], bgvofs[0], value, mask); break;
+      case REG(0x04001014): PPU_WRITE_1616(ppu_b, bghofs[1], bgvofs[1], value, mask); break;
+      case REG(0x04001018): PPU_WRITE_1616(ppu_b, bghofs[2], bgvofs[2], value, mask); break;
+      case REG(0x0400101C): PPU_WRITE_1616(ppu_b, bghofs[3], bgvofs[3], value, mask); break;
+      case REG(0x04001020): PPU_WRITE_1616(ppu_b, bgpa[0], bgpb[0], value, mask); break;
+      case REG(0x04001024): PPU_WRITE_1616(ppu_b, bgpc[0], bgpd[0], value, mask); break;
+      case REG(0x04001028): PPU_WRITE_32  (ppu_b, bgx[0], value, mask); break;
+      case REG(0x0400102C): PPU_WRITE_32  (ppu_b, bgy[0], value, mask); break;
+      case REG(0x04001030): PPU_WRITE_1616(ppu_b, bgpa[1], bgpb[1], value, mask); break;
+      case REG(0x04001034): PPU_WRITE_1616(ppu_b, bgpc[1], bgpd[1], value, mask); break;
+      case REG(0x04001038): PPU_WRITE_32  (ppu_b, bgx[1], value, mask); break;
+      case REG(0x0400103C): PPU_WRITE_32  (ppu_b, bgy[1], value, mask); break;
+      case REG(0x04001040): PPU_WRITE_1616(ppu_b, winh[0], winh[1], value, mask); break;
+      case REG(0x04001044): PPU_WRITE_1616(ppu_b, winv[0], winv[1], value, mask); break;
+      case REG(0x04001048): PPU_WRITE_1616(ppu_b, winin, winout, value, mask); break;
+      case REG(0x0400104C): PPU_WRITE_16__(ppu_b, mosaic, value, mask); break;
+      case REG(0x04001050): PPU_WRITE_1616(ppu_b, bldcnt, bldalpha, value, mask); break;
+      case REG(0x04001054): PPU_WRITE_16__(ppu_b, bldy, value, mask); break;
+      case REG(0x0400106C): PPU_WRITE_16__(ppu_b, master_bright, value, mask); break;
+
+        // IPC
       case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM9, value, mask); break;
       case REG(0x04000184): hw.ipc.Write_FIFOCNT(CPU::ARM9, value, mask); break;
       case REG(0x04000188): hw.ipc.Write_FIFOSEND(CPU::ARM9, value); break;
