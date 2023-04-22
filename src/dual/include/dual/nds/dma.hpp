@@ -52,7 +52,7 @@ namespace dual::nds {
         atom::Bits<21,  2, u32> dst_address_mode;
         atom::Bits<23,  2, u32> src_address_mode;
         atom::Bits<25,  1, u32> repeat;
-        atom::Bits<26,  1, u32> transfer_size;
+        atom::Bits<26,  1, u32> transfer_32bits;
         atom::Bits<27,  3, u32> timing;
         atom::Bits<30,  1, u32> enable_irq;
         atom::Bits<31,  1, u32> enable;

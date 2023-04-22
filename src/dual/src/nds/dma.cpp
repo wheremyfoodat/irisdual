@@ -59,8 +59,13 @@ namespace dual::nds {
     if(!old_enable && dmacnt.enable) {
       auto& latch = m_latch[id];
 
-      latch.sad = m_dmasad[id];
-      latch.dad = m_dmadad[id];
+      if(dmacnt.transfer_32bits) {
+        latch.sad = m_dmasad[id] & ~3u;
+        latch.dad = m_dmadad[id] & ~3u;
+      } else {
+        latch.sad = m_dmasad[id] & ~1u;
+        latch.dad = m_dmadad[id] & ~1u;
+      }
 
       if(dmacnt.length == 0u) {
         latch.length = 0x200000u;
@@ -86,23 +91,31 @@ namespace dual::nds {
     auto& dmacnt = m_dmacnt[id];
     auto& latch = m_latch[id];
 
-    const int sad_offset = k_address_offset[dmacnt.src_address_mode] << (1 + dmacnt.transfer_size);
-    const int dad_offset = k_address_offset[dmacnt.dst_address_mode] << (1 + dmacnt.transfer_size);
+    const int sad_offset = k_address_offset[dmacnt.src_address_mode] << (1 + dmacnt.transfer_32bits);
+    const int dad_offset = k_address_offset[dmacnt.dst_address_mode] << (1 + dmacnt.transfer_32bits);
 
-    while(latch.length > 0u) {
-      switch(dmacnt.transfer_size) {
-        case 0u: m_bus.WriteHalf(latch.dad, m_bus.ReadHalf(latch.sad, Bus::System), Bus::System);
-        case 1u: m_bus.WriteWord(latch.dad, m_bus.ReadWord(latch.sad, Bus::System), Bus::System);
+    if(dmacnt.transfer_32bits) {
+      while(latch.length-- > 0u) {
+        m_bus.WriteWord(latch.dad, m_bus.ReadWord(latch.sad, Bus::System), Bus::System);
+
+        latch.sad += sad_offset;
+        latch.dad += dad_offset;
       }
+    } else {
+      while(latch.length-- > 0u) {
+        m_bus.WriteHalf(latch.dad, m_bus.ReadHalf(latch.sad, Bus::System), Bus::System);
 
-      latch.sad += sad_offset;
-      latch.dad += dad_offset;
-      latch.length--;
+        latch.sad += sad_offset;
+        latch.dad += dad_offset;
+      }
     }
 
     if(dmacnt.repeat && dmacnt.timing != StartTime::Immediate) {
       if(dmacnt.dst_address_mode == 3u) {
-        latch.dad = m_dmadad[id];
+        switch(dmacnt.transfer_32bits) {
+          case 0u: latch.dad = m_dmadad[id] & ~1u; break;
+          case 1u: latch.dad = m_dmadad[id] & ~3u; break;
+        }
       }
 
       if(dmacnt.length == 0u) {
