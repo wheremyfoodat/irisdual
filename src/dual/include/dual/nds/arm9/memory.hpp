@@ -10,6 +10,7 @@
 #include <dual/nds/video_unit/video_unit.hpp>
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/arm9/math.hpp>
+#include <dual/nds/dma.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/ipc.hpp>
 #include <dual/nds/swram.hpp>
@@ -21,6 +22,7 @@ namespace dual::nds::arm9 {
     public:
       struct HW {
         IRQ& irq;
+        DMA& dma;
         IPC& ipc;
         SWRAM& swram;
         VRAM& vram;

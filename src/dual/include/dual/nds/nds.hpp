@@ -8,6 +8,7 @@
 #include <dual/nds/arm9/math.hpp>
 #include <dual/nds/arm9/memory.hpp>
 #include <dual/nds/video_unit/video_unit.hpp>
+#include <dual/nds/dma.hpp>
 #include <dual/nds/ipc.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/rom.hpp>
@@ -48,11 +49,13 @@ namespace dual::nds {
         std::unique_ptr<arm9::CP15> cp15{};
         arm9::MemoryBus bus;
         IRQ irq{true};
+        DMA dma{bus, irq};
         arm9::Math math{};
 
         ARM9(SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
             : bus{memory, {
                 irq,
+                dma,
                 ipc,
                 memory.swram,
                 memory.vram,

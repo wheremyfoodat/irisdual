@@ -39,6 +39,8 @@ namespace dual::nds {
     m_arm9.irq.Reset();
     m_arm7.irq.Reset();
 
+    m_arm9.dma.Reset();
+
     m_ipc.Reset();
 
     m_step_target = 0u;

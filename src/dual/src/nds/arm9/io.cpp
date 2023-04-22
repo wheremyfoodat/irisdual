@@ -129,6 +129,24 @@ namespace dual::nds::arm9 {
       case REG(0x04001050): return PPU_READ_1616(ppu_b, bldcnt, bldalpha, mask);
       case REG(0x0400106C): return PPU_READ_16__(ppu_b, master_bright);
 
+      // DMA
+      case REG(0x040000B0): return hw.dma.Read_DMASAD(0);
+      case REG(0x040000B4): return hw.dma.Read_DMADAD(0);
+      case REG(0x040000B8): return hw.dma.Read_DMACNT(0);
+      case REG(0x040000BC): return hw.dma.Read_DMASAD(1);
+      case REG(0x040000C0): return hw.dma.Read_DMADAD(1);
+      case REG(0x040000C4): return hw.dma.Read_DMACNT(1);
+      case REG(0x040000C8): return hw.dma.Read_DMASAD(2);
+      case REG(0x040000CC): return hw.dma.Read_DMADAD(2);
+      case REG(0x040000D0): return hw.dma.Read_DMACNT(2);
+      case REG(0x040000D4): return hw.dma.Read_DMASAD(3);
+      case REG(0x040000D8): return hw.dma.Read_DMADAD(3);
+      case REG(0x040000DC): return hw.dma.Read_DMACNT(3);
+      case REG(0x040000E0): return hw.dma.Read_DMAFILL(0);
+      case REG(0x040000E4): return hw.dma.Read_DMAFILL(1);
+      case REG(0x040000E8): return hw.dma.Read_DMAFILL(2);
+      case REG(0x040000EC): return hw.dma.Read_DMAFILL(3);
+
       // IPC
       case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM9);
       case REG(0x04000184): return hw.ipc.Read_FIFOCNT(CPU::ARM9);
@@ -245,7 +263,25 @@ namespace dual::nds::arm9 {
       case REG(0x04001054): PPU_WRITE_16__(ppu_b, bldy, value, mask); break;
       case REG(0x0400106C): PPU_WRITE_16__(ppu_b, master_bright, value, mask); break;
 
-        // IPC
+      // DMA
+      case REG(0x040000B0): hw.dma.Write_DMASAD(0, value, mask); break;
+      case REG(0x040000B4): hw.dma.Write_DMADAD(0, value, mask); break;
+      case REG(0x040000B8): hw.dma.Write_DMACNT(0, value, mask); break;
+      case REG(0x040000BC): hw.dma.Write_DMASAD(1, value, mask); break;
+      case REG(0x040000C0): hw.dma.Write_DMADAD(1, value, mask); break;
+      case REG(0x040000C4): hw.dma.Write_DMACNT(1, value, mask); break;
+      case REG(0x040000C8): hw.dma.Write_DMASAD(2, value, mask); break;
+      case REG(0x040000CC): hw.dma.Write_DMADAD(2, value, mask); break;
+      case REG(0x040000D0): hw.dma.Write_DMACNT(2, value, mask); break;
+      case REG(0x040000D4): hw.dma.Write_DMASAD(3, value, mask); break;
+      case REG(0x040000D8): hw.dma.Write_DMADAD(3, value, mask); break;
+      case REG(0x040000DC): hw.dma.Write_DMACNT(3, value, mask); break;
+      case REG(0x040000E0): hw.dma.Write_DMAFILL(0, value, mask); break;
+      case REG(0x040000E4): hw.dma.Write_DMAFILL(1, value, mask); break;
+      case REG(0x040000E8): hw.dma.Write_DMAFILL(2, value, mask); break;
+      case REG(0x040000EC): hw.dma.Write_DMAFILL(3, value, mask); break;
+
+      // IPC
       case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM9, value, mask); break;
       case REG(0x04000184): hw.ipc.Write_FIFOCNT(CPU::ARM9, value, mask); break;
       case REG(0x04000188): hw.ipc.Write_FIFOSEND(CPU::ARM9, value); break;
