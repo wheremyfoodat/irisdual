@@ -38,6 +38,20 @@ struct DisplayControl {
   auto ReadByte (uint offset) -> u8;
   void WriteByte(uint offset, u8 value);
 
+  u32 ReadWord() {
+    return ReadByte(0) <<  0 |
+           ReadByte(1) <<  8 |
+           ReadByte(2) << 16 |
+           ReadByte(3) << 24;
+  }
+
+  void WriteWord(u32 value, u32 mask) {
+    if(mask & 0x000000FFu) WriteByte(0, value >>  0);
+    if(mask & 0x0000FF00u) WriteByte(1, value >>  8);
+    if(mask & 0x00FF0000u) WriteByte(2, value >> 16);
+    if(mask & 0xFF000000u) WriteByte(3, value >> 24);
+  }
+
 private:
   u32 mask;
 };
@@ -58,6 +72,15 @@ struct BackgroundControl {
   auto ReadByte (uint offset) -> u8;
   void WriteByte(uint offset, u8 value);
 
+  u16 ReadHalf() {
+    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+  }
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
+
 private:
   int id;
 };
@@ -67,6 +90,11 @@ struct BackgroundOffset {
 
   void Reset();
   void WriteByte(uint offset, u8 value);
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
 };
 
 struct ReferencePoint {
@@ -75,6 +103,13 @@ struct ReferencePoint {
   
   void Reset();
   void WriteByte(uint offset, u8 value);
+
+  void WriteWord(u32 value, u32 mask) {
+    if(mask & 0x000000FFu) WriteByte(0, value >>  0);
+    if(mask & 0x0000FF00u) WriteByte(1, value >>  8);
+    if(mask & 0x00FF0000u) WriteByte(2, value >> 16);
+    if(mask & 0xFF000000u) WriteByte(3, value >> 24);
+  }
 };
 
 struct RotateScaleParameter {
@@ -82,6 +117,11 @@ struct RotateScaleParameter {
 
   void Reset();
   void WriteByte(uint offset, u8 value);
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
 };
 
 struct WindowRange {
@@ -91,6 +131,11 @@ struct WindowRange {
 
   void Reset();
   void WriteByte(uint offset, u8 value);
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
 };
 
 struct WindowLayerSelect {
@@ -99,6 +144,15 @@ struct WindowLayerSelect {
   void Reset();
   auto ReadByte(uint offset) -> u8;
   void WriteByte(uint offset, u8 value);
+
+  u16 ReadHalf() {
+    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+  }
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
 };
 
 struct BlendControl {
@@ -115,6 +169,15 @@ struct BlendControl {
   void Reset();
   auto ReadByte(uint offset) -> u8;
   void WriteByte(uint offset, u8 value);
+
+  u16 ReadHalf() {
+    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+  }
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
 };
 
 struct BlendAlpha {
@@ -124,6 +187,11 @@ struct BlendAlpha {
   void Reset();
   auto ReadByte(uint offset) -> u8;
   void WriteByte(uint offset, u8 value);
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
 };
 
 struct BlendBrightness {
@@ -131,6 +199,11 @@ struct BlendBrightness {
 
   void Reset();
   void WriteByte(uint offset, u8 value);
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
 };
 
 struct Mosaic {
@@ -142,6 +215,11 @@ struct Mosaic {
   
   void Reset();
   void WriteByte(uint offset, u8 value);
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
 };
 
 struct MasterBrightness {
@@ -157,6 +235,15 @@ struct MasterBrightness {
   void Reset();
   auto ReadByte(uint offset) -> u8;
   void WriteByte(uint offset, u8 value);
+
+  u16 ReadHalf() {
+    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+  }
+
+  void WriteHalf(u16 value, u16 mask) {
+    if(mask & 0x00FFu) WriteByte(0, value >> 0);
+    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+  }
 };
 
 } // namespace dual::nds

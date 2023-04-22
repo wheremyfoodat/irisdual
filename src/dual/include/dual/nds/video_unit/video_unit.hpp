@@ -23,6 +23,10 @@ namespace dual::nds {
 
       void Reset();
 
+      PPU& GetPPU(int id) {
+        return m_ppu[id];
+      }
+
       u16   Read_DISPSTAT(CPU cpu);
       void Write_DISPSTAT(CPU cpu, u16 value, u16 mask);
 
