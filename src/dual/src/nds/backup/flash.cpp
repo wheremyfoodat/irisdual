@@ -12,115 +12,116 @@
 namespace dual::nds {
 
   FLASH::FLASH(std::string const& save_path, Size size_hint)
-      : save_path(save_path)
-      , size_hint(size_hint) {
+      : m_save_path(save_path)
+      , m_size_hint(size_hint) {
     Reset();
   }
 
   void FLASH::Reset() {
-    static const std::vector<size_t> kBackupSize {
-      0x40000, 0x80000, 0x100000 };
+    static const std::vector<size_t> k_backup_sizes {
+      0x40000, 0x80000, 0x100000
+    };
 
-    auto size = kBackupSize[static_cast<int>(size_hint)];
+    auto size = k_backup_sizes[static_cast<int>(m_size_hint)];
 
-    file = BackupFile::OpenOrCreate(save_path, kBackupSize, size);
-    mask = size - 1U;
+    m_file = BackupFile::OpenOrCreate(m_save_path, k_backup_sizes, size);
+    m_mask = size - 1U;
     Deselect();
 
-    write_enable_latch = false;
-    deep_power_down = false;
+    m_write_enable_latch = false;
+    m_deep_power_down = false;
   }
 
   void FLASH::Select() {
-    if (state == State::Deselected) {
-      state = State::ReceiveCommand;
+    if(m_state == State::Deselected) {
+      m_state = State::ReceiveCommand;
     }
   }
 
   void FLASH::Deselect() {
-    if (current_cmd == Command::PageWrite ||
-        current_cmd == Command::PageProgram ||
-        current_cmd == Command::PageErase ||
-        current_cmd == Command::SectorErase) {
-      write_enable_latch = false;
+    if(m_current_cmd == Command::PageWrite ||
+       m_current_cmd == Command::PageProgram ||
+       m_current_cmd == Command::PageErase ||
+       m_current_cmd == Command::SectorErase) {
+      m_write_enable_latch = false;
     }
 
-    state = State::Deselected;
+    m_state = State::Deselected;
   }
 
-  auto FLASH::Transfer(u8 data) -> u8 {
-    switch (state) {
+  u8 FLASH::Transfer(u8 data) {
+    switch(m_state) {
       case State::ReceiveCommand: {
         ParseCommand(static_cast<Command>(data));
         break;
       }
       case State::ReadJEDEC: {
-        data = jedec_id[address];
-        if (++address == 3) {
-          state = State::Idle;
+        data = m_jedec_id[m_address];
+        if(++m_address == 3) {
+          m_state = State::Idle;
         }
         break;
       }
       case State::ReadStatus: {
-        return write_enable_latch ? 2 : 0;
+        return m_write_enable_latch ? 2 : 0;
       }
       case State::SendAddress0: {
-        address  = data << 16;
-        state = State::SendAddress1;
+        m_address  = data << 16;
+        m_state = State::SendAddress1;
         break;
       }
       case State::SendAddress1: {
-        address |= data << 8;
-        state = State::SendAddress2;
+        m_address |= data << 8;
+        m_state = State::SendAddress2;
         break;
       }
       case State::SendAddress2: {
-        address |= data;
-        address &= mask;
+        m_address |= data;
+        m_address &= m_mask;
 
-        // TODO: this is a bit messy still, try to refactor it away.
-        switch (current_cmd) {
-          case Command::ReadData:     state = State::ReadData;    break;
-          case Command::ReadDataFast: state = State::DummyByte;   break;
-          case Command::PageWrite:    state = State::PageWrite;   break;
-          case Command::PageProgram:  state = State::PageProgram; break;
-          case Command::PageErase:    state = State::PageErase;   break;
-          case Command::SectorErase:  state = State::SectorErase; break;
+        switch(m_current_cmd) {
+          case Command::ReadData:     m_state = State::ReadData;    break;
+          case Command::ReadDataFast: m_state = State::DummyByte;   break;
+          case Command::PageWrite:    m_state = State::PageWrite;   break;
+          case Command::PageProgram:  m_state = State::PageProgram; break;
+          case Command::PageErase:    m_state = State::PageErase;   break;
+          case Command::SectorErase:  m_state = State::SectorErase; break;
+          default: ATOM_UNREACHABLE();
         }
         break;
       }
       case State::DummyByte: {
-        state = State::ReadData;
+        m_state = State::ReadData;
         break;
       }
       case State::ReadData: {
-        return file->Read(address++ & mask);
+        return m_file->Read(m_address++ & m_mask);
       }
       case State::PageWrite: {
-        file->Write(address, data);
-        address = (address & ~0xFF) | ((address + 1) & 0xFF);
+        m_file->Write(m_address, data);
+        m_address = (m_address & ~0xFF) | ((m_address + 1) & 0xFF);
         break;
       }
       case State::PageProgram: {
-        // TODO: confirm that page program actually is a bitwise-AND operation.
-        file->Write(address, file->Read(address) & data);
-        address = (address & ~0xFF) | ((address + 1) & 0xFF);
+        // @todo: confirm that page program actually is a bitwise-AND operation.
+        m_file->Write(m_address, m_file->Read(m_address) & data);
+        m_address = (m_address & ~0xFF) | ((m_address + 1) & 0xFF);
         break;
       }
       case State::PageErase: {
-        address &= ~0xFF;
-        for (uint i = 0; i < 256; i++) {
-          file->Write(address + i, 0xFF);
+        m_address &= ~0xFF;
+        for(uint i = 0; i < 256; i++) {
+          m_file->Write(m_address + i, 0xFF);
         }
-        state = State::Idle;
+        m_state = State::Idle;
         break;
       }
       case State::SectorErase: {
-        address &= ~0xFFFF;
-        for (uint i = 0; i < 0x10000; i++) {
-          file->Write(address + i, 0xFF);
+        m_address &= ~0xFFFF;
+        for(uint i = 0; i < 0x10000; i++) {
+          m_file->Write(m_address + i, 0xFF);
         }
-        state = State::Idle;
+        m_state = State::Idle;
         break;
       }
       case State::Idle: {
@@ -135,54 +136,54 @@ namespace dual::nds {
   }
 
   void FLASH::ParseCommand(Command cmd) {
-    if (deep_power_down) {
-      if (cmd == Command::ReleaseDeepPowerDown) {
-        deep_power_down = false;
-        state = State::Idle;
+    if(m_deep_power_down) {
+      if(cmd == Command::ReleaseDeepPowerDown) {
+        m_deep_power_down = false;
+        m_state = State::Idle;
       }
       return;
     }
 
-    current_cmd = cmd;
+    m_current_cmd = cmd;
 
-    switch (cmd) {
+    switch(cmd) {
       case Command::WriteEnable: {
-        write_enable_latch = true;
-        state = State::Idle;
+        m_write_enable_latch = true;
+        m_state = State::Idle;
         break;
       }
       case Command::WriteDisable: {
-        write_enable_latch = false;
-        state = State::Idle;
+        m_write_enable_latch = false;
+        m_state = State::Idle;
         break;
       }
       case Command::ReadJEDEC: {
-        address = 0;
-        state = State::ReadJEDEC;
+        m_address = 0;
+        m_state = State::ReadJEDEC;
         break;
       }
       case Command::ReadStatus: {
-        state = State::ReadStatus;
+        m_state = State::ReadStatus;
         break;
       }
       case Command::ReadData:
       case Command::ReadDataFast: {
-        state = State::SendAddress0;
+        m_state = State::SendAddress0;
         break;
       }
       case Command::PageWrite:
       case Command::PageProgram:
       case Command::PageErase:
       case Command::SectorErase: {
-        if (write_enable_latch) {
-          state = State::SendAddress0;
+        if(m_write_enable_latch) {
+          m_state = State::SendAddress0;
         } else {
-          state = State::Idle;
+          m_state = State::Idle;
         }
         break;
       }
       case Command::DeepPowerDown: {
-        deep_power_down = true;
+        m_deep_power_down = true;
         break;
       }
       default: {

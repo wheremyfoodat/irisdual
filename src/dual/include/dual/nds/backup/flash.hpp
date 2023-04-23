@@ -21,7 +21,8 @@ namespace dual::nds {
       void Reset() override;
       void Select() override;
       void Deselect() override;
-      auto Transfer(u8 data) -> u8 override;
+
+      u8 Transfer(u8 data) override;
 
     private:
       enum class Command : u8 {
@@ -54,21 +55,21 @@ namespace dual::nds {
         PageProgram,
         PageErase,
         SectorErase
-      } state;
+      } m_state{};
 
       void ParseCommand(Command cmd);
 
-      Command current_cmd;
-      u32 address;
-      bool write_enable_latch;
-      bool deep_power_down;
-      u8 jedec_id[3] { 0x20, 0x40, 0x12 };
+      Command m_current_cmd{};
+      u32 m_address{};
+      bool m_write_enable_latch{};
+      bool m_deep_power_down{};
+      u8 m_jedec_id[3] { 0x20, 0x40, 0x12 };
 
-      std::string save_path;
-      Size size_hint;
-      size_t mask;
+      std::string m_save_path{};
+      Size m_size_hint{};
+      size_t m_mask{};
 
-      std::unique_ptr<BackupFile> file;
+      std::unique_ptr<BackupFile> m_file;
   };
 
 } // namespace dual::nds
