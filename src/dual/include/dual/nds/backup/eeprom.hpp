@@ -44,26 +44,26 @@ namespace dual::nds {
         ReadAddress2,
         Read,
         Write
-      } state;
+      } m_state{};
 
       void ParseCommand(Command cmd);
 
-      Command current_cmd;
-      u32 address;
-      bool write_enable_latch;
-      int  write_protect_mode;
-      bool status_reg_write_disable;
+      Command m_current_cmd{};
+      u32 m_address{};
+      bool m_write_enable_latch{};
+      int  m_write_protect_mode{};
+      bool m_status_reg_write_disable{};
 
-      std::string save_path;
-      Size size_hint;
-      Size size;
-      bool fram;
-      size_t mask;
-      size_t page_mask;
-      u32 address_upper_half;
-      u32 address_upper_quarter;
+      std::string m_save_path{};
+      Size m_size_hint{};
+      Size m_size{};
+      bool m_fram{};
+      size_t m_mask{};
+      size_t m_page_mask{};
+      u32 m_address_upper_half{};
+      u32 m_address_upper_quarter{};
 
-      std::unique_ptr<BackupFile> file;
+      std::unique_ptr<BackupFile> m_file;
   };
 
 } // namespace dual::nds
