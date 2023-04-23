@@ -63,7 +63,7 @@ namespace dual {
         return file;
       }
 
-      bool SetAutoUpdate(bool auto_update) {
+      void SetAutoUpdate(bool auto_update) {
         m_auto_update = auto_update;
       }
 

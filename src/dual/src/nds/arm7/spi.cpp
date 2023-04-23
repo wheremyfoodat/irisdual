@@ -1,11 +1,13 @@
 
 #include <atom/logger/logger.hpp>
 #include <dual/nds/arm7/spi.hpp>
+#include <dual/nds/backup/flash.hpp>
 
 namespace dual::nds::arm7 {
 
   SPI::SPI(IRQ& irq) : m_irq{irq} {
-    // @todo: create SPI devices
+    // @todo: better handle the case where firmware.bin does not exist.
+    m_device_table[1] = std::make_unique<FLASH>("firmware.bin", FLASH::Size::_256K);
   }
 
   void SPI::Reset() {
@@ -27,7 +29,7 @@ namespace dual::nds::arm7 {
   void SPI::Write_SPICNT(u16 value, u16 mask) {
     const u16 write_mask = 0xFFFFu & mask;
 
-    const int  old_device = m_spicnt.device;
+    const uint old_device = m_spicnt.device;
     const bool old_enable = m_spicnt.enable;
 
     m_spicnt.half = (value & write_mask) | (m_spicnt.half & ~write_mask);
@@ -36,7 +38,7 @@ namespace dual::nds::arm7 {
       ATOM_PANIC("arm7: SPI: enabled the bugged 16-bit mode");
     }
 
-    const int  new_device = m_spicnt.device;
+    const uint new_device = m_spicnt.device;
     const bool new_enable = m_spicnt.enable;
 
     if(m_chip_select && ((old_enable && !new_enable) || old_device != new_device)) {
