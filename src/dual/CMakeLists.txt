@@ -17,6 +17,9 @@ set(SOURCES
   src/nds/arm9/io.cpp
   src/nds/arm9/math.cpp
   src/nds/arm9/memory.cpp
+  src/nds/backup/eeprom.cpp
+  src/nds/backup/eeprom512b.cpp
+  src/nds/backup/flash.cpp
   src/nds/video_unit/ppu/render/affine.cpp
   src/nds/video_unit/ppu/render/oam.cpp
   src/nds/video_unit/ppu/render/text.cpp
@@ -47,6 +50,7 @@ set(HEADERS_PUBLIC
   include/dual/arm/coprocessor.hpp
   include/dual/arm/cpu.hpp
   include/dual/arm/memory.hpp
+  include/dual/common/backup_file.hpp
   include/dual/common/fifo.hpp
   include/dual/common/scheduler.hpp
   include/dual/nds/arm7/dma.hpp
@@ -56,6 +60,9 @@ set(HEADERS_PUBLIC
   include/dual/nds/arm9/dma.hpp
   include/dual/nds/arm9/math.hpp
   include/dual/nds/arm9/memory.hpp
+  include/dual/nds/backup/eeprom.hpp
+  include/dual/nds/backup/eeprom512b.hpp
+  include/dual/nds/backup/flash.hpp
   include/dual/nds/video_unit/ppu/ppu.hpp
   include/dual/nds/video_unit/ppu/registers.hpp
   include/dual/nds/video_unit/video_unit.hpp
