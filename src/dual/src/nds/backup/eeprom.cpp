@@ -82,7 +82,7 @@ namespace dual::nds {
     m_state = State::Deselected;
   }
 
-  auto EEPROM::Transfer(u8 data) -> u8 {
+  u8 EEPROM::Transfer(u8 data) {
     switch(m_state) {
       case State::ReceiveCommand: {
         ParseCommand(static_cast<Command>(data));

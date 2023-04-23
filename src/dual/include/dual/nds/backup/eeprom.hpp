@@ -21,7 +21,8 @@ namespace dual::nds {
       void Reset() override;
       void Select() override;
       void Deselect() override;
-      auto Transfer(u8 data) -> u8 override;
+
+      u8 Transfer(u8 data) override;
 
     private:
       enum class Command : u8 {

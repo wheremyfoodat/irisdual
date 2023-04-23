@@ -5,73 +5,73 @@
 namespace dual::nds {
 
   EEPROM512B::EEPROM512B(std::string const& save_path)
-      : save_path(save_path) {
+      : m_save_path(save_path) {
     Reset();
   }
 
   void EEPROM512B::Reset() {
-    static const std::vector<size_t> kBackupSize { 512 };
+    static const std::vector<size_t> k_backup_sizes { 512 };
 
     size_t size = 512;
-    file = BackupFile::OpenOrCreate(save_path, kBackupSize, size);
+    m_file = BackupFile::OpenOrCreate(m_save_path, k_backup_sizes, size);
     Deselect();
 
-    write_enable_latch = false;
-    write_protect_mode = 0;
+    m_write_enable_latch = false;
+    m_write_protect_mode = 0;
   }
 
   void EEPROM512B::Select() {
-    if (state == State::Deselected) {
-      state = State::ReceiveCommand;
+    if(m_state == State::Deselected) {
+      m_state = State::ReceiveCommand;
     }
   }
 
   void EEPROM512B::Deselect() {
-    if (current_cmd == Command::Write ||
-        current_cmd == Command::WriteStatus) {
-      write_enable_latch = false;
+    if(m_current_cmd == Command::Write ||
+       m_current_cmd == Command::WriteStatus) {
+      m_write_enable_latch = false;
     }
 
-    state = State::Deselected;
+    m_state = State::Deselected;
   }
 
-  auto EEPROM512B::Transfer(u8 data) -> u8 {
-    switch (state) {
+  u8 EEPROM512B::Transfer(u8 data) {
+    switch(m_state) {
       case State::ReceiveCommand: {
         ParseCommand(data);
         break;
       }
       case State::ReadStatus: {
-        return (write_enable_latch ? 2 : 0) |
-               (write_protect_mode << 2) | 0xF0;
+        return (m_write_enable_latch ? 2 : 0) |
+               (m_write_protect_mode << 2) | 0xF0;
       }
       case State::WriteStatus: {
-        write_enable_latch = data & 2;
-        write_protect_mode = (data >> 2) & 3;
-        state = State::Idle;
+        m_write_enable_latch = data & 2;
+        m_write_protect_mode = (data >> 2) & 3;
+        m_state = State::Idle;
         break;
       }
       case State::ReadAddress: {
-        address |= data;
-        if (current_cmd == Command::Read) {
-          state = State::Read;
+        m_address |= data;
+        if(m_current_cmd == Command::Read) {
+          m_state = State::Read;
         } else {
-          state = State::Write;
+          m_state = State::Write;
         }
         break;
       }
       case State::Read: {
-        return file->Read(address++ & 0x1FF);
+        return m_file->Read(m_address++ & 0x1FF);
       }
       case State::Write: {
-        switch (write_protect_mode) {
-          case 1: if (address >= 0x180) return 0xFF;
-          case 2: if (address >= 0x100) return 0xFF;
+        switch(m_write_protect_mode) {
+          case 1: if(m_address >= 0x180) return 0xFF;
+          case 2: if(m_address >= 0x100) return 0xFF;
           case 3: return 0xFF;
         }
 
-        file->Write(address, data);
-        address = (address & ~15) | ((address + 1) & 15);
+        m_file->Write(m_address, data);
+        m_address = (m_address & ~15) | ((m_address + 1) & 15);
         break;
       }
       case State::Idle: {
@@ -88,44 +88,44 @@ namespace dual::nds {
   void EEPROM512B::ParseCommand(u8 cmd) {
     auto a8 = cmd & 8;
 
-    if ((cmd & 0x80) == 0) cmd &= ~8;
+    if((cmd & 0x80) == 0) cmd &= ~8;
 
-    current_cmd = static_cast<Command>(cmd);
+    m_current_cmd = static_cast<Command>(cmd);
 
-    switch (current_cmd) {
+    switch(m_current_cmd) {
       case Command::WriteEnable: {
-        write_enable_latch = true;
-        state = State::Idle;
+        m_write_enable_latch = true;
+        m_state = State::Idle;
         break;
       }
       case Command::WriteDisable: {
-        write_enable_latch = false;
-        state = State::Idle;
+        m_write_enable_latch = false;
+        m_state = State::Idle;
         break;
       }
       case Command::ReadStatus: {
-        state = State::ReadStatus;
+        m_state = State::ReadStatus;
         break;
       }
       case Command::WriteStatus: {
-        if (write_enable_latch) {
-          state = State::WriteStatus;
+        if(m_write_enable_latch) {
+          m_state = State::WriteStatus;
         } else {
-          state = State::Idle;
+          m_state = State::Idle;
         }
         break;
       }
       case Command::Read: {
-        address = a8 << 5;
-        state = State::ReadAddress;
+        m_address = a8 << 5;
+        m_state = State::ReadAddress;
         break;
       }
       case Command::Write: {
-        if (write_enable_latch) {
-          address = a8 << 5;
-          state = State::ReadAddress;
+        if(m_write_enable_latch) {
+          m_address = a8 << 5;
+          m_state = State::ReadAddress;
         } else {
-          state = State::Idle;
+          m_state = State::Idle;
         }
         break;
       }

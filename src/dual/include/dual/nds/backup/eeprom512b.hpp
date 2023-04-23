@@ -14,7 +14,8 @@ namespace dual::nds {
       void Reset() override;
       void Select() override;
       void Deselect() override;
-      auto Transfer(u8 data) -> u8 override;
+
+      u8 Transfer(u8 data) override;
 
     private:
       enum class Command : u8 {
@@ -35,18 +36,18 @@ namespace dual::nds {
         ReadAddress,
         Read,
         Write
-      } state;
+      } m_state{};
 
       void ParseCommand(u8 cmd);
 
-      Command current_cmd;
-      u16 address;
-      bool write_enable_latch;
-      int  write_protect_mode;
+      Command m_current_cmd{};
+      u16 m_address{};
+      bool m_write_enable_latch{};
+      int  m_write_protect_mode{};
 
-      std::string save_path;
+      std::string m_save_path{};
 
-      std::unique_ptr<BackupFile> file;
+      std::unique_ptr<BackupFile> m_file{};
   };
 
 } // namespace dual::nds
