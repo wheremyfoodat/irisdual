@@ -38,6 +38,10 @@ namespace dual::nds {
 
     tmcnt.word = (value & write_mask) | (tmcnt.word & ~write_mask);
 
+    if(id == 0) {
+      tmcnt.clock_select = 0u;
+    }
+
     if(tmcnt.enable) {
       if(!old_enable) {
         channel.counter = tmcnt.reload;
