@@ -37,13 +37,9 @@ namespace dual::nds {
           u32 word = 0u;
         } tmcnt{};
 
-        int divider_cycles;
-        int divider_shift;
-
         u16 counter = 0u;
-
-        u64 timestamp_last_reload;
-
+        int divider_shift{};
+        u64 timestamp_last_reload{};
         Scheduler::Event* event = nullptr;
       } m_channel[4];
   };

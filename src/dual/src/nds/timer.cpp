@@ -20,8 +20,8 @@ namespace dual::nds {
   }
 
   void Timer::Write_TMCNT(int id, u32 value, u32 mask) {
-    static constexpr int k_divider_to_cycles[4] { 1, 64, 256, 1024 };
-    static constexpr int k_divider_to_shift[4] { 0, 6, 8, 10 };
+    static constexpr int  k_divider_to_shift[4] { 0, 6, 8, 10 };
+    static constexpr uint k_divider_to_mask [4] { 0, 63, 255, 1023 };
 
     const u32 write_mask = 0x00C7FFFFu & mask;
 
@@ -31,6 +31,7 @@ namespace dual::nds {
     const bool old_enable = tmcnt.enable;
 
     if(channel.event != nullptr) {
+      // @todo: check if the timer can ever overflow from this operation.
       channel.counter += GetTicksSinceLastReload(id);
       m_scheduler.Cancel(channel.event);
       channel.event = nullptr;
@@ -47,11 +48,10 @@ namespace dual::nds {
         channel.counter = tmcnt.reload;
       }
 
-      channel.divider_cycles = k_divider_to_cycles[tmcnt.clock_divider];
       channel.divider_shift = k_divider_to_shift[tmcnt.clock_divider];
 
       if(tmcnt.clock_select == 0u) {
-        ScheduleTimerOverflow(id, -(int)(m_scheduler.GetTimestampNow() & (channel.divider_cycles - 1)));
+        ScheduleTimerOverflow(id, -(int)(m_scheduler.GetTimestampNow() & k_divider_to_mask[tmcnt.clock_divider]));
       }
     }
   }
