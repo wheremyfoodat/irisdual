@@ -32,6 +32,7 @@ set(SOURCES
   src/nds/irq.cpp
   src/nds/nds.cpp
   src/nds/swram.cpp
+  src/nds/timer.cpp
   src/nds/vram.cpp
 )
 
@@ -73,6 +74,7 @@ set(HEADERS_PUBLIC
   include/dual/nds/rom.hpp
   include/dual/nds/swram.hpp
   include/dual/nds/system_memory.hpp
+  include/dual/nds/timer.hpp
 )
 
 add_library(dual ${SOURCES} ${HEADERS} ${HEADERS_PUBLIC})

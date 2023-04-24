@@ -15,6 +15,7 @@
 #include <dual/nds/irq.hpp>
 #include <dual/nds/rom.hpp>
 #include <dual/nds/system_memory.hpp>
+#include <dual/nds/timer.hpp>
 #include <memory>
 #include <span>
 
@@ -47,39 +48,45 @@ namespace dual::nds {
         std::unique_ptr<arm9::CP15> cp15{};
         arm9::MemoryBus bus;
         IRQ irq{true};
+        Timer timer;
         arm9::DMA dma{bus, irq};
         arm9::Math math{};
 
-        ARM9(SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
+        ARM9(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
             : bus{memory, {
                 irq,
+                timer,
                 dma,
                 ipc,
                 memory.swram,
                 memory.vram,
                 math,
                 video_unit
-              }} {}
-      } m_arm9{m_memory, m_ipc, m_video_unit};
+              }}
+            , timer{scheduler, irq} {}
+      } m_arm9{m_scheduler, m_memory, m_ipc, m_video_unit};
 
       struct ARM7 {
         std::unique_ptr<arm::CPU> cpu{};
         arm7::MemoryBus bus;
         IRQ irq{false};
+        Timer timer;
         arm7::DMA dma{bus, irq};
         arm7::SPI spi{irq};
 
-        ARM7(SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
+        ARM7(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
             : bus{memory, {
                 irq,
+                timer,
                 dma,
                 spi,
                 ipc,
                 memory.swram,
                 memory.vram,
                 video_unit
-              }} {}
-      } m_arm7{m_memory, m_ipc, m_video_unit};
+              }}
+            , timer{scheduler, irq} {}
+      } m_arm7{m_scheduler, m_memory, m_ipc, m_video_unit};
 
       IPC m_ipc{m_arm9.irq, m_arm7.irq};
 

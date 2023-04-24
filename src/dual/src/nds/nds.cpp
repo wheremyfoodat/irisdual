@@ -39,6 +39,9 @@ namespace dual::nds {
     m_arm9.irq.Reset();
     m_arm7.irq.Reset();
 
+    m_arm9.timer.Reset();
+    m_arm7.timer.Reset();
+
     m_arm9.dma.Reset();
     m_arm7.dma.Reset();
 

@@ -109,6 +109,12 @@ namespace dual::nds::arm7 {
       case REG(0x040000D8): return hw.dma.Read_DMADAD(3);
       case REG(0x040000DC): return hw.dma.Read_DMACNT(3);
 
+      // Timer
+      case REG(0x04000100): return hw.timer.Read_TMCNT(0);
+      case REG(0x04000104): return hw.timer.Read_TMCNT(1);
+      case REG(0x04000108): return hw.timer.Read_TMCNT(2);
+      case REG(0x0400010C): return hw.timer.Read_TMCNT(3);
+
       // IPC
       case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM7);
       case REG(0x04000184): return hw.ipc.Read_FIFOCNT(CPU::ARM7);
@@ -159,6 +165,12 @@ namespace dual::nds::arm7 {
       case REG(0x040000D4): hw.dma.Write_DMASAD(3, value, mask); break;
       case REG(0x040000D8): hw.dma.Write_DMADAD(3, value, mask); break;
       case REG(0x040000DC): hw.dma.Write_DMACNT(3, value, mask); break;
+
+      // Timer
+      case REG(0x04000100): hw.timer.Write_TMCNT(0, value, mask); break;
+      case REG(0x04000104): hw.timer.Write_TMCNT(1, value, mask); break;
+      case REG(0x04000108): hw.timer.Write_TMCNT(2, value, mask); break;
+      case REG(0x0400010C): hw.timer.Write_TMCNT(3, value, mask); break;
 
       // IPC
       case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM7, value, mask); break;

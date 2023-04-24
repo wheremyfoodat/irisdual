@@ -15,6 +15,7 @@
 #include <dual/nds/ipc.hpp>
 #include <dual/nds/swram.hpp>
 #include <dual/nds/system_memory.hpp>
+#include <dual/nds/timer.hpp>
 
 namespace dual::nds::arm9 {
 
@@ -22,6 +23,7 @@ namespace dual::nds::arm9 {
     public:
       struct HW {
         IRQ& irq;
+        Timer& timer;
         arm9::DMA& dma;
         IPC& ipc;
         SWRAM& swram;
