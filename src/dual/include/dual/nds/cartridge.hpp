@@ -9,6 +9,7 @@
 #include <dual/nds/arm9/dma.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/rom.hpp>
+#include <dual/nds/system_memory.hpp>
 #include <memory>
 
 namespace dual::nds {
@@ -20,7 +21,8 @@ namespace dual::nds {
         IRQ& irq9,
         IRQ& irq7,
         arm9::DMA& dma9,
-        arm7::DMA& dma7
+        arm7::DMA& dma7,
+        SystemMemory& memory
       );
 
       void Reset();
@@ -102,6 +104,7 @@ namespace dual::nds {
       IRQ* m_irq[2]{};
       arm9::DMA& m_dma9;
       arm7::DMA& m_dma7;
+      SystemMemory& m_memory;
       std::shared_ptr<ROM> m_rom{};
       std::shared_ptr<arm7::SPI::Device> m_backup{};
       u32 m_rom_mask{};

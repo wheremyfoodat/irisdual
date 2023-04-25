@@ -44,7 +44,7 @@ namespace dual::nds {
 
       VideoUnit m_video_unit{m_scheduler, m_memory, m_arm9.irq, m_arm7.irq, m_arm9.dma, m_arm7.dma};
 
-      Cartridge m_cartridge{m_scheduler, m_arm9.irq, m_arm7.irq, m_arm9.dma, m_arm7.dma};
+      Cartridge m_cartridge{m_scheduler, m_arm9.irq, m_arm7.irq, m_arm9.dma, m_arm7.dma, m_memory};
 
       struct ARM9 {
         std::unique_ptr<arm::CPU> cpu{};

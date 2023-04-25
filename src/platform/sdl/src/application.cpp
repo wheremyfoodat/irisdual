@@ -20,13 +20,14 @@ Application::~Application() {
 
 int Application::Run(int argc, char **argv) {
   CreateWindow();
+  // ARM7 boot ROM must be loaded before the ROM when firmware booting.
+  LoadBootROM("boot9.bin", true);
+  LoadBootROM("boot7.bin", false);
   if(argc < 2) {
     LoadROM("pmdblue.nds");
   } else {
     LoadROM(argv[1]);
   }
-  LoadBootROM("boot9.bin", true);
-  LoadBootROM("boot7.bin", false);
   MainLoop();
   return 0;
 }
@@ -122,6 +123,10 @@ void Application::MainLoop() {
       if(event.type == SDL_QUIT) {
         return;
       }
+    }
+
+    if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F12]) {
+      m_nds->DirectBoot();
     }
 
     m_nds->Step(559241);

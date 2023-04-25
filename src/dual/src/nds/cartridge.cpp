@@ -13,8 +13,9 @@ namespace dual::nds {
     IRQ& irq9,
     IRQ& irq7,
     arm9::DMA& dma9,
-    arm7::DMA& dma7
-  )   : m_scheduler{scheduler}, m_dma9{dma9}, m_dma7{dma7} {
+    arm7::DMA& dma7,
+    SystemMemory& memory
+  )   : m_scheduler{scheduler}, m_dma9{dma9}, m_dma7{dma7}, m_memory{memory} {
     m_irq[(int)CPU::ARM9] = &irq9;
     m_irq[(int)CPU::ARM7] = &irq7;
   }
@@ -417,11 +418,7 @@ namespace dual::nds {
       }
     };
 
-    // @todo: pass in SystemMemory and get data from there.
-    std::ifstream bios{"boot7.bin", std::ios::binary};
-    bios.seekg(0x30);
-    bios.read((char*)&m_key1_buffer_lvl2[0], 0x1048);
-    bios.close();
+    std::memcpy(m_key1_buffer_lvl2, &m_memory.arm7.bios[0x30], 0x1048);
 
     keycode[0] = game_id_code;
     keycode[1] = game_id_code >> 1;
