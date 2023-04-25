@@ -33,7 +33,7 @@ namespace dual::nds {
     m_data_mode = DataMode::MainDataLoad;
   }
 
-  void Cartridge::SetROM(std::shared_ptr<ROM> rom) {
+  void Cartridge::SetROM(std::shared_ptr<ROM> rom, std::shared_ptr<arm7::SPI::Device> backup) {
     u32 game_id_code;
     rom->Read((u8*)&game_id_code, 12, sizeof(u32));
     InitKeyCode(game_id_code);
@@ -51,6 +51,7 @@ namespace dual::nds {
     }
 
     m_rom = std::move(rom);
+    m_backup = std::move(backup);
   }
 
   auto Cartridge::Read_AUXSPICNT() -> u16 {
@@ -145,14 +146,22 @@ namespace dual::nds {
   }
 
   void Cartridge::HandleCommand() {
-    // @todo: simplify m_rom checks
+    const auto Unhandled = [this]() {
+      const u8* cmd = m_cardcmd.byte;
 
-    u8* cmd = &m_cardcmd.byte[0]; // @todo: is this dodgy?
-    bool unknown_command = false;
+      ATOM_PANIC(
+        "slot1: unhandled command (mode={}): {:02X}-{:02X}-{:02X}-{:02X}-{:02X}-{:02X}-{:02X}-{:02X}",
+         (int)m_data_mode, cmd[0], cmd[1], cmd[2], cmd[3], cmd[4], cmd[5], cmd[6], cmd[7]
+      );
+    };
 
     m_transfer.index = 0;
     m_transfer.data_count = 0;
     m_romctrl.data_ready = false;
+
+    if(!m_rom) {
+      return;
+    }
 
     const uint data_block_size = m_romctrl.data_block_size;
 
@@ -175,12 +184,8 @@ namespace dual::nds {
         case 0x00: {
           // Get Cartridge Header
           // @todo: check what the correct behavior for reading past 0x200 bytes is.
-          if(m_rom) {
-            m_rom->Read((u8*)m_transfer.data, 0, 0x200);
-            std::memset(&m_transfer.data[0x80], 0xFF, 0xE00);
-          } else {
-            std::memset(&m_transfer.data, 0xFF, 0x1000);
-          }
+          m_rom->Read((u8*)m_transfer.data, 0, 0x200);
+          std::memset(&m_transfer.data[0x80], 0xFF, 0xE00);
           m_transfer.data_count = 0x400;
           break;
         }
@@ -196,7 +201,7 @@ namespace dual::nds {
           break;
         }
         default: {
-          unknown_command = true;
+          Unhandled();
           break;
         }
       }
@@ -231,23 +236,18 @@ namespace dual::nds {
 
           m_transfer.data_count = 1024;
 
-          if(m_rom) {
-            m_rom->Read((u8*)m_transfer.data, address, 4096);
+          m_rom->Read((u8*)m_transfer.data, address, 4096);
 
-            if(address == 0x4000) {
-              m_transfer.data[0] = 0x72636e65; // encr
-              m_transfer.data[1] = 0x6a624f79; // yObj
+          if(address == 0x4000) {
+            m_transfer.data[0] = 0x72636e65; // encr
+            m_transfer.data[1] = 0x6a624f79; // yObj
 
-              for(int i = 0; i < 512; i += 2) {
-                Encrypt64(m_key1_buffer_lvl3, &m_transfer.data[i]);
-              }
-
-              Encrypt64(m_key1_buffer_lvl2, &m_transfer.data[0]);
+            for(int i = 0; i < 512; i += 2) {
+              Encrypt64(m_key1_buffer_lvl3, &m_transfer.data[i]);
             }
-          } else {
-            std::memset(&m_transfer.data, 0xFF, 0x1000);
-          }
 
+            Encrypt64(m_key1_buffer_lvl2, &m_transfer.data[0]);
+          }
           break;
         }
         case 0xA0: {
@@ -256,8 +256,7 @@ namespace dual::nds {
           break;
         }
         default: {
-          unknown_command = true;
-          cmd = &command[0];
+          Unhandled();
           break;
         }
       }
@@ -291,21 +290,17 @@ namespace dual::nds {
 
           const u32 byte_len = m_transfer.data_count * sizeof(u32);
 
-          if(m_rom) {
-            u32 sector_a = address >> 12;
-            u32 sector_b = (address + byte_len - 1) >> 12;
+          u32 sector_a = address >> 12;
+          u32 sector_b = (address + byte_len - 1) >> 12;
 
-            if(sector_a != sector_b) {
-              u32 size_a = 0x1000 - (address & 0xFFF);
-              u32 size_b = byte_len - size_a;
+          if(sector_a != sector_b) {
+            u32 size_a = 0x1000 - (address & 0xFFF);
+            u32 size_b = byte_len - size_a;
 
-              m_rom->Read((u8*)m_transfer.data, address, size_a);
-              m_rom->Read((u8*)m_transfer.data + size_a, address & ~0xFFF, size_b);
-            } else {
-              m_rom->Read((u8*)m_transfer.data, address, byte_len);
-            }
+            m_rom->Read((u8*)m_transfer.data, address, size_a);
+            m_rom->Read((u8*)m_transfer.data + size_a, address & ~0xFFF, size_b);
           } else {
-            std::memset(m_transfer.data, 0xFF, byte_len);
+            m_rom->Read((u8*)m_transfer.data, address, byte_len);
           }
           break;
         }
@@ -316,15 +311,10 @@ namespace dual::nds {
           break;
         }
         default: {
-          unknown_command = true;
+          Unhandled();
           break;
         }
       }
-    }
-
-    if (unknown_command) {
-      ATOM_PANIC("slot1: unhandled command (mode={}): {:02X}-{:02X}-{:02X}-{:02X}-{:02X}-{:02X}-{:02X}-{:02X}",
-                 (int)m_data_mode, cmd[0], cmd[1], cmd[2], cmd[3], cmd[4], cmd[5], cmd[6], cmd[7]);
     }
 
     m_romctrl.busy = m_transfer.data_count != 0;

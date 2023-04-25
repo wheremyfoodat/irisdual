@@ -27,11 +27,11 @@ namespace dual::nds {
 
       void Reset();
       void DirectBoot();
-      void SetROM(std::shared_ptr<ROM> rom);
 
-      void SetBackupMemory(std::shared_ptr<arm7::SPI::Device> backup) {
-        m_backup = std::move(backup);
-      }
+      void SetROM(
+        std::shared_ptr<ROM> rom,
+        std::shared_ptr<arm7::SPI::Device> backup = {}
+      );
 
       auto  Read_AUXSPICNT() -> u16;
       void Write_AUXSPICNT(u16 value, u16 mask);
