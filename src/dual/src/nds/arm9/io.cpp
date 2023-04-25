@@ -158,6 +158,17 @@ namespace dual::nds::arm9 {
       case REG(0x04000184): return hw.ipc.Read_FIFOCNT(CPU::ARM9);
       case REG(0x04100000): return hw.ipc.Read_FIFORECV(CPU::ARM9);
 
+      // Cartridge interface (Slot 1)
+      case REG(0x040001A0): {
+        if(mask & 0x0000FFFFu) value |= hw.cartridge.Read_AUXSPICNT()  <<  0;
+        if(mask & 0x00FF0000u) value |= hw.cartridge.Read_AUXSPIDATA() << 16;
+        return value;
+      }
+      case REG(0x040001A4): return hw.cartridge.Read_ROMCTRL();
+      case REG(0x040001A8): return hw.cartridge.Read_CARDCMD() >>  0;
+      case REG(0x040001AC): return hw.cartridge.Read_CARDCMD() >> 32;
+      case REG(0x04100010): return hw.cartridge.Read_CARDDATA();
+
       // IRQ
       case REG(0x04000208): return hw.irq.Read_IME();
       case REG(0x04000210): return hw.irq.Read_IE();
@@ -298,6 +309,16 @@ namespace dual::nds::arm9 {
       case REG(0x04000184): hw.ipc.Write_FIFOCNT(CPU::ARM9, value, mask); break;
       case REG(0x04000188): hw.ipc.Write_FIFOSEND(CPU::ARM9, value); break;
 
+      // Cartridge interface (Slot 1)
+      case REG(0x040001A0): {
+        if(mask & 0x0000FFFFu) hw.cartridge.Write_AUXSPICNT((u16)value, (u16)mask);
+        if(mask & 0x00FF0000u) hw.cartridge.Write_AUXSPIDATA((u8)(value >> 16));
+        break;
+      }
+      case REG(0x040001A4): hw.cartridge.Write_ROMCTRL(value, mask); break;
+      case REG(0x040001A8): hw.cartridge.Write_CARDCMD((u64)value <<  0, (u64)mask <<  0); break;
+      case REG(0x040001AC): hw.cartridge.Write_CARDCMD((u64)value << 32, (u64)mask << 32); break;
+
       // IRQ
       case REG(0x04000208): hw.irq.Write_IME(value, mask); break;
       case REG(0x04000210): hw.irq.Write_IE(value, mask); break;
@@ -326,13 +347,13 @@ namespace dual::nds::arm9 {
 
       // ARM9 Math
       case REG(0x04000280): hw.math.Write_DIVCNT(value, mask); break;
-      case REG(0x04000290): hw.math.Write_DIV_NUMER((u64)value <<  0, ((u64)mask <<  0) & 0x00000000FFFFFFFFu); break;
-      case REG(0x04000294): hw.math.Write_DIV_NUMER((u64)value << 32, ((u64)mask << 32) & 0xFFFFFFFF00000000u); break;
-      case REG(0x04000298): hw.math.Write_DIV_DENOM((u64)value <<  0, ((u64)mask <<  0) & 0x00000000FFFFFFFFu); break;
-      case REG(0x0400029C): hw.math.Write_DIV_DENOM((u64)value << 32, ((u64)mask << 32) & 0xFFFFFFFF00000000u); break;
+      case REG(0x04000290): hw.math.Write_DIV_NUMER((u64)value <<  0, (u64)mask <<  0); break;
+      case REG(0x04000294): hw.math.Write_DIV_NUMER((u64)value << 32, (u64)mask << 32); break;
+      case REG(0x04000298): hw.math.Write_DIV_DENOM((u64)value <<  0, (u64)mask <<  0); break;
+      case REG(0x0400029C): hw.math.Write_DIV_DENOM((u64)value << 32, (u64)mask << 32); break;
       case REG(0x040002B0): hw.math.Write_SQRTCNT(value, mask); break;
-      case REG(0x040002B8): hw.math.Write_SQRT_PARAM((u64)value <<  0, ((u64)mask <<  0) & 0x00000000FFFFFFFFu); break;
-      case REG(0x040002BC): hw.math.Write_SQRT_PARAM((u64)value << 32, ((u64)mask << 32) & 0xFFFFFFFF00000000u); break;
+      case REG(0x040002B8): hw.math.Write_SQRT_PARAM((u64)value <<  0, (u64)mask <<  0); break;
+      case REG(0x040002BC): hw.math.Write_SQRT_PARAM((u64)value << 32, (u64)mask << 32); break;
 
       default: {
         Unhandled();

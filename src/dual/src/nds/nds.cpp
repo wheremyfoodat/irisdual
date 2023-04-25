@@ -23,6 +23,8 @@ namespace dual::nds {
 
     m_video_unit.Reset();
 
+    m_cartridge.Reset();
+
     m_memory.ewram.fill(0);
     m_memory.swram.Reset();
     m_memory.vram.Reset();
@@ -78,6 +80,7 @@ namespace dual::nds {
   }
 
   void NDS::LoadROM(std::shared_ptr<ROM> rom) {
+    m_cartridge.SetROM(rom);
     m_rom = std::move(rom);
   }
 
@@ -167,6 +170,8 @@ namespace dual::nds {
     atom::write<u16>(m_memory.ewram.data(), 0x3FFC40u, 0x0001u); // Boot indicator
 
     // @todo: set ARM9 and ARM7 POSTFLG registers to one
+
+    m_cartridge.DirectBoot();
   }
 
 } // namespace dual::nds

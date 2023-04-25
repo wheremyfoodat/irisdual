@@ -11,6 +11,7 @@
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/arm9/math.hpp>
 #include <dual/nds/arm9/dma.hpp>
+#include <dual/nds/cartridge.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/ipc.hpp>
 #include <dual/nds/swram.hpp>
@@ -30,6 +31,7 @@ namespace dual::nds::arm9 {
         VRAM& vram;
         Math& math;
         VideoUnit& video_unit;
+        Cartridge& cartridge;
       };
 
       struct TCM {

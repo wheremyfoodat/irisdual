@@ -28,6 +28,7 @@ set(SOURCES
   src/nds/video_unit/ppu/ppu.cpp
   src/nds/video_unit/ppu/registers.cpp
   src/nds/video_unit/video_unit.cpp
+  src/nds/cartridge.cpp
   src/nds/ipc.cpp
   src/nds/irq.cpp
   src/nds/nds.cpp
@@ -69,6 +70,7 @@ set(HEADERS_PUBLIC
   include/dual/nds/video_unit/video_unit.hpp
   include/dual/nds/vram/region.hpp
   include/dual/nds/vram/vram.hpp
+  include/dual/nds/cartridge.hpp
   include/dual/nds/header.hpp
   include/dual/nds/nds.hpp
   include/dual/nds/rom.hpp
