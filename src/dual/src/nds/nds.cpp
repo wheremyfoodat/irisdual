@@ -91,7 +91,7 @@ namespace dual::nds {
     Reset();
 
     m_rom->Read(reinterpret_cast<u8*>(&header), 0, sizeof(Header));
-    m_rom->Read(&m_memory.ewram[0x3FFE00], 0, sizeof(Header));
+    m_rom->Read(&m_memory.ewram[0x3FFE00], 0, 0x170);
 
     const auto LoadBinary = [&](Header::Binary& binary, bool arm9) {
       const char* name = arm9 ? "ARM9" : "ARM7";
