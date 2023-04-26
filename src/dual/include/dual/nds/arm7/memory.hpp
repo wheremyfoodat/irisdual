@@ -65,6 +65,7 @@ namespace dual::nds::arm7 {
         HW hw;
 
         u8 postflg{};
+        u16 soundbias{};
       } m_io;
 
       u8* m_boot_rom;

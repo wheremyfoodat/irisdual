@@ -153,6 +153,9 @@ namespace dual::nds::arm7 {
       // POSTFLG and HALTCNT
       case REG(0x04000300): return postflg;
 
+      // Sound
+      case REG(0x04000504): return soundbias;
+
       default: {
         Unhandled();
       }
@@ -227,6 +230,9 @@ namespace dual::nds::arm7 {
         if(mask & 0x0000FF00u) Unhandled();
         break;
       }
+
+      // Sound
+      case REG(0x04000504): soundbias = (value & mask & 0x3FFu) | (soundbias & ~(mask & 0x3FFu)); break;
 
       default: {
         Unhandled();

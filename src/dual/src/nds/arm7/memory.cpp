@@ -16,6 +16,7 @@ namespace dual::nds::arm7 {
 
   void MemoryBus::Reset() {
     m_io.postflg = 0u;
+    m_io.soundbias = 0u;
   }
 
   template<typename T> T MemoryBus::Read(u32 address, Bus bus) {
