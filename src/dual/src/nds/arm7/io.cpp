@@ -139,6 +139,9 @@ namespace dual::nds::arm7 {
         return value;
       }
 
+      // POSTFLG and HALTCNT
+      case REG(0x04000300): return postflg;
+
       default: {
         Unhandled();
       }
@@ -148,6 +151,14 @@ namespace dual::nds::arm7 {
   }
 
   template<u32 mask> void MemoryBus::IO::WriteWord(u32 address, u32 value) {
+    const auto Unhandled = [=]() {
+      const int access_size = GetAccessSize(mask);
+      const u32 access_address = address + GetAccessAddressOffset(mask);
+      const u32 access_value = (value & mask) >> (GetAccessAddressOffset(mask) * 8);
+
+      ATOM_ERROR("arm7: IO: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", access_size, access_address, access_value);
+    };
+
     switch(REG(address)) {
       // PPU
       case REG(0x04000004): hw.video_unit.Write_DISPSTAT(CPU::ARM7, value, (u16)mask);
@@ -189,12 +200,15 @@ namespace dual::nds::arm7 {
       case REG(0x04000210): hw.irq.Write_IE(value, mask); break;
       case REG(0x04000214): hw.irq.Write_IF(value, mask); break;
 
-      default: {
-        const int access_size = GetAccessSize(mask);
-        const u32 access_address = address + GetAccessAddressOffset(mask);
-        const u32 access_value = (value & mask) >> (GetAccessAddressOffset(mask) * 8);
+      // POSTFLG and HALTCNT
+      case REG(0x04000300): {
+        if(mask & 0x000000FFu) postflg |= value & 1u;
+        if(mask & 0x0000FF00u) Unhandled();
+        break;
+      }
 
-        ATOM_ERROR("arm7: IO: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", access_size, access_address, access_value);
+      default: {
+        Unhandled();
       }
     }
   }

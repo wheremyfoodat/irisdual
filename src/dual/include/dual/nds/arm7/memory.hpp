@@ -34,6 +34,8 @@ namespace dual::nds::arm7 {
 
       MemoryBus(SystemMemory& memory, HW const& hw);
 
+      void Reset();
+
       u8  ReadByte(u32 address, Bus bus) override;
       u16 ReadHalf(u32 address, Bus bus) override;
       u32 ReadWord(u32 address, Bus bus) override;
@@ -59,6 +61,8 @@ namespace dual::nds::arm7 {
         template<u32 mask> void WriteWord(u32 address, u32 value);
 
         HW hw;
+
+        u8 postflg{};
       } m_io;
 
       u8* m_boot_rom;

@@ -19,6 +19,10 @@ namespace dual::nds::arm9 {
     m_itcm.data = memory.arm9.itcm.data();
   }
 
+  void MemoryBus::Reset() {
+    m_io.postflg = 0u;
+  }
+
   void MemoryBus::SetupDTCM(TCM::Config const& config) {
     m_dtcm.config = config;
   }

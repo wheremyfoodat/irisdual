@@ -14,6 +14,10 @@ namespace dual::nds::arm7 {
       , m_io{hw} {
   }
 
+  void MemoryBus::Reset() {
+    m_io.postflg = 0u;
+  }
+
   template<typename T> T MemoryBus::Read(u32 address, Bus bus) {
     address &= ~(sizeof(T) - 1u);
 

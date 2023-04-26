@@ -38,6 +38,9 @@ namespace dual::nds {
     m_arm9.cpu->Reset();
     m_arm7.cpu->Reset();
 
+    m_arm9.bus.Reset();
+    m_arm7.bus.Reset();
+
     m_arm9.irq.Reset();
     m_arm7.irq.Reset();
 
@@ -169,7 +172,8 @@ namespace dual::nds {
     atom::write<u16>(m_memory.ewram.data(), 0x3FFC10u, 0x5835u); // Copy of ARM7 BIOS CRC
     atom::write<u16>(m_memory.ewram.data(), 0x3FFC40u, 0x0001u); // Boot indicator
 
-    // @todo: set ARM9 and ARM7 POSTFLG registers to one
+    m_arm9.bus.WriteByte(0x04000300, 1u, dual::arm::Memory::Bus::Data);
+    m_arm7.bus.WriteByte(0x04000300, 1u, dual::arm::Memory::Bus::Data);
 
     m_cartridge.DirectBoot();
   }

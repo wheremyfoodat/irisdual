@@ -210,6 +210,9 @@ namespace dual::nds::arm9 {
       case REG(0x040002B8): return hw.math.Read_SQRT_PARAM() >>  0;
       case REG(0x040002BC): return hw.math.Read_SQRT_PARAM() >> 32;
 
+      // POSTFLG
+      case REG(0x04000300): return postflg;
+
       default: {
         Unhandled();
       }
@@ -354,6 +357,9 @@ namespace dual::nds::arm9 {
       case REG(0x040002B0): hw.math.Write_SQRTCNT(value, mask); break;
       case REG(0x040002B8): hw.math.Write_SQRT_PARAM((u64)value <<  0, (u64)mask <<  0); break;
       case REG(0x040002BC): hw.math.Write_SQRT_PARAM((u64)value << 32, (u64)mask << 32); break;
+
+      // POSTFLG
+      case REG(0x04000300): postflg = (value & mask & 3u) | (postflg & ~(mask & 2u));
 
       default: {
         Unhandled();

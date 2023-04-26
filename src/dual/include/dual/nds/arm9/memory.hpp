@@ -47,6 +47,8 @@ namespace dual::nds::arm9 {
 
       MemoryBus(SystemMemory& memory, HW const& hw);
 
+      void Reset();
+
       void SetupDTCM(TCM::Config const& config);
       void SetupITCM(TCM::Config const& config);
 
@@ -142,6 +144,8 @@ namespace dual::nds::arm9 {
         template<u32 mask> void WriteWord(u32 address, u32 value);
 
         HW hw;
+
+        u8 postflg{};
       } m_io;
 
       TCM m_dtcm{};
