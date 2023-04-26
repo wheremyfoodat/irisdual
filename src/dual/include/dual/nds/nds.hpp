@@ -5,6 +5,7 @@
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/arm7/dma.hpp>
 #include <dual/nds/arm7/memory.hpp>
+#include <dual/nds/arm7/rtc.hpp>
 #include <dual/nds/arm7/spi.hpp>
 #include <dual/nds/arm9/cp15.hpp>
 #include <dual/nds/arm9/math.hpp>
@@ -77,6 +78,7 @@ namespace dual::nds {
         Timer timer;
         arm7::DMA dma{bus, irq};
         arm7::SPI spi{irq};
+        RTC rtc{};
 
         ARM7(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit, Cartridge& cartridge)
             : bus{memory, {
@@ -88,7 +90,8 @@ namespace dual::nds {
                 memory.swram,
                 memory.vram,
                 video_unit,
-                cartridge
+                cartridge,
+                rtc
               }}
             , timer{scheduler, irq} {}
       } m_arm7{m_scheduler, m_memory, m_ipc, m_video_unit, m_cartridge};

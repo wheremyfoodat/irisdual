@@ -8,6 +8,7 @@
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
 #include <dual/nds/arm7/dma.hpp>
+#include <dual/nds/arm7/rtc.hpp>
 #include <dual/nds/arm7/spi.hpp>
 #include <dual/nds/video_unit/video_unit.hpp>
 #include <dual/nds/vram/vram.hpp>
@@ -32,6 +33,7 @@ namespace dual::nds::arm7 {
         VRAM& vram;
         VideoUnit& video_unit;
         Cartridge& cartridge;
+        RTC& rtc;
       };
 
       MemoryBus(SystemMemory& memory, HW const& hw);
