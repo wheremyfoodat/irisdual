@@ -11,6 +11,7 @@
 #include <dual/nds/arm7/spi.hpp>
 #include <dual/nds/video_unit/video_unit.hpp>
 #include <dual/nds/vram/vram.hpp>
+#include <dual/nds/cartridge.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/ipc.hpp>
 #include <dual/nds/swram.hpp>
@@ -30,6 +31,7 @@ namespace dual::nds::arm7 {
         SWRAM& swram;
         VRAM& vram;
         VideoUnit& video_unit;
+        Cartridge& cartridge;
       };
 
       MemoryBus(SystemMemory& memory, HW const& hw);

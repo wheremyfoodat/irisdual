@@ -78,7 +78,7 @@ namespace dual::nds {
         arm7::DMA dma{bus, irq};
         arm7::SPI spi{irq};
 
-        ARM7(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit)
+        ARM7(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit, Cartridge& cartridge)
             : bus{memory, {
                 irq,
                 timer,
@@ -87,10 +87,11 @@ namespace dual::nds {
                 ipc,
                 memory.swram,
                 memory.vram,
-                video_unit
+                video_unit,
+                cartridge
               }}
             , timer{scheduler, irq} {}
-      } m_arm7{m_scheduler, m_memory, m_ipc, m_video_unit};
+      } m_arm7{m_scheduler, m_memory, m_ipc, m_video_unit, m_cartridge};
 
       IPC m_ipc{m_arm9.irq, m_arm7.irq};
 

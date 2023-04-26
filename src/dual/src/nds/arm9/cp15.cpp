@@ -12,6 +12,7 @@ namespace dual::nds::arm9 {
 
   void CP15::Reset() {
     // @todo: refer to ARM9 manual to figure out correct initialization values
+    DirectBoot();
   }
 
   void CP15::DirectBoot() {

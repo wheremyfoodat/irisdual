@@ -120,6 +120,17 @@ namespace dual::nds::arm7 {
       case REG(0x04000184): return hw.ipc.Read_FIFOCNT(CPU::ARM7);
       case REG(0x04100000): return hw.ipc.Read_FIFORECV(CPU::ARM7);
 
+      // Cartridge interface (Slot 1)
+      case REG(0x040001A0): {
+        if(mask & 0x0000FFFFu) value |= hw.cartridge.Read_AUXSPICNT()  <<  0;
+        if(mask & 0x00FF0000u) value |= hw.cartridge.Read_AUXSPIDATA() << 16;
+        return value;
+      }
+      case REG(0x040001A4): return hw.cartridge.Read_ROMCTRL();
+      case REG(0x040001A8): return hw.cartridge.Read_CARDCMD() >>  0;
+      case REG(0x040001AC): return hw.cartridge.Read_CARDCMD() >> 32;
+      case REG(0x04100010): return hw.cartridge.Read_CARDDATA();
+
       // SPI
       case REG(0x040001C0): {
         if(mask & 0x0000FFFFu) value |= hw.spi.Read_SPICNT()  <<  0;
@@ -187,6 +198,16 @@ namespace dual::nds::arm7 {
       case REG(0x04000180): hw.ipc.Write_SYNC(CPU::ARM7, value, mask); break;
       case REG(0x04000184): hw.ipc.Write_FIFOCNT(CPU::ARM7, value, mask); break;
       case REG(0x04000188): hw.ipc.Write_FIFOSEND(CPU::ARM7, value); break;
+
+      // Cartridge interface (Slot 1)
+      case REG(0x040001A0): {
+        if(mask & 0x0000FFFFu) hw.cartridge.Write_AUXSPICNT((u16)value, (u16)mask);
+        if(mask & 0x00FF0000u) hw.cartridge.Write_AUXSPIDATA((u8)(value >> 16));
+        break;
+      }
+      case REG(0x040001A4): hw.cartridge.Write_ROMCTRL(value, mask); break;
+      case REG(0x040001A8): hw.cartridge.Write_CARDCMD((u64)value <<  0, (u64)mask <<  0); break;
+      case REG(0x040001AC): hw.cartridge.Write_CARDCMD((u64)value << 32, (u64)mask << 32); break;
 
       // SPI
       case REG(0x040001C0): {
