@@ -1,4 +1,5 @@
 
+#include <atom/bit.hpp>
 #include <atom/integer.hpp>
 
 namespace dual::nds {
@@ -57,32 +58,30 @@ private:
 };
 
 struct BackgroundControl {
-  int  priority;
-  int  tile_block;
-  bool enable_mosaic;
-  bool full_palette;
-  int  map_block;
-  bool wraparound = false;
-  int  palette_slot = 0;
-  int  size;
+  union {
+    atom::Bits< 0, 2, u16> priority;
+    atom::Bits< 2, 4, u16> tile_block;
+    atom::Bits< 6, 1, u16> enable_mosaic;
+    atom::Bits< 7, 1, u16> full_palette;
+    atom::Bits< 8, 5, u16> map_block;
+    atom::Bits<13, 1, u16> palette_slot; // BG0-1
+    atom::Bits<13, 1, u16> wraparound;   // BG2-3
+    atom::Bits<14, 2, u16> size;
 
-  BackgroundControl(int id) : id(id) {}
+    u16 half{};
+  };
 
-  void Reset();
-  auto ReadByte (uint offset) -> u8;
-  void WriteByte(uint offset, u8 value);
+  void Reset() {
+    half = 0u;
+  }
 
   u16 ReadHalf() {
-    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+    return half;
   }
 
   void WriteHalf(u16 value, u16 mask) {
-    if(mask & 0x00FFu) WriteByte(0, value >> 0);
-    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+    half = (value & mask) | (half & ~mask);
   }
-
-private:
-  int id;
 };
 
 struct BackgroundOffset {

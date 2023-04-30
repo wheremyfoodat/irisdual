@@ -26,7 +26,7 @@ class PPU {
     struct MMIO {
       DisplayControl dispcnt;
 
-      BackgroundControl bgcnt[4] { 0, 1, 2, 3 };
+      BackgroundControl bgcnt[4]{};
       BackgroundOffset bghofs[4];
       BackgroundOffset bgvofs[4];
       RotateScaleParameter bgpa[2];
