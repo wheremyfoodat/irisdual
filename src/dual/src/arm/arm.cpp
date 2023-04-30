@@ -3,8 +3,13 @@
 
 namespace dual::arm {
 
-  ARM::ARM(Memory* memory, CycleCounter& cycle_counter, Model model)
-      : memory{memory}
+  ARM::ARM(
+    Memory* memory,
+    Scheduler& scheduler,
+    CycleCounter& cycle_counter,
+    Model model
+  )   : memory{memory}
+      , scheduler{scheduler}
       , cycle_counter{cycle_counter}
       , model{model} {
     unaligned_data_access_enable = false;
@@ -33,7 +38,7 @@ namespace dual::arm {
       return;
     }
 
-    while(cycles-- > 0) {
+    while(cycles-- > 0 && cycle_counter.GetTimestampNow() < scheduler.GetTimestampTarget()) {
       if(GetIRQFlag()) {
         SignalIRQ();
       }

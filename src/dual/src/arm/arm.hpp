@@ -7,12 +7,18 @@
 #include <dual/arm/cpu.hpp>
 #include <dual/arm/memory.hpp>
 #include <dual/common/cycle_counter.hpp>
+#include <dual/common/scheduler.hpp>
 
 namespace dual::arm {
 
   class ARM final : public CPU {
     public:
-      ARM(Memory* memory, CycleCounter& cycle_counter, Model model);
+      ARM(
+        Memory* memory,
+        Scheduler& scheduler,
+        CycleCounter& cycle_counter,
+        Model model
+      );
 
       void Reset() override;
 
@@ -160,6 +166,7 @@ namespace dual::arm {
       #include "handlers/memory.inl"
 
       Memory* memory;
+      Scheduler& scheduler;
       CycleCounter& cycle_counter;
       Model model;
       std::array<Coprocessor*, 16> coprocessors;
