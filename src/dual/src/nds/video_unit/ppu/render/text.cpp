@@ -12,15 +12,15 @@ void PPU::RenderLayerText(uint id, u16 vcount) {
 
   u32 tile_base = mmio.dispcnt.tile_block * 65536 + bgcnt.tile_block * 16384;
    
-  int line = mmio.bgvofs[id].value + vcount;
+  int line = mmio.bgvofs[id].half + vcount;
 
   // Apply vertical mosaic
   if (bgcnt.enable_mosaic) {
     line -= mosaic._counter_y;
   }
 
-  int draw_x = -(mmio.bghofs[id].value % 8);
-  int grid_x =   mmio.bghofs[id].value / 8;
+  int draw_x = -(mmio.bghofs[id].half % 8);
+  int grid_x =   mmio.bghofs[id].half / 8;
   int grid_y = line / 8;
   int tile_y = line % 8;
   
