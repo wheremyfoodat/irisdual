@@ -103,17 +103,26 @@ struct BackgroundOffset {
 };
 
 struct ReferencePoint {
-  s32 initial;
-  s32 _current;
-  
-  void Reset();
-  void WriteByte(uint offset, u8 value);
+  u32 initial;
+  s32 current;
+
+  void Reset() {
+    initial = 0;
+    current = 0;
+  }
+
+  u32 ReadWord() {
+    return initial;
+  }
 
   void WriteWord(u32 value, u32 mask) {
-    if(mask & 0x000000FFu) WriteByte(0, value >>  0);
-    if(mask & 0x0000FF00u) WriteByte(1, value >>  8);
-    if(mask & 0x00FF0000u) WriteByte(2, value >> 16);
-    if(mask & 0xFF000000u) WriteByte(3, value >> 24);
+    initial = (value & mask & 0x0FFFFFFFu) | (initial & ~mask);
+
+    if(initial & 0x08000000u) {
+      initial |= 0xF0000000u;
+    }
+
+    current = (s32)initial;
   }
 };
 

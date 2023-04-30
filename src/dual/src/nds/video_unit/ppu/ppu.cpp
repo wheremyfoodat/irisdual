@@ -118,12 +118,12 @@ void PPU::OnDrawScanlineEnd() {
     for (int i = 0; i < 2; i++) {
       if (mmio.bgcnt[2 + i].enable_mosaic) {
         if (mosaic.bg._counter_y == 0) {
-          bgx[i]._current += mosaic.bg.size_y * mmio.bgpb[i].value;
-          bgy[i]._current += mosaic.bg.size_y * mmio.bgpd[i].value;
+          bgx[i].current += mosaic.bg.size_y * mmio.bgpb[i].value;
+          bgy[i].current += mosaic.bg.size_y * mmio.bgpd[i].value;
         }
       } else {
-        bgx[i]._current += mmio.bgpb[i].value;
-        bgy[i]._current += mmio.bgpd[i].value;
+        bgx[i].current += mmio.bgpb[i].value;
+        bgy[i].current += mmio.bgpd[i].value;
       }
     }
   }
@@ -143,10 +143,10 @@ void PPU::OnBlankScanlineBegin(u16 vcount) {
     mosaic.obj._counter_y = 0;
 
     // Reload internal affine registers
-    bgx[0]._current = bgx[0].initial;
-    bgy[0]._current = bgy[0].initial;
-    bgx[1]._current = bgx[1].initial;
-    bgy[1]._current = bgy[1].initial;
+    bgx[0].current = (s32)bgx[0].initial;
+    bgy[0].current = (s32)bgy[0].initial;
+    bgx[1].current = (s32)bgx[1].initial;
+    bgy[1].current = (s32)bgy[1].initial;
   }
 
   /*if (ogl.enabled && !ogl.done && render_worker.vcount >= 192) {
