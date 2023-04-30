@@ -61,13 +61,13 @@ namespace dual::arm {
           }
 
           (this->*s_opcode_lut_32[hash])(instruction);
-
-          if(GetWaitingForIRQ()) {
-            return;
-          }
         } else {
           state.r15 += 4;
         }
+      }
+
+      if(GetWaitingForIRQ()) {
+        return;
       }
     }
   }
