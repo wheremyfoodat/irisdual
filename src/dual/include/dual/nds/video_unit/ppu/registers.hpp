@@ -68,12 +68,8 @@ struct BackgroundControl {
     atom::Bits<13, 1, u16> wraparound;   // BG2-3
     atom::Bits<14, 2, u16> size;
 
-    u16 half{};
+    u16 half = 0u;
   };
-
-  void Reset() {
-    half = 0u;
-  }
 
   u16 ReadHalf() {
     return half;
@@ -85,11 +81,7 @@ struct BackgroundControl {
 };
 
 struct BackgroundOffset {
-  u16 half;
-
-  void Reset() {
-    half = 0u;
-  }
+  u16 half = 0u;
 
   u16 ReadHalf() {
     return half;
@@ -103,13 +95,8 @@ struct BackgroundOffset {
 };
 
 struct ReferencePoint {
-  u32 initial;
-  s32 current;
-
-  void Reset() {
-    initial = 0;
-    current = 0;
-  }
+  u32 initial = 0u;
+  s32 current = 0;
 
   u32 ReadWord() {
     return initial;
@@ -127,14 +114,10 @@ struct ReferencePoint {
 };
 
 struct RotateScaleParameter {
-  s16 value;
-
-  void Reset();
-  void WriteByte(uint offset, u8 value);
+  u16 half = 0u;
 
   void WriteHalf(u16 value, u16 mask) {
-    if(mask & 0x00FFu) WriteByte(0, value >> 0);
-    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+    half = (value & mask) | (half & ~mask);
   }
 };
 

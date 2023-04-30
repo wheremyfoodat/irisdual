@@ -17,8 +17,8 @@ void PPU::AffineRenderLoop(
     
   s32 ref_x = mmio.bgx[id].current;
   s32 ref_y = mmio.bgy[id].current;
-  s16 pa = mmio.bgpa[id].value;
-  s16 pc = mmio.bgpc[id].value;
+  s16 pa = (s16)mmio.bgpa[id].half;
+  s16 pc = (s16)mmio.bgpc[id].half;
     
   int mosaic_x = 0;
     

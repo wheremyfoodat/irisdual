@@ -34,24 +34,20 @@ void PPU::Reset() {
   memset(buffer_ogl_attribute, 0, sizeof(buffer_ogl_attribute));
 
   mmio.dispcnt.Reset();
-  
-  for (int i = 0; i < 4; i++) {
-    mmio.bgcnt[i].Reset();
-    mmio.bghofs[i].Reset();
-    mmio.bgvofs[i].Reset();
-  }
 
-  for (int i = 0; i < 2; i++) {
-    mmio.bgpa[i].WriteByte(0, 0);
-    mmio.bgpa[i].WriteByte(1, 1);
-    mmio.bgpb[i].WriteByte(0, 0);
-    mmio.bgpb[i].WriteByte(1, 0);
-    mmio.bgpc[i].WriteByte(0, 0);
-    mmio.bgpc[i].WriteByte(1, 0);
-    mmio.bgpd[i].WriteByte(0, 0);
-    mmio.bgpd[i].WriteByte(1, 1);
-    mmio.bgx[i].Reset();
-    mmio.bgy[i].Reset();
+  for(auto& bgcnt : mmio.bgcnt) bgcnt = {};
+  for(auto& bghofs : mmio.bghofs) bghofs = {};
+  for(auto& bgvofs : mmio.bgvofs) bgvofs = {};
+
+  for(auto& bgpa : mmio.bgpa) bgpa.half = 0x0100;
+  for(auto& bgpb : mmio.bgpb) bgpb.half = 0x0000;
+  for(auto& bgpc : mmio.bgpc) bgpc.half = 0x0000;
+  for(auto& bgpd : mmio.bgpd) bgpd.half = 0x0100;
+
+  for(auto& bgx : mmio.bgx) bgx = {};
+  for(auto& bgy : mmio.bgy) bgy = {};
+
+  for(int i = 0; i < 2; i++) {
     mmio.winh[i].Reset();
     mmio.winv[i].Reset();
   }
@@ -118,12 +114,12 @@ void PPU::OnDrawScanlineEnd() {
     for (int i = 0; i < 2; i++) {
       if (mmio.bgcnt[2 + i].enable_mosaic) {
         if (mosaic.bg._counter_y == 0) {
-          bgx[i].current += mosaic.bg.size_y * mmio.bgpb[i].value;
-          bgy[i].current += mosaic.bg.size_y * mmio.bgpd[i].value;
+          bgx[i].current += mosaic.bg.size_y * (s16)mmio.bgpb[i].half;
+          bgy[i].current += mosaic.bg.size_y * (s16)mmio.bgpd[i].half;
         }
       } else {
-        bgx[i].current += mmio.bgpb[i].value;
-        bgy[i].current += mmio.bgpd[i].value;
+        bgx[i].current += (s16)mmio.bgpb[i].half;
+        bgy[i].current += (s16)mmio.bgpd[i].half;
       }
     }
   }

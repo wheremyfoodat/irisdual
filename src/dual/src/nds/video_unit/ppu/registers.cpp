@@ -79,23 +79,6 @@ void DisplayControl::WriteByte(uint offset, u8 value) {
   }
 }
 
-void RotateScaleParameter::Reset() {
-  value = 0;
-}
-
-void RotateScaleParameter::WriteByte(uint offset, u8 value) {
-  switch (offset) {
-    case 0:
-      this->value = (this->value & 0xFF00) | value;
-      break;
-    case 1:
-      this->value = (this->value & 0x00FF) | (value << 8);
-      break;
-    default:
-      ATOM_UNREACHABLE();
-  }
-}
-
 void WindowRange::Reset() {
   min = 0;
   max = 0;
