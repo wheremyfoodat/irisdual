@@ -71,6 +71,7 @@ namespace dual::arm {
       cycle_counter.AddDeviceCycles(1u);
 
       if(GetWaitingForIRQ()) {
+        cycle_counter.AddDeviceCycles(cycles);
         return;
       }
     }
