@@ -14,7 +14,7 @@ namespace dual::arm {
   class ARM final : public CPU {
     public:
       ARM(
-        Memory* memory,
+        Memory& memory,
         Scheduler& scheduler,
         CycleCounter& cycle_counter,
         Model model
@@ -23,67 +23,67 @@ namespace dual::arm {
       void Reset() override;
 
       u32 GetExceptionBase() const override {
-        return exception_base;
+        return m_exception_base;
       }
 
       void SetExceptionBase(u32 address) override {
-        exception_base = address;
+        m_exception_base = address;
       }
 
       void SetCoprocessor(int id, Coprocessor* coprocessor) override {
-        coprocessors.at(id) = coprocessor;
+        m_coprocessors.at(id) = coprocessor;
       }
 
       void SetUnalignedDataAccessEnable(bool enable) override {
-        unaligned_data_access_enable = enable;
+        m_unaligned_data_access_enable = enable;
       }
 
       bool GetWaitingForIRQ() const override {
-        return wait_for_irq;
+        return m_wait_for_irq;
       }
 
       void SetWaitingForIRQ(bool value) override {
-        wait_for_irq = value;
+        m_wait_for_irq = value;
       }
 
       bool GetIRQFlag() const override {
-        return irq_line;
+        return m_irq_line;
       }
 
       void SetIRQFlag(bool value) override {
-        irq_line = value;
-        wait_for_irq &= !value;
+        m_irq_line = value;
+        m_wait_for_irq &= !value;
       }
 
       u32 GetGPR(GPR reg) const override {
-        return state.reg[(int)reg];
+        return m_state.reg[(int)reg];
       }
 
       u32 GetGPR(GPR reg, Mode mode) const override {
-        if((int)reg < 8 || reg == GPR::PC || mode == (Mode)state.cpsr.mode) {
-          return state.reg[(int)reg];
+        if((int)reg < 8 || reg == GPR::PC || mode == (Mode)m_state.cpsr.mode) {
+          return m_state.reg[(int)reg];
         }
 
         if((int)reg < 13 && mode != Mode::FIQ) {
-          return state.bank[(int)Bank::None][(int)reg - 8];
+          return m_state.bank[(int)Bank::None][(int)reg - 8];
         }
 
-        return state.bank[(int)GetRegisterBankByMode(mode)][(int)reg - 8];
+        return m_state.bank[(int)GetRegisterBankByMode(mode)][(int)reg - 8];
       }
 
       PSR GetCPSR() const override {
-        return state.cpsr;
+        return m_state.cpsr;
       }
 
       PSR GetSPSR(Mode mode) const override {
-        return state.spsr[(int)GetRegisterBankByMode(mode)];
+        return m_state.spsr[(int)GetRegisterBankByMode(mode)];
       }
 
       void SetGPR(GPR reg, u32 value) override {
-        state.reg[(int)reg] = value;
+        m_state.reg[(int)reg] = value;
 
         if(reg == GPR::PC) {
-          if(state.cpsr.thumb) {
+          if(m_state.cpsr.thumb) {
             ReloadPipeline16();
           } else {
             ReloadPipeline32();
@@ -92,21 +92,21 @@ namespace dual::arm {
       }
 
       void SetGPR(GPR reg, Mode mode, u32 value) override {
-        if((int)reg < 8 || reg == GPR::PC || mode == (Mode)state.cpsr.mode) {
+        if((int)reg < 8 || reg == GPR::PC || mode == (Mode)m_state.cpsr.mode) {
           SetGPR(reg, value);
         } else if((int)reg < 13 && mode != Mode::FIQ) {
-          state.bank[(int)Bank::None][(int)reg - 8] = value;
+          m_state.bank[(int)Bank::None][(int)reg - 8] = value;
         } else {
-          state.bank[(int)GetRegisterBankByMode(mode)][(int)reg - 8] = value;
+          m_state.bank[(int)GetRegisterBankByMode(mode)][(int)reg - 8] = value;
         }
       }
 
       void SetCPSR(PSR value) override {
-        state.cpsr = value;
+        m_state.cpsr = value;
       }
 
       void SetSPSR(Mode mode, PSR value) override {
-        state.spsr[(int)GetRegisterBankByMode(mode)] = value;
+        m_state.spsr[(int)GetRegisterBankByMode(mode)] = value;
       }
 
       void Run(int cycles) override;
@@ -153,11 +153,11 @@ namespace dual::arm {
       void BuildConditionTable();
       void SwitchMode(Mode new_mode);
 
-      bool EvaluateCondition(Condition condition) {
-        if(condition == Condition::AL) {
+      inline bool EvaluateCondition(Condition condition) {
+        if(condition == Condition::AL) [[likely]] {
           return true;
         }
-        return condition_table[(int)condition][state.cpsr.word >> 28];
+        return m_condition_table[(int)condition][m_state.cpsr.word >> 28];
       }
 
       #include "handlers/arithmetic.inl"
@@ -165,15 +165,15 @@ namespace dual::arm {
       #include "handlers/handler32.inl"
       #include "handlers/memory.inl"
 
-      Memory* memory;
-      Scheduler& scheduler;
-      CycleCounter& cycle_counter;
-      Model model;
-      std::array<Coprocessor*, 16> coprocessors;
+      Memory& m_memory;
+      Scheduler& m_scheduler;
+      CycleCounter& m_cycle_counter;
+      Model m_model;
+      std::array<Coprocessor*, 16> m_coprocessors;
 
-      bool irq_line;
-      bool wait_for_irq = false;
-      u32 exception_base = 0;
+      bool m_irq_line;
+      bool m_wait_for_irq = false;
+      u32 m_exception_base = 0;
 
       struct State {
         static constexpr int k_bank_count = 6;
@@ -224,18 +224,18 @@ namespace dual::arm {
           cpsr.mask_irq = 1;
           cpsr.mask_fiq = 1;
         }
-      } state;
+      } m_state;
 
-      PSR* p_spsr;
+      PSR* m_spsr;
 
-      u32 opcode[2];
+      u32 m_opcode[2];
 
-      bool condition_table[16][16];
+      bool m_condition_table[16][16];
 
-      static std::array<Handler16, 2048> s_opcode_lut_16;
-      static std::array<Handler32, 8192> s_opcode_lut_32;
+      static std::array<Handler16, 2048> k_opcode_lut_16;
+      static std::array<Handler32, 8192> k_opcode_lut_32;
 
-      bool unaligned_data_access_enable;
+      bool m_unaligned_data_access_enable;
   };
 
 } // namespace dual::arm

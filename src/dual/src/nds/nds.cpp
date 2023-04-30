@@ -10,7 +10,7 @@ namespace dual::nds {
 
   NDS::NDS() {
     m_arm9.cpu = std::make_unique<arm::ARM>(
-      &m_arm9.bus,
+      m_arm9.bus,
       m_scheduler,
       m_arm9.cycle_counter,
       arm::CPU::Model::ARM9
@@ -19,7 +19,7 @@ namespace dual::nds {
     m_arm9.cpu->SetCoprocessor(15, m_arm9.cp15.get());
 
     m_arm7.cpu = std::make_unique<arm::ARM>(
-      &m_arm7.bus,
+      m_arm7.bus,
       m_scheduler,
       m_arm7.cycle_counter,
       arm::CPU::Model::ARM7

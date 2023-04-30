@@ -57,7 +57,7 @@ namespace dual::arm {
     }
   };
 
-  std::array<Handler16, 2048> ARM::s_opcode_lut_16 = TableGen::GenerateTableThumb();
-  std::array<Handler32, 8192> ARM::s_opcode_lut_32 = TableGen::GenerateTableARM();
+  std::array<Handler16, 2048> ARM::k_opcode_lut_16 = TableGen::GenerateTableThumb();
+  std::array<Handler32, 8192> ARM::k_opcode_lut_32 = TableGen::GenerateTableARM();
 
 } // namespace dual::arm
