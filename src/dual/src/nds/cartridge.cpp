@@ -80,7 +80,7 @@ namespace dual::nds {
 
     m_romctrl.word = (value & write_mask) | (m_romctrl.word & ~write_mask);
 
-    if((value & 0x80000000) && !m_romctrl.busy) {
+    if((value & mask & 0x80000000) && !m_romctrl.busy) {
       m_romctrl.busy = true;
 
       const int transfer_duration = k_cycles_per_byte[m_romctrl.transfer_clk_rate] * 8;
