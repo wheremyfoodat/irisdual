@@ -139,19 +139,21 @@ struct WindowRange {
 };
 
 struct WindowLayerSelect {
-  bool enable[2][6];
+  union {
+    atom::Bits<0, 5, u16> win0_layer_enable;
+    atom::Bits<8, 5, u16> win1_layer_enable;
 
-  void Reset();
-  auto ReadByte(uint offset) -> u8;
-  void WriteByte(uint offset, u8 value);
+    u16 half = 0u;
+  };
 
   u16 ReadHalf() {
-    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+    return half;
   }
 
   void WriteHalf(u16 value, u16 mask) {
-    if(mask & 0x00FFu) WriteByte(0, value >> 0);
-    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+    const u16 write_mask = 0x3F3Fu & mask;
+
+    half = (value & write_mask) | (half & ~write_mask);
   }
 };
 

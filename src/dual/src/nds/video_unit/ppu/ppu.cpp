@@ -50,8 +50,8 @@ void PPU::Reset() {
   for(auto& winh : mmio.winh) winh = {};
   for(auto& winv : mmio.winv) winv = {};
 
-  mmio.winin.Reset();
-  mmio.winout.Reset();
+  mmio.winin  = {};
+  mmio.winout = {};
 
   mmio.bldcnt.Reset();
   mmio.bldalpha.Reset();

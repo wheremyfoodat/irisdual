@@ -79,27 +79,6 @@ void DisplayControl::WriteByte(uint offset, u8 value) {
   }
 }
 
-void WindowLayerSelect::Reset() {
-  WriteByte(0, 0);
-  WriteByte(1, 0);
-}
-
-auto WindowLayerSelect::ReadByte(uint offset) -> u8 {
-  u8 value = 0;
-  
-  for (int i = 0; i < 6; i++) {
-    value |= enable[offset][i] ? (1 << i) : 0;
-  }
-  
-  return value;
-}
-
-void WindowLayerSelect::WriteByte(uint offset, u8 value) {
-  for (int i = 0; i < 6; i++) {
-    enable[offset][i] = value & (1 << i);
-  }
-}
-
 void BlendControl::Reset() {
   WriteByte(0, 0);
   WriteByte(1, 0);

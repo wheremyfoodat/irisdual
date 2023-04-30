@@ -39,7 +39,7 @@ void PPU::ComposeScanlineTmpl(u16 vcount, int bg_min, int bg_max) {
   bool win1_active = false;
   bool win2_active = false;
 
-  const bool* win_layer_enable;
+  atom::Bits<0, 8, u8> win_layer_enable{};
   
   if constexpr (window) {
     win0_active = dispcnt.enable[ENABLE_WIN0] && window_scanline_enable[0];
@@ -57,13 +57,13 @@ void PPU::ComposeScanlineTmpl(u16 vcount, int bg_min, int bg_max) {
     if constexpr (window) {
       // Determine the window with the highest priority for this pixel.
       if (win0_active && buffer_win[0][x]) {
-        win_layer_enable = winin.enable[0];
+        win_layer_enable = (u8)winin.win0_layer_enable;
       } else if (win1_active && buffer_win[1][x]) {
-        win_layer_enable = winin.enable[1];
+        win_layer_enable = (u8)winin.win1_layer_enable;
       } else if (win2_active && buffer_obj[x].window) {
-        win_layer_enable = winout.enable[1];
+        win_layer_enable = (u8)winout.win1_layer_enable;
       } else {
-        win_layer_enable = winout.enable[0];
+        win_layer_enable = (u8)winout.win0_layer_enable;
       }
     }
 
