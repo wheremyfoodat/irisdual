@@ -55,7 +55,7 @@ void PPU::Reset() {
 
   mmio.bldcnt = {};
   mmio.bldalpha.Reset();
-  mmio.bldy.Reset();
+  mmio.bldy = {};
 
   mmio.mosaic.Reset();
 

@@ -110,24 +110,6 @@ void BlendAlpha::WriteByte(uint offset, u8 value) {
   }
 }
 
-void BlendBrightness::Reset() {
-  WriteByte(0, 0);
-}
-
-void BlendBrightness::WriteByte(uint offset, u8 value) {
-  switch (offset) {
-    case 0:
-      y = value & 31;
-      break;
-    case 1:
-    case 2:
-    case 3:
-      break;
-    default:
-      ATOM_UNREACHABLE();
-  }
-}
-
 void Mosaic::Reset() {
   bg.size_x = 1;
   bg.size_y = 1;

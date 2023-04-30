@@ -280,7 +280,7 @@ void PPU::Blend(u16  vcount,
       break;
     }
     case BlendControl::Mode::Brighten: {
-      int evy = std::min<int>(16, mmio.bldy.y);
+      int evy = std::min<int>(16, (int)mmio.bldy.half);
       
       r1 += ((31 - r1) * evy) >> 4;
       g1 += ((31 - g1) * evy) >> 4;
@@ -288,7 +288,7 @@ void PPU::Blend(u16  vcount,
       break;
     }
     case BlendControl::Mode::Darken: {
-      int evy = std::min<int>(16, mmio.bldy.y);
+      int evy = std::min<int>(16, (int)mmio.bldy.half);
       
       r1 -= (r1 * evy) >> 4;
       g1 -= (g1 * evy) >> 4;

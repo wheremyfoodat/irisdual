@@ -203,14 +203,12 @@ struct BlendAlpha {
 };
 
 struct BlendBrightness {
-  int y;
-
-  void Reset();
-  void WriteByte(uint offset, u8 value);
+  u16 half = 0u;
 
   void WriteHalf(u16 value, u16 mask) {
-    if(mask & 0x00FFu) WriteByte(0, value >> 0);
-    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+    const u16 write_mask = 0x001Fu & mask;
+
+    half = (value & write_mask) | (half & ~write_mask);
   }
 };
 
