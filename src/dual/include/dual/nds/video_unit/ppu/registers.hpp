@@ -122,17 +122,20 @@ struct RotateScaleParameter {
 };
 
 struct WindowRange {
-  u8 min;
-  u8 max;
-  bool _changed;
+  union {
+    atom::Bits<0, 8, u16> min;
+    atom::Bits<8, 8, u16> max;
 
-  void Reset();
-  void WriteByte(uint offset, u8 value);
+    u16 half = 0u;
+  };
 
   void WriteHalf(u16 value, u16 mask) {
-    if(mask & 0x00FFu) WriteByte(0, value >> 0);
-    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+    half = (value & mask) | (half & ~mask);
+
+    _changed = true;
   }
+
+  bool _changed;
 };
 
 struct WindowLayerSelect {

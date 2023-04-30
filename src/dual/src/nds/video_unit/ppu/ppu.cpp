@@ -47,10 +47,8 @@ void PPU::Reset() {
   for(auto& bgx : mmio.bgx) bgx = {};
   for(auto& bgy : mmio.bgy) bgy = {};
 
-  for(int i = 0; i < 2; i++) {
-    mmio.winh[i].Reset();
-    mmio.winv[i].Reset();
-  }
+  for(auto& winh : mmio.winh) winh = {};
+  for(auto& winv : mmio.winv) winv = {};
 
   mmio.winin.Reset();
   mmio.winout.Reset();

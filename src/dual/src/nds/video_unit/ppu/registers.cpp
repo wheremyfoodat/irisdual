@@ -79,29 +79,6 @@ void DisplayControl::WriteByte(uint offset, u8 value) {
   }
 }
 
-void WindowRange::Reset() {
-  min = 0;
-  max = 0;
-  _changed = false;
-}
-
-void WindowRange::WriteByte(uint offset, u8 value) {
-  switch (offset) {
-    case 0:
-      if (value != max)
-        _changed = true;
-      max = value;
-      break;
-    case 1:
-      if (value != min)
-        _changed = true;
-      min = value;
-      break;
-    default:
-      ATOM_UNREACHABLE();
-  }
-}
-
 void WindowLayerSelect::Reset() {
   WriteByte(0, 0);
   WriteByte(1, 0);
