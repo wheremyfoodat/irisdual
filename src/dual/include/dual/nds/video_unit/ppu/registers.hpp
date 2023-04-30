@@ -140,8 +140,8 @@ struct WindowRange {
 
 struct WindowLayerSelect {
   union {
-    atom::Bits<0, 5, u16> win0_layer_enable;
-    atom::Bits<8, 5, u16> win1_layer_enable;
+    atom::Bits<0, 6, u16> win0_layer_enable;
+    atom::Bits<8, 6, u16> win1_layer_enable;
 
     u16 half = 0u;
   };
@@ -158,27 +158,29 @@ struct WindowLayerSelect {
 };
 
 struct BlendControl {
-  enum Effect {
-    SFX_NONE,
-    SFX_BLEND,
-    SFX_BRIGHTEN,
-    SFX_DARKEN
-  } sfx;
-  
-  bool targets[2][6];
-  u16 hword;
+  enum class Mode : uint {
+    Off = 0,
+    Alpha = 1,
+    Brighten = 2,
+    Darken = 3
+  };
 
-  void Reset();
-  auto ReadByte(uint offset) -> u8;
-  void WriteByte(uint offset, u8 value);
+  union {
+    atom::Bits<0, 6, u16> dst_targets;
+    atom::Bits<6, 2, u16> blend_mode;
+    atom::Bits<8, 6, u16> src_targets;
+
+    u16 half = 0u;
+  };
 
   u16 ReadHalf() {
-    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+    return half;
   }
 
   void WriteHalf(u16 value, u16 mask) {
-    if(mask & 0x00FFu) WriteByte(0, value >> 0);
-    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+    const u16 write_mask = 0x3FFFu & mask;
+
+    half = (value & write_mask) | (half & ~write_mask);
   }
 };
 

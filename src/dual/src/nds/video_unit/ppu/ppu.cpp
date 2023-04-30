@@ -53,7 +53,7 @@ void PPU::Reset() {
   mmio.winin  = {};
   mmio.winout = {};
 
-  mmio.bldcnt.Reset();
+  mmio.bldcnt = {};
   mmio.bldalpha.Reset();
   mmio.bldy.Reset();
 

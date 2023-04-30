@@ -79,54 +79,6 @@ void DisplayControl::WriteByte(uint offset, u8 value) {
   }
 }
 
-void BlendControl::Reset() {
-  WriteByte(0, 0);
-  WriteByte(1, 0);
-}
-
-auto BlendControl::ReadByte(uint offset) -> u8 {
-  switch (offset) {
-    case 0: {
-      u8 value = 0;
-      for (int i = 0; i < 6; i++)
-        value |= targets[0][i] ? (1 << i) : 0;
-      value |= static_cast<u8>(sfx << 6);
-      return value;
-    }
-    case 1: {
-      u8 value = 0;
-      for (int i = 0; i < 6; i++)
-        value |= targets[1][i] ? (1 << i) : 0;
-      return value;
-    }
-  }
-
-  ATOM_UNREACHABLE();
-}
-
-void BlendControl::WriteByte(uint offset, u8 value) {
-  switch (offset) {
-    case 0: {
-      for (int i = 0; i < 6; i++) {
-        targets[0][i] = value & (1 << i);
-      }
-      sfx = static_cast<Effect>(value >> 6);
-      hword = (hword & 0xFF00) | value;
-      break;
-    }
-    case 1: {
-      for (int i = 0; i < 6; i++) {
-        targets[1][i] = value & (1 << i);
-      }
-      hword = (hword & 0xFF) | (value << 8);
-      break;
-    }
-    default: {
-      ATOM_UNREACHABLE();
-    }
-  }
-}
-
 void BlendAlpha::Reset() {
   WriteByte(0, 0);
   WriteByte(1, 0);

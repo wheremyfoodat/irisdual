@@ -178,7 +178,7 @@ class PPU {
     template<bool window, bool blending, bool opengl>
     void ComposeScanlineTmpl(u16 vcount, int bg_min, int bg_max);
     void ComposeScanline(u16 vcount, int bg_min, int bg_max);
-    void Blend(u16 vcount, u16& target1, u16 target2, BlendControl::Effect sfx);
+    void Blend(u16 vcount, u16& target1, u16 target2, BlendControl::Mode blend_mode);
 
     void SetupRenderWorker();
     void StopRenderWorker();

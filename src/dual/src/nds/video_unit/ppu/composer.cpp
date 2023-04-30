@@ -39,7 +39,7 @@ void PPU::ComposeScanlineTmpl(u16 vcount, int bg_min, int bg_max) {
   bool win1_active = false;
   bool win2_active = false;
 
-  atom::Bits<0, 8, u8> win_layer_enable{};
+  atom::Bits<0, 6, u8> win_layer_enable{};
   
   if constexpr (window) {
     win0_active = dispcnt.enable[ENABLE_WIN0] && window_scanline_enable[0];
@@ -147,13 +147,13 @@ void PPU::ComposeScanlineTmpl(u16 vcount, int bg_min, int bg_max) {
                                              (layer[1] << 3) |
                                               layer[0];
       } else {
-        auto blend_mode = mmio.bldcnt.sfx;
-        bool have_dst = mmio.bldcnt.targets[0][layer[0]];
-        bool have_src = mmio.bldcnt.targets[1][layer[1]];
+        auto blend_mode = mmio.bldcnt.blend_mode;
+        bool have_dst = mmio.bldcnt.dst_targets[layer[0]];
+        bool have_src = mmio.bldcnt.src_targets[layer[1]];
 
         if(is_alpha_obj && have_src) {
-          Blend(vcount, pixel[0], pixel[1], BlendControl::Effect::SFX_BLEND);
-        } if(blend_mode == BlendControl::Effect::SFX_BLEND) {
+          Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
+        } if(blend_mode == BlendControl::Mode::Alpha) {
           // TODO: what does HW do if "enable BG0 3D" is disabled in mode 6.
           if(layer[0] == 0 && bg0_is_3d && have_src) {
             auto real_bldalpha = mmio.bldalpha;
@@ -162,15 +162,15 @@ void PPU::ComposeScanlineTmpl(u16 vcount, int bg_min, int bg_max) {
             mmio.bldalpha.a = buffer_3d_alpha[x];
             mmio.bldalpha.b = 16 - mmio.bldalpha.a;
 
-            Blend(vcount, pixel[0], pixel[1], BlendControl::Effect::SFX_BLEND);
+            Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
 
             mmio.bldalpha = real_bldalpha;
           } else if(have_dst && have_src && sfx_enable) {
-            Blend(vcount, pixel[0], pixel[1], BlendControl::Effect::SFX_BLEND);
+            Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
           }
-        } else if(blend_mode != BlendControl::Effect::SFX_NONE) {
+        } else if(blend_mode != BlendControl::Mode::Off) {
           if (have_dst && sfx_enable) {
-            Blend(vcount, pixel[0], pixel[1], blend_mode);
+            Blend(vcount, pixel[0], pixel[1], (BlendControl::Mode)blend_mode);
           }
         }
       }
@@ -235,7 +235,7 @@ void PPU::ComposeScanline(u16 vcount, int bg_min, int bg_max) {
     key |= 1;
   }
 
-  if (mmio.bldcnt.sfx != BlendControl::Effect::SFX_NONE || line_contains_alpha_obj) {
+  if (mmio.bldcnt.blend_mode != BlendControl::Mode::Off || line_contains_alpha_obj) {
     key |= 2;
   }
 
@@ -258,15 +258,15 @@ void PPU::ComposeScanline(u16 vcount, int bg_min, int bg_max) {
 void PPU::Blend(u16  vcount,
                 u16& target1,
                 u16  target2,
-                BlendControl::Effect sfx) {
+                BlendControl::Mode blend_mode) {
   auto const& mmio = mmio_copy[vcount];
 
   int r1 = (target1 >>  0) & 0x1F;
   int g1 = (target1 >>  5) & 0x1F;
   int b1 = (target1 >> 10) & 0x1F;
 
-  switch (sfx) {
-    case BlendControl::Effect::SFX_BLEND: {
+  switch (blend_mode) {
+    case BlendControl::Mode::Alpha: {
       int eva = std::min<int>(16, mmio.bldalpha.a);
       int evb = std::min<int>(16, mmio.bldalpha.b);
 
@@ -279,7 +279,7 @@ void PPU::Blend(u16  vcount,
       b1 = std::min<u8>((b1 * eva + b2 * evb) >> 4, 31);
       break;
     }
-    case BlendControl::Effect::SFX_BRIGHTEN: {
+    case BlendControl::Mode::Brighten: {
       int evy = std::min<int>(16, mmio.bldy.y);
       
       r1 += ((31 - r1) * evy) >> 4;
@@ -287,7 +287,7 @@ void PPU::Blend(u16  vcount,
       b1 += ((31 - b1) * evy) >> 4;
       break;
     }
-    case BlendControl::Effect::SFX_DARKEN: {
+    case BlendControl::Mode::Darken: {
       int evy = std::min<int>(16, mmio.bldy.y);
       
       r1 -= (r1 * evy) >> 4;
