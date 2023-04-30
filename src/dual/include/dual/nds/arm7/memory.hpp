@@ -64,8 +64,9 @@ namespace dual::nds::arm7 {
         template<u32 mask> u32  ReadWord (u32 address);
         template<u32 mask> void WriteWord(u32 address, u32 value);
 
-        HW hw;
+        void Write_HALTCNT(u8 value);
 
+        HW hw;
         u8 postflg{};
         u16 soundbias{};
       } m_io;

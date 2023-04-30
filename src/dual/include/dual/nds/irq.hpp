@@ -34,6 +34,7 @@ namespace dual::nds {
       explicit IRQ(bool arm9) : m_arm9{arm9} {}
 
       void Reset();
+      auto GetCPU() -> arm::CPU*;
       void SetCPU(arm::CPU* cpu);
       void Raise(Source source);
 

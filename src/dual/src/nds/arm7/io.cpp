@@ -236,7 +236,7 @@ namespace dual::nds::arm7 {
       // POSTFLG and HALTCNT
       case REG(0x04000300): {
         if(mask & 0x000000FFu) postflg |= value & 1u;
-        if(mask & 0x0000FF00u) Unhandled();
+        if(mask & 0x0000FF00u) Write_HALTCNT(value >> 8);
         break;
       }
 
@@ -246,6 +246,14 @@ namespace dual::nds::arm7 {
       default: {
         Unhandled();
       }
+    }
+  }
+
+  void MemoryBus::IO::Write_HALTCNT(u8 value) {
+    switch(value & 0xC0u) {
+      case 0x80u: hw.irq.GetCPU()->SetWaitingForIRQ(true); break;
+      case 0x40u: ATOM_PANIC("arm7: IO: attempt to enter (unimplemented) GBA mode");
+      case 0xC0u: ATOM_PANIC("arm7: IO: attempt to enter (unimplemented) sleep mode");
     }
   }
 

@@ -9,6 +9,10 @@ namespace dual::nds {
     m_reg_if = 0u;
   }
 
+  auto IRQ::GetCPU() -> arm::CPU* {
+    return m_cpu;
+  }
+
   void IRQ::SetCPU(arm::CPU* cpu) {
     m_cpu = cpu;
   }
@@ -53,7 +57,13 @@ namespace dual::nds {
   }
 
   void IRQ::UpdateIRQLine() {
-    m_cpu->SetIRQFlag(m_reg_ime && (m_reg_ie & m_reg_if));
+    const u32 ie_and_if = m_reg_ie & m_reg_if;
+
+    if(!m_arm9 && ie_and_if) {
+      m_cpu->SetWaitingForIRQ(false);
+    }
+
+    m_cpu->SetIRQFlag(m_reg_ime && ie_and_if);
   }
 
 } // namespace dual::nds
