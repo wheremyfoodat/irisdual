@@ -2,6 +2,7 @@
 #pragma once
 
 #include <dual/arm/cpu.hpp>
+#include <dual/common/cycle_counter.hpp>
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/arm7/dma.hpp>
 #include <dual/nds/arm7/memory.hpp>
@@ -48,6 +49,7 @@ namespace dual::nds {
       Cartridge m_cartridge{m_scheduler, m_arm9.irq, m_arm7.irq, m_arm9.dma, m_arm7.dma, m_memory};
 
       struct ARM9 {
+        CycleCounter cycle_counter{1};
         std::unique_ptr<arm::CPU> cpu{};
         std::unique_ptr<arm9::CP15> cp15{};
         arm9::MemoryBus bus;
@@ -68,10 +70,11 @@ namespace dual::nds {
                 video_unit,
                 cartridge
               }}
-            , timer{scheduler, irq} {}
+            , timer{scheduler, cycle_counter, irq} {}
       } m_arm9{m_scheduler, m_memory, m_ipc, m_video_unit, m_cartridge};
 
       struct ARM7 {
+        CycleCounter cycle_counter{0};
         std::unique_ptr<arm::CPU> cpu{};
         arm7::MemoryBus bus;
         IRQ irq{false};
@@ -93,7 +96,7 @@ namespace dual::nds {
                 cartridge,
                 rtc
               }}
-            , timer{scheduler, irq} {}
+            , timer{scheduler, cycle_counter, irq} {}
       } m_arm7{m_scheduler, m_memory, m_ipc, m_video_unit, m_cartridge};
 
       IPC m_ipc{m_arm9.irq, m_arm7.irq};

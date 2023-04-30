@@ -3,6 +3,12 @@
 
 namespace dual::nds {
 
+  Timer::Timer(Scheduler& scheduler, CycleCounter& cpu_cycle_counter, IRQ& irq)
+      : m_scheduler{scheduler}
+      , m_cpu_cycle_counter{cpu_cycle_counter}
+      , m_irq{irq} {
+  }
+
   void Timer::Reset() {
     for(auto& channel : m_channel) channel = {};
   }
@@ -51,7 +57,7 @@ namespace dual::nds {
       channel.divider_shift = k_divider_to_shift[tmcnt.clock_divider];
 
       if(tmcnt.clock_select == 0u) {
-        ScheduleTimerOverflow(id, -(int)(m_scheduler.GetTimestampNow() & k_divider_to_mask[tmcnt.clock_divider]));
+        ScheduleTimerOverflow(id, -(int)(m_cpu_cycle_counter.GetTimestampNow() & k_divider_to_mask[tmcnt.clock_divider]));
       }
     }
   }
@@ -67,7 +73,7 @@ namespace dual::nds {
       ScheduleTimerOverflow(id, -cycles_late);
     });
 
-    channel.timestamp_last_reload = m_scheduler.GetTimestampNow();
+    channel.timestamp_last_reload = m_cpu_cycle_counter.GetTimestampNow();
   }
 
   void Timer::DoOverflow(int id) {
@@ -96,7 +102,7 @@ namespace dual::nds {
   u16 Timer::GetTicksSinceLastReload(int id) {
     const auto& channel = m_channel[id];
 
-    return (m_scheduler.GetTimestampNow() - channel.timestamp_last_reload) >> channel.divider_shift;
+    return (m_cpu_cycle_counter.GetTimestampNow() - channel.timestamp_last_reload) >> channel.divider_shift;
   }
 
 } // namespace dual::nds

@@ -9,12 +9,12 @@
 namespace dual::nds {
 
   NDS::NDS() {
-    m_arm9.cpu = std::make_unique<arm::ARM>(&m_arm9.bus, arm::CPU::Model::ARM9);
+    m_arm9.cpu = std::make_unique<arm::ARM>(&m_arm9.bus, m_arm9.cycle_counter, arm::CPU::Model::ARM9);
     m_arm9.cp15 = std::make_unique<arm9::CP15>(m_arm9.cpu.get(), &m_arm9.bus);
     m_arm9.cpu->SetCoprocessor(15, m_arm9.cp15.get());
     m_arm9.irq.SetCPU(m_arm9.cpu.get());
 
-    m_arm7.cpu = std::make_unique<arm::ARM>(&m_arm7.bus, arm::CPU::Model::ARM7);
+    m_arm7.cpu = std::make_unique<arm::ARM>(&m_arm7.bus, m_arm7.cycle_counter, arm::CPU::Model::ARM7);
     m_arm7.irq.SetCPU(m_arm7.cpu.get());
   }
 
@@ -35,6 +35,8 @@ namespace dual::nds {
     m_memory.arm7.iwram.fill(0);
 
     m_arm9.cp15->Reset();
+    m_arm9.cycle_counter.Reset();
+    m_arm7.cycle_counter.Reset();
     m_arm9.cpu->Reset();
     m_arm7.cpu->Reset();
 

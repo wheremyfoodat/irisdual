@@ -3,6 +3,7 @@
 
 #include <atom/bit.hpp>
 #include <atom/integer.hpp>
+#include <dual/common/cycle_counter.hpp>
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/irq.hpp>
 
@@ -10,7 +11,7 @@ namespace dual::nds {
 
   class Timer {
     public:
-      Timer(Scheduler& scheduler, IRQ& irq) : m_scheduler{scheduler}, m_irq{irq} {}
+      Timer(Scheduler& scheduler, CycleCounter& cpu_cycle_counter, IRQ& irq);
 
       void Reset();
 
@@ -24,6 +25,7 @@ namespace dual::nds {
       u16  GetTicksSinceLastReload(int id);
 
       Scheduler& m_scheduler;
+      CycleCounter& m_cpu_cycle_counter;
       IRQ& m_irq;
 
       struct Channel {

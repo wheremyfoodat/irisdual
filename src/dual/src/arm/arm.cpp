@@ -3,8 +3,9 @@
 
 namespace dual::arm {
 
-  ARM::ARM(Memory* memory, Model model)
+  ARM::ARM(Memory* memory, CycleCounter& cycle_counter, Model model)
       : memory{memory}
+      , cycle_counter{cycle_counter}
       , model{model} {
     unaligned_data_access_enable = false;
 
@@ -28,6 +29,7 @@ namespace dual::arm {
 
   void ARM::Run(int cycles) {
     if(GetWaitingForIRQ()) {
+      cycle_counter.AddDeviceCycles((uint)cycles);
       return;
     }
 
@@ -65,6 +67,8 @@ namespace dual::arm {
           state.r15 += 4;
         }
       }
+
+      cycle_counter.AddDeviceCycles(1u);
 
       if(GetWaitingForIRQ()) {
         return;
