@@ -168,10 +168,10 @@ void PPU::RenderLayerOAM(u16 vcount) {
 
       if (mode == OBJ_BITMAP) {
         // TODO: Attr 2, Bit 12-15 is used as Alpha-OAM value (instead of as palette setting).
-        if (mmio.dispcnt.bitmap_obj.mapping == DisplayControl::Mapping::OneDimensional) {
-          pixel = atom::read<u16>(render_vram_obj, (number * (64 << mmio.dispcnt.bitmap_obj.boundary) + tex_y * width + tex_x) * 2);
+        if (mmio.dispcnt.bitmap_obj_mapping == DisplayControl::Mapping::OneDimensional) {
+          pixel = atom::read<u16>(render_vram_obj, (number * (64 << mmio.dispcnt.bitmap_obj_boundary) + tex_y * width + tex_x) * 2);
         } else {
-          auto dimension = mmio.dispcnt.bitmap_obj.dimension;
+          auto dimension = mmio.dispcnt.bitmap_obj_dimension;
           auto mask = (16 << dimension) - 1;
 
           pixel = atom::read<u16>(render_vram_obj, ((number & ~mask) * 64 + (number & mask) * 8 + tex_y * (128 << dimension) + tex_x) * 2);
@@ -181,8 +181,8 @@ void PPU::RenderLayerOAM(u16 vcount) {
           pixel = s_color_transparent;
         }
       } else if (is_256) {
-        if (mmio.dispcnt.tile_obj.mapping == DisplayControl::Mapping::OneDimensional) {
-          tile_num = (number << mmio.dispcnt.tile_obj.boundary) + block_y * (width / 4);
+        if (mmio.dispcnt.tile_obj_mapping == DisplayControl::Mapping::OneDimensional) {
+          tile_num = (number << mmio.dispcnt.tile_obj_boundary) + block_y * (width / 4);
         } else {
           tile_num = (number & ~1) + block_y * 32;
         }
@@ -191,8 +191,8 @@ void PPU::RenderLayerOAM(u16 vcount) {
 
         pixel = DecodeTilePixel8BPP_OBJ(tile_num * 32, palette, tile_x, tile_y);
       } else {
-        if (mmio.dispcnt.tile_obj.mapping == DisplayControl::Mapping::OneDimensional) {
-          tile_num = (number << mmio.dispcnt.tile_obj.boundary) + block_y * (width / 8);
+        if (mmio.dispcnt.tile_obj_mapping == DisplayControl::Mapping::OneDimensional) {
+          tile_num = (number << mmio.dispcnt.tile_obj_boundary) + block_y * (width / 8);
         } else {
           tile_num = number + block_y * 32;
         }

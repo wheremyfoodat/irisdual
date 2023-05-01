@@ -27,7 +27,6 @@ set(SOURCES
   src/nds/video_unit/ppu/render/window.cpp
   src/nds/video_unit/ppu/composer.cpp
   src/nds/video_unit/ppu/ppu.cpp
-  src/nds/video_unit/ppu/registers.cpp
   src/nds/video_unit/video_unit.cpp
   src/nds/cartridge.cpp
   src/nds/ipc.cpp

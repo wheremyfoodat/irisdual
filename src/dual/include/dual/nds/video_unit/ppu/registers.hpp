@@ -5,56 +5,47 @@
 namespace dual::nds {
 
 struct DisplayControl {
-  enum class Mapping {
+  enum class Mapping : uint {
     TwoDimensional = 0,
     OneDimensional = 1
   };
 
-  int  bg_mode = 0;
-  bool enable_bg0_3d = false;
-  bool forced_blank = false;
-  bool enable[8] {false};
-  int  display_mode = 0;
-  int  vram_block = 0;
-  bool hblank_oam_update = false;
-  int  tile_block = 0;
-  int  map_block = 0;
-  bool enable_extpal_bg = false;
-  bool enable_extpal_obj = false;
+  DisplayControl() : m_mask{0xFFFFFFFFu} {}
 
-  struct {
-    Mapping mapping = Mapping::TwoDimensional;
-    int boundary = 0;
-  } tile_obj;
+  explicit DisplayControl(u32 mask) : m_mask{mask} {}
 
-  struct {
-    Mapping mapping = Mapping::TwoDimensional;
-    int dimension = 0;
-    int boundary = 0;
-  } bitmap_obj;
+  union {
+    atom::Bits< 0, 3, u32> bg_mode;
+    atom::Bits< 3, 1, u32> enable_bg0_3d;
+    atom::Bits< 4, 1, u32> tile_obj_mapping;
+    atom::Bits< 5, 1, u32> bitmap_obj_dimension; // ???
+    atom::Bits< 6, 1, u32> bitmap_obj_mapping;
+    atom::Bits< 7, 1, u32> forced_blank;
+    atom::Bits< 8, 8, u32> enable; // @todo: rename this perhaps?
+    atom::Bits<16, 2, u32> display_mode;
+    atom::Bits<18, 2, u32> vram_block;
+    atom::Bits<20, 2, u32> tile_obj_boundary; // ???
+    atom::Bits<22, 1, u32> bitmap_obj_boundary; // ???
+    atom::Bits<23, 1, u32> hblank_oam_update;
+    atom::Bits<24, 3, u32> tile_block;
+    atom::Bits<27, 3, u32> map_block;
+    atom::Bits<30, 1, u32> enable_extpal_bg;
+    atom::Bits<31, 1, u32> enable_extpal_obj;
 
-  DisplayControl(u32 mask = 0xFFFFFFFF) : mask(mask) {}
-
-  void Reset();
-  auto ReadByte (uint offset) -> u8;
-  void WriteByte(uint offset, u8 value);
+    u32 word = 0u;
+  };
 
   u32 ReadWord() {
-    return ReadByte(0) <<  0 |
-           ReadByte(1) <<  8 |
-           ReadByte(2) << 16 |
-           ReadByte(3) << 24;
+    return word;
   }
 
   void WriteWord(u32 value, u32 mask) {
-    if(mask & 0x000000FFu) WriteByte(0, value >>  0);
-    if(mask & 0x0000FF00u) WriteByte(1, value >>  8);
-    if(mask & 0x00FF0000u) WriteByte(2, value >> 16);
-    if(mask & 0xFF000000u) WriteByte(3, value >> 24);
+    const u32 write_mask = m_mask & mask;
+
+    word = (value & write_mask) | (word & ~write_mask);
   }
 
-private:
-  u32 mask;
+  u32 m_mask;
 };
 
 struct BackgroundControl {

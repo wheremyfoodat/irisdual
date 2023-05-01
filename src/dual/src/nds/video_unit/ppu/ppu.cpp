@@ -16,9 +16,9 @@ PPU::PPU(int id, SystemMemory& memory)
     , pram(&memory.pram[id * 0x400])
     , oam(&memory.oam[id * 0x400]) {
   if (id == 0) {
-    mmio.dispcnt = {};
+    mmio.dispcnt = DisplayControl{0xFFFFFFFFu};
   } else {
-    mmio.dispcnt = {0xC033FFF7};
+    mmio.dispcnt = DisplayControl{0xC033FFF7u};
   }
   Reset();
   RegisterMapUnmapCallbacks();
@@ -33,7 +33,7 @@ void PPU::Reset() {
   memset(buffer_ogl_color, 0, sizeof(buffer_ogl_color));
   memset(buffer_ogl_attribute, 0, sizeof(buffer_ogl_attribute));
 
-  mmio.dispcnt.Reset();
+  mmio.dispcnt = {};
 
   for(auto& bgcnt : mmio.bgcnt) bgcnt = {};
   for(auto& bghofs : mmio.bghofs) bghofs = {};
