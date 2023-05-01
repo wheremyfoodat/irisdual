@@ -164,7 +164,7 @@ void PPU::ComposeScanlineTmpl(u16 vcount, int bg_min, int bg_max) {
 
             Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
 
-            mmio.bldalpha = real_bldalpha;
+            mmio.bldalpha.half = real_bldalpha.half;
           } else if(have_dst && have_src && sfx_enable) {
             Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
           }

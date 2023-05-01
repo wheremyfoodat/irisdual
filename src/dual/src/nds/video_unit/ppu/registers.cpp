@@ -79,35 +79,4 @@ void DisplayControl::WriteByte(uint offset, u8 value) {
   }
 }
 
-void BlendAlpha::Reset() {
-  WriteByte(0, 0);
-  WriteByte(1, 0);
-}
-
-auto BlendAlpha::ReadByte(uint offset) -> u8 {
-  switch (offset) {
-    case 0:
-      return a;
-    case 1:
-      return b;
-    default:
-      ATOM_UNREACHABLE();
-  }
-
-  return 0;
-}
-
-void BlendAlpha::WriteByte(uint offset, u8 value) {
-  switch (offset) {
-    case 0:
-      a = value & 31;
-      break;
-    case 1:
-      b = value & 31;
-      break;
-    default:
-      ATOM_UNREACHABLE();
-  }
-}
-
 } // namespace dual::nds

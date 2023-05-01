@@ -185,20 +185,21 @@ struct BlendControl {
 };
 
 struct BlendAlpha {
-  int a;
-  int b;
+  union {
+    atom::Bits<0, 5, u16> a;
+    atom::Bits<8, 5, u16> b;
 
-  void Reset();
-  auto ReadByte(uint offset) -> u8;
-  void WriteByte(uint offset, u8 value);
+    u16 half = 0u;
+  };
 
   u16 ReadHalf() {
-    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+    return half;
   }
 
   void WriteHalf(u16 value, u16 mask) {
-    if(mask & 0x00FFu) WriteByte(0, value >> 0);
-    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+    const u16 write_mask = 0x1F1Fu & mask;
+
+    half = (value & write_mask) | (half & ~write_mask);
   }
 };
 

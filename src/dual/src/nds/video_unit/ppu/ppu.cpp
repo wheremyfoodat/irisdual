@@ -54,9 +54,9 @@ void PPU::Reset() {
   mmio.winout = {};
 
   mmio.bldcnt = {};
-  mmio.bldalpha.Reset();
+  mmio.bldalpha = {};
   mmio.bldy = {};
-
+  
   mmio.mosaic = {};
 
   mmio.master_bright = {};
