@@ -236,25 +236,27 @@ struct Mosaic {
 
 struct MasterBrightness {
   enum class Mode {
-    Disable = 0,
-    Up = 1,
-    Down = 2,
-    Reserved = 3
-  } mode;
+      Off = 0,
+      Up = 1,
+      Down = 2,
+      Reserved = 3
+  };
 
-  int factor;
+  union {
+    atom::Bits< 0, 5, u16> factor;
+    atom::Bits<14, 2, u16> mode;
 
-  void Reset();
-  auto ReadByte(uint offset) -> u8;
-  void WriteByte(uint offset, u8 value);
+    u16 half = 0u;
+  };
 
   u16 ReadHalf() {
-    return ReadByte(0) << 0 | ReadByte(1) <<  8;
+    return half;
   }
 
   void WriteHalf(u16 value, u16 mask) {
-    if(mask & 0x00FFu) WriteByte(0, value >> 0);
-    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+    const u16 write_mask = 0xC01Fu & mask;
+
+    half = (value & write_mask) | (half & ~write_mask);
   }
 };
 

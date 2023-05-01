@@ -59,7 +59,7 @@ void PPU::Reset() {
 
   mmio.mosaic = {};
 
-  mmio.master_bright.Reset();
+  mmio.master_bright = {};
 
   current_vcount = 0;
 
@@ -205,8 +205,8 @@ void PPU::RenderVideoMemoryDisplay(u16 vcount) {
 void PPU::RenderMasterBrightness(int vcount) {
   auto const& master_bright = mmio_copy[vcount].master_bright;
 
-  if (master_bright.mode != MasterBrightness::Mode::Disable && master_bright.factor != 0) {
-    int  factor = std::min(master_bright.factor, 16);
+  if (master_bright.mode != MasterBrightness::Mode::Off && master_bright.factor != 0) {
+    int  factor = std::min((int)master_bright.factor, 16);
     u32* buffer = &output[frame][vcount * 256];
 
     if (master_bright.mode == MasterBrightness::Mode::Up) {
