@@ -110,33 +110,6 @@ void BlendAlpha::WriteByte(uint offset, u8 value) {
   }
 }
 
-void Mosaic::Reset() {
-  bg.size_x = 1;
-  bg.size_y = 1;
-  bg._counter_y = 0;
-  obj.size_x = 1;
-  obj.size_y = 1;
-  bg._counter_y = 0;
-}
-
-void Mosaic::WriteByte(uint offset, u8 value) {
-  // TODO: how does hardware handle mid-frame or mid-line mosaic changes?
-  switch (offset) {
-    case 0:
-      bg.size_x = (value & 15) + 1;
-      bg.size_y = (value >> 4) + 1;    
-      bg._counter_y = 0;
-      break;
-    case 1:
-      obj.size_x = (value & 15) + 1;
-      obj.size_y = (value >> 4) + 1;
-      obj._counter_y = 0;
-      break;
-    default:
-      ATOM_UNREACHABLE();
-  }
-}
-
 void MasterBrightness::Reset() {
   factor = 0;
   mode = Mode::Disable;

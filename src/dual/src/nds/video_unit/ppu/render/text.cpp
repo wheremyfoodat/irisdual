@@ -16,7 +16,7 @@ void PPU::RenderLayerText(uint id, u16 vcount) {
 
   // Apply vertical mosaic
   if (bgcnt.enable_mosaic) {
-    line -= mosaic._counter_y;
+    line -= mosaic.counter_y;
   }
 
   int draw_x = -(mmio.bghofs[id].half % 8);

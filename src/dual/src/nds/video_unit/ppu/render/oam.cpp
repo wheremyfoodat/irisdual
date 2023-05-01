@@ -133,7 +133,7 @@ void PPU::RenderLayerOAM(u16 vcount) {
 
     if (mosaic) {
       mosaic_x = (x - half_width) % mmio.mosaic.obj.size_x;
-      local_y -= mmio.mosaic.obj._counter_y;
+      local_y -= mmio.mosaic.obj.counter_y;
     }
 
     // Render OBJ scanline. 

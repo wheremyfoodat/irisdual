@@ -57,7 +57,7 @@ void PPU::Reset() {
   mmio.bldalpha.Reset();
   mmio.bldy = {};
 
-  mmio.mosaic.Reset();
+  mmio.mosaic = {};
 
   mmio.master_bright.Reset();
 
@@ -94,13 +94,13 @@ void PPU::OnDrawScanlineEnd() {
   auto& mosaic = mmio.mosaic;
 
   // Advance vertical background mosaic counter
-  if (++mosaic.bg._counter_y == mosaic.bg.size_y) {
-    mosaic.bg._counter_y = 0;
+  if (++mosaic.bg.counter_y == mosaic.bg.size_y) {
+    mosaic.bg.counter_y = 0;
   }
 
   // Advance vertical OBJ mosaic counter
-  if (++mosaic.obj._counter_y == mosaic.obj.size_y) {
-    mosaic.obj._counter_y = 0;
+  if (++mosaic.obj.counter_y == mosaic.obj.size_y) {
+    mosaic.obj.counter_y = 0;
   }
 
   /* Mode 0 doesn't have any affine backgrounds,
@@ -111,7 +111,7 @@ void PPU::OnDrawScanlineEnd() {
     // Advance internal affine registers and apply vertical mosaic if applicable.
     for (int i = 0; i < 2; i++) {
       if (mmio.bgcnt[2 + i].enable_mosaic) {
-        if (mosaic.bg._counter_y == 0) {
+        if (mosaic.bg.counter_y == 0) {
           bgx[i].current += mosaic.bg.size_y * (s16)mmio.bgpb[i].half;
           bgy[i].current += mosaic.bg.size_y * (s16)mmio.bgpd[i].half;
         }
@@ -133,8 +133,8 @@ void PPU::OnBlankScanlineBegin(u16 vcount) {
   // TODO: when exactly are these registers reloaded?
   if (vcount == 192) {
     // Reset vertical mosaic counters
-    mosaic.bg._counter_y = 0;
-    mosaic.obj._counter_y = 0;
+    mosaic.bg.counter_y = 0;
+    mosaic.obj.counter_y = 0;
 
     // Reload internal affine registers
     bgx[0].current = (s32)bgx[0].initial;

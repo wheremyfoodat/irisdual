@@ -214,17 +214,23 @@ struct BlendBrightness {
 
 struct Mosaic {
   struct {
-    int size_x;
-    int size_y;
-    int _counter_y;
-  } bg, obj;
-  
-  void Reset();
-  void WriteByte(uint offset, u8 value);
+    int size_x = 0;
+    int size_y = 0;
+    int counter_y = 0;
+  } bg{}, obj{};
 
   void WriteHalf(u16 value, u16 mask) {
-    if(mask & 0x00FFu) WriteByte(0, value >> 0);
-    if(mask & 0xFF00u) WriteByte(1, value >> 8);
+    if(mask & 0x00FFu) {
+      bg.size_x = 1 + ((value >> 0) & 15);
+      bg.size_y = 1 + ((value >> 4) & 15);
+      bg.counter_y = 0;
+    }
+
+    if(mask & 0xFF00u) {
+      obj.size_x = 1 + ((value >>  8) & 15);
+      obj.size_y = 1 + ((value >> 12) & 15);
+      obj.counter_y = 0;
+    }
   }
 };
 
