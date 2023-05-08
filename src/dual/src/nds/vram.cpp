@@ -67,7 +67,7 @@ namespace dual::nds {
   void VRAM::UnmapA() {
     auto const& vramcnt_a = m_vramcnt[(int)Bank::A];
 
-    switch (vramcnt_a.mst) {
+    switch(vramcnt_a.mst) {
       case 0: region_lcdc.Unmap(0x00000, bank_a); break;
       case 1: region_ppu_bg[0].Unmap(0x20000 * vramcnt_a.offset, bank_a); break;
       case 2: region_ppu_obj[0].Unmap(0x20000 * (vramcnt_a.offset & 1), bank_a); break;
@@ -78,7 +78,7 @@ namespace dual::nds {
   void VRAM::UnmapB() {
     auto const& vramcnt_b = m_vramcnt[(int)Bank::B];
 
-    switch (vramcnt_b.mst) {
+    switch(vramcnt_b.mst) {
       case 0: region_lcdc.Unmap(0x20000, bank_b); break;
       case 1: region_ppu_bg[0].Unmap(0x20000 * vramcnt_b.offset, bank_b); break;
       case 2: region_ppu_obj[0].Unmap(0x20000 * (vramcnt_b.offset & 1), bank_b); break;
@@ -89,7 +89,7 @@ namespace dual::nds {
   void VRAM::UnmapC() {
     auto const& vramcnt_c = m_vramcnt[(int)Bank::C];
 
-    switch (vramcnt_c.mst) {
+    switch(vramcnt_c.mst) {
       case 0: region_lcdc.Unmap(0x40000, bank_c); break;
       case 1: region_ppu_bg[0].Unmap(0x20000 * vramcnt_c.offset, bank_c); break;
       case 2: region_arm7_wram.Unmap(0x20000 * (vramcnt_c.offset & 1), bank_c); break;
@@ -101,7 +101,7 @@ namespace dual::nds {
   void VRAM::UnmapD() {
     auto const& vramcnt_d = m_vramcnt[(int)Bank::D];
 
-    switch (vramcnt_d.mst) {
+    switch(vramcnt_d.mst) {
       case 0: region_lcdc.Unmap(0x60000, bank_d); break;
       case 1: region_ppu_bg[0].Unmap(0x20000 * vramcnt_d.offset, bank_d); break;
       case 2: region_arm7_wram.Unmap(0x20000 * (vramcnt_d.offset & 1), bank_d); break;
@@ -113,7 +113,7 @@ namespace dual::nds {
   void VRAM::UnmapE() {
     auto const& vramcnt_e = m_vramcnt[(int)Bank::E];
 
-    switch (vramcnt_e.mst) {
+    switch(vramcnt_e.mst) {
       case 0: region_lcdc.Unmap(0x80000, bank_e); break;
       case 1: region_ppu_bg[0].Unmap(0x00000, bank_e); break;
       case 2: region_ppu_obj[0].Unmap(0x00000, bank_e); break;
@@ -125,7 +125,7 @@ namespace dual::nds {
   void VRAM::UnmapF() {
     auto const& vramcnt_f = m_vramcnt[(int)Bank::F];
 
-    switch (vramcnt_f.mst) {
+    switch(vramcnt_f.mst) {
       case 0: region_lcdc.Unmap(0x90000, bank_f); break;
       case 1: region_ppu_bg[0].Unmap(0x4000 * (vramcnt_f.offset & 1) + 0x10000 * ((vramcnt_f.offset >> 1) & 1), bank_f); break;
       case 2: region_ppu_obj[0].Unmap(0x4000 * (vramcnt_f.offset & 1) + 0x10000 * ((vramcnt_f.offset >> 1) & 1), bank_f); break;
@@ -138,7 +138,7 @@ namespace dual::nds {
   void VRAM::UnmapG() {
     auto const& vramcnt_g = m_vramcnt[(int)Bank::G];
 
-    switch (vramcnt_g.mst) {
+    switch(vramcnt_g.mst) {
       case 0: region_lcdc.Unmap(0x94000, bank_g); break;
       case 1: region_ppu_bg[0].Unmap(0x4000 * (vramcnt_g.offset & 1) + 0x10000 * ((vramcnt_g.offset >> 1) & 1), bank_g); break;
       case 2: region_ppu_obj[0].Unmap(0x4000 * (vramcnt_g.offset & 1) + 0x10000 * ((vramcnt_g.offset >> 1) & 1), bank_g); break;
@@ -151,7 +151,7 @@ namespace dual::nds {
   void VRAM::UnmapH() {
     auto const& vramcnt_h = m_vramcnt[(int)Bank::H];
 
-    switch (vramcnt_h.mst) {
+    switch(vramcnt_h.mst) {
       case 0: region_lcdc.Unmap(0x98000, bank_h); break;
       case 1: region_ppu_bg[1].Unmap(0x00000, bank_h); break;
       case 2: region_ppu_bg_extpal[1].Unmap(0, bank_h); break;
@@ -161,7 +161,7 @@ namespace dual::nds {
   void VRAM::UnmapI() {
     auto const& vramcnt_i = m_vramcnt[(int)Bank::I];
 
-    switch (vramcnt_i.mst) {
+    switch(vramcnt_i.mst) {
       case 0: region_lcdc.Unmap(0xA0000, bank_i); break;
       case 1: region_ppu_bg[1].Unmap(0x08000, bank_i); break;
       case 2: region_ppu_obj[1].Unmap(0x00000, bank_i); break;
@@ -172,7 +172,7 @@ namespace dual::nds {
   void VRAM::MapA() {
     auto const& vramcnt_a = m_vramcnt[(int)Bank::A];
 
-    switch (vramcnt_a.mst) {
+    switch(vramcnt_a.mst) {
       case 0: region_lcdc.Map(0x00000, bank_a); break;
       case 1: region_ppu_bg[0].Map(0x20000 * vramcnt_a.offset, bank_a); break;
       case 2: region_ppu_obj[0].Map(0x20000 * (vramcnt_a.offset & 1), bank_a); break;
@@ -184,7 +184,7 @@ namespace dual::nds {
   void VRAM::MapB() {
     auto const& vramcnt_b = m_vramcnt[(int)Bank::B];
 
-    switch (vramcnt_b.mst) {
+    switch(vramcnt_b.mst) {
       case 0: region_lcdc.Map(0x20000, bank_b); break;
       case 1: region_ppu_bg[0].Map(0x20000 * vramcnt_b.offset, bank_b); break;
       case 2: region_ppu_obj[0].Map(0x20000 * (vramcnt_b.offset & 1), bank_b); break;
@@ -196,7 +196,7 @@ namespace dual::nds {
   void VRAM::MapC() {
     auto const& vramcnt_c = m_vramcnt[(int)Bank::C];
 
-    switch (vramcnt_c.mst) {
+    switch(vramcnt_c.mst) {
       case 0: region_lcdc.Map(0x40000, bank_c); break;
       case 1: region_ppu_bg[0].Map(0x20000 * vramcnt_c.offset, bank_c); break;
       case 2: region_arm7_wram.Map(0x20000 * (vramcnt_c.offset & 1), bank_c); break;
@@ -209,7 +209,7 @@ namespace dual::nds {
   void VRAM::MapD() {
     auto const& vramcnt_d = m_vramcnt[(int)Bank::D];
 
-    switch (vramcnt_d.mst) {
+    switch(vramcnt_d.mst) {
       case 0: region_lcdc.Map(0x60000, bank_d); break;
       case 1: region_ppu_bg[0].Map(0x20000 * vramcnt_d.offset, bank_d); break;
       case 2: region_arm7_wram.Map(0x20000 * (vramcnt_d.offset & 1), bank_d); break;
@@ -222,7 +222,7 @@ namespace dual::nds {
   void VRAM::MapE() {
     auto const& vramcnt_e = m_vramcnt[(int)Bank::E];
 
-    switch (vramcnt_e.mst) {
+    switch(vramcnt_e.mst) {
       case 0: region_lcdc.Map(0x80000, bank_e); break;
       case 1: region_ppu_bg[0].Map(0x00000, bank_e); break;
       case 2: region_ppu_obj[0].Map(0x00000, bank_e); break;
@@ -235,7 +235,7 @@ namespace dual::nds {
   void VRAM::MapF() {
     auto const& vramcnt_f = m_vramcnt[(int)Bank::F];
 
-    switch (vramcnt_f.mst) {
+    switch(vramcnt_f.mst) {
       case 0: region_lcdc.Map(0x90000, bank_f); break;
       case 1: region_ppu_bg[0].Map(0x4000 * (vramcnt_f.offset & 1) + 0x10000 * ((vramcnt_f.offset >> 1) & 1), bank_f); break;
       case 2: region_ppu_obj[0].Map(0x4000 * (vramcnt_f.offset & 1) + 0x10000 * ((vramcnt_f.offset >> 1) & 1), bank_f); break;
@@ -249,7 +249,7 @@ namespace dual::nds {
   void VRAM::MapG() {
     auto const& vramcnt_g = m_vramcnt[(int)Bank::G];
 
-    switch (vramcnt_g.mst) {
+    switch(vramcnt_g.mst) {
       case 0: region_lcdc.Map(0x94000, bank_g); break;
       case 1: region_ppu_bg[0].Map(0x4000 * (vramcnt_g.offset & 1) + 0x10000 * ((vramcnt_g.offset >> 1) & 1), bank_g); break;
       case 2: region_ppu_obj[0].Map(0x4000 * (vramcnt_g.offset & 1) + 0x10000 * ((vramcnt_g.offset >> 1) & 1), bank_g); break;
@@ -263,7 +263,7 @@ namespace dual::nds {
   void VRAM::MapH() {
     auto const& vramcnt_h = m_vramcnt[(int)Bank::H];
 
-    switch (vramcnt_h.mst) {
+    switch(vramcnt_h.mst) {
       case 0: region_lcdc.Map(0x98000, bank_h); break;
       case 1: region_ppu_bg[1].Map(0x00000, bank_h); break;
       case 2: region_ppu_bg_extpal[1].Map(0, bank_h); break;
@@ -274,7 +274,7 @@ namespace dual::nds {
   void VRAM::MapI() {
     auto const& vramcnt_i = m_vramcnt[(int)Bank::I];
 
-    switch (vramcnt_i.mst) {
+    switch(vramcnt_i.mst) {
       case 0: region_lcdc.Map(0xA0000, bank_i); break;
       case 1: region_ppu_bg[1].Map(0x08000, bank_i); break;
       case 2: region_ppu_obj[1].Map(0x00000, bank_i); break;

@@ -44,16 +44,16 @@ namespace dual::nds {
 
     line_contains_alpha_obj = false;
 
-    for (int x = 0; x < 256; x++) {
+    for(int x = 0; x < 256; x++) {
       buffer_obj[x].priority = 4;
       buffer_obj[x].color = s_color_transparent;
       buffer_obj[x].alpha = 0;
       buffer_obj[x].window = 0;
     }
 
-    for (s32 offset = 0; offset <= 127 * 8; offset += 8) {
+    for(s32 offset = 0; offset <= 127 * 8; offset += 8) {
       // Check if OBJ is disabled (affine=0, attr0bit9=1)
-      if ((render_oam[offset + 1] & 3) == 2) {
+      if((render_oam[offset + 1] & 3) == 2) {
         continue;
       }
 
@@ -72,8 +72,8 @@ namespace dual::nds {
       int mode   = (attr0 >> 10) & 3;
       int mosaic = (attr0 >> 12) & 1;
 
-      if (x >= 256) x -= 512;
-      if (y >= 192) y -= 256;
+      if(x >= 256) x -= 512;
+      if(y >= 192) y -= 256;
 
       int affine  = (attr0 >> 8) & 1;
       int attr0b9 = (attr0 >> 9) & 1;
@@ -90,7 +90,7 @@ namespace dual::nds {
       y += half_height;
 
       // Load transform matrix.
-      if (affine) {
+      if(affine) {
         int group = ((attr1 >> 9) & 0x1F) << 5;
 
         // Read transform matrix.
@@ -100,7 +100,7 @@ namespace dual::nds {
         transform[3] = (render_oam[group + 0x1F] << 8) | render_oam[group + 0x1E];
 
         // Check double-size flag. Doubles size of the view rectangle.
-        if (attr0b9) {
+        if(attr0b9) {
           x += half_width;
           y += half_height;
           half_width  *= 2;
@@ -118,7 +118,7 @@ namespace dual::nds {
       }
 
       // Bail out if scanline is outside OBJ's view rectangle.
-      if (vcount < (y - half_height) || vcount >= (y + half_height)) {
+      if(vcount < (y - half_height) || vcount >= (y + half_height)) {
         continue;
       }
 
@@ -131,21 +131,21 @@ namespace dual::nds {
 
       int mosaic_x = 0;
 
-      if (mosaic) {
+      if(mosaic) {
         mosaic_x = (x - half_width) % mmio.mosaic.obj.size_x;
         local_y -= mmio.mosaic.obj.counter_y;
       }
 
       // Render OBJ scanline.
-      for (int local_x = -half_width; local_x <= half_width; local_x++) {
+      for(int local_x = -half_width; local_x <= half_width; local_x++) {
         int _local_x = local_x - mosaic_x;
         int global_x = local_x + x;
 
-        if (mosaic && (++mosaic_x == mmio.mosaic.obj.size_x)) {
+        if(mosaic && (++mosaic_x == mmio.mosaic.obj.size_x)) {
           mosaic_x = 0;
         }
 
-        if (global_x < 0 || global_x >= 256) {
+        if(global_x < 0 || global_x >= 256) {
           continue;
         }
 
@@ -153,22 +153,22 @@ namespace dual::nds {
         int tex_y = ((transform[2] * _local_x + transform[3] * local_y) >> 8) + (height / 2);
 
         // Check if transformed coordinates are inside bounds.
-        if (tex_x >= width || tex_y >= height ||
+        if(tex_x >= width || tex_y >= height ||
           tex_x < 0 || tex_y < 0) {
           continue;
         }
 
-        if (flip_h) tex_x = width  - tex_x - 1;
-        if (flip_v) tex_y = height - tex_y - 1;
+        if(flip_h) tex_x = width  - tex_x - 1;
+        if(flip_v) tex_y = height - tex_y - 1;
 
         int tile_x  = tex_x % 8;
         int tile_y  = tex_y % 8;
         int block_x = tex_x / 8;
         int block_y = tex_y / 8;
 
-        if (mode == OBJ_BITMAP) {
+        if(mode == OBJ_BITMAP) {
           // TODO: Attr 2, Bit 12-15 is used as Alpha-OAM value (instead of as palette setting).
-          if (mmio.dispcnt.bitmap_obj_mapping == DisplayControl::Mapping::OneDimensional) {
+          if(mmio.dispcnt.bitmap_obj_mapping == DisplayControl::Mapping::OneDimensional) {
             pixel = atom::read<u16>(render_vram_obj, (number * (64 << mmio.dispcnt.bitmap_obj_boundary) + tex_y * width + tex_x) * 2);
           } else {
             auto dimension = mmio.dispcnt.bitmap_obj_dimension;
@@ -177,11 +177,11 @@ namespace dual::nds {
             pixel = atom::read<u16>(render_vram_obj, ((number & ~mask) * 64 + (number & mask) * 8 + tex_y * (128 << dimension) + tex_x) * 2);
           }
 
-          if ((pixel & 0x8000) == 0) {
+          if((pixel & 0x8000) == 0) {
             pixel = s_color_transparent;
           }
-        } else if (is_256) {
-          if (mmio.dispcnt.tile_obj_mapping == DisplayControl::Mapping::OneDimensional) {
+        } else if(is_256) {
+          if(mmio.dispcnt.tile_obj_mapping == DisplayControl::Mapping::OneDimensional) {
             tile_num = (number << mmio.dispcnt.tile_obj_boundary) + block_y * (width / 4);
           } else {
             tile_num = (number & ~1) + block_y * 32;
@@ -191,7 +191,7 @@ namespace dual::nds {
 
           pixel = DecodeTilePixel8BPP_OBJ(tile_num * 32, palette, tile_x, tile_y);
         } else {
-          if (mmio.dispcnt.tile_obj_mapping == DisplayControl::Mapping::OneDimensional) {
+          if(mmio.dispcnt.tile_obj_mapping == DisplayControl::Mapping::OneDimensional) {
             tile_num = (number << mmio.dispcnt.tile_obj_boundary) + block_y * (width / 8);
           } else {
             tile_num = number + block_y * 32;
@@ -204,14 +204,14 @@ namespace dual::nds {
 
         auto& point = buffer_obj[global_x];
 
-        if (pixel != s_color_transparent) {
-          if (mode == OBJ_WINDOW) {
+        if(pixel != s_color_transparent) {
+          if(mode == OBJ_WINDOW) {
             point.window = 1;
-          } else if (prio < point.priority) {
+          } else if(prio < point.priority) {
             point.priority = prio;
             point.color = pixel;
             point.alpha = (mode == OBJ_SEMI) ? 1 : 0;
-            if (point.alpha) {
+            if(point.alpha) {
               line_contains_alpha_obj = true;
             }
           }

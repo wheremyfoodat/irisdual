@@ -121,7 +121,7 @@ namespace dual::nds {
 
       if(m_auxspicnt.enable_transfer_ready_irq) {
         // @todo
-        // if (exmemcnt.nds_slot_access == EXMEMCNT::CPU::ARM7) {
+        // if(exmemcnt.nds_slot_access == EXMEMCNT::CPU::ARM7) {
         //   irq7.Raise(IRQ::Source::Cart_DataReady);
         // } else {
         //   irq9.Raise(IRQ::Source::Cart_DataReady);
@@ -334,7 +334,7 @@ namespace dual::nds {
       });
     } else if(m_auxspicnt.enable_transfer_ready_irq) {
       // @todo
-      // if (exmemcnt.nds_slot_access == EXMEMCNT::CPU::ARM7) {
+      // if(exmemcnt.nds_slot_access == EXMEMCNT::CPU::ARM7) {
       //   irq7.Raise(IRQ::Source::Cart_DataReady);
       // } else {
       //   irq9.Raise(IRQ::Source::Cart_DataReady);

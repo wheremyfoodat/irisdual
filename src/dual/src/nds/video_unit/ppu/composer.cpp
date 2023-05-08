@@ -21,15 +21,15 @@ namespace dual::nds {
 
     if constexpr(opengl) {
       // 3D BG0 layer will be handled on the GPU
-      if (bg_min == 0 && bg0_is_3d) {
+      if(bg_min == 0 && bg0_is_3d) {
         bg_min = 1;
       }
     }
 
     // Sort enabled backgrounds by their respective priority in ascending order.
-    for (int prio = 3; prio >= 0; prio--) {
-      for (int bg = bg_max; bg >= bg_min; bg--) {
-        if (dispcnt.enable[bg] && bgcnt[bg].priority == prio) {
+    for(int prio = 3; prio >= 0; prio--) {
+      for(int bg = bg_max; bg >= bg_min; bg--) {
+        if(dispcnt.enable[bg] && bgcnt[bg].priority == prio) {
           bg_list[bg_count++] = bg;
         }
       }
@@ -53,14 +53,14 @@ namespace dual::nds {
 
     size_t buffer_index = 256 * vcount;
 
-    for (int x = 0; x < 256; x++) {
+    for(int x = 0; x < 256; x++) {
       if constexpr (window) {
         // Determine the window with the highest priority for this pixel.
-        if (win0_active && buffer_win[0][x]) {
+        if(win0_active && buffer_win[0][x]) {
           win_layer_enable = (u8)winin.win0_layer_enable;
-        } else if (win1_active && buffer_win[1][x]) {
+        } else if(win1_active && buffer_win[1][x]) {
           win_layer_enable = (u8)winin.win1_layer_enable;
-        } else if (win2_active && buffer_obj[x].window) {
+        } else if(win2_active && buffer_obj[x].window) {
           win_layer_enable = (u8)winout.win1_layer_enable;
         } else {
           win_layer_enable = (u8)winout.win0_layer_enable;
@@ -76,12 +76,12 @@ namespace dual::nds {
         layer[1] = LAYER_BD;
 
         // Find up to two top-most visible background pixels.
-        for (int i = 0; i < bg_count; i++) {
+        for(int i = 0; i < bg_count; i++) {
           int bg = bg_list[i];
 
-          if (!window || win_layer_enable[bg]) {
+          if(!window || win_layer_enable[bg]) {
             auto pixel_new = buffer_bg[bg][x];
-            if (pixel_new != s_color_transparent) {
+            if(pixel_new != s_color_transparent) {
               layer[1] = layer[0];
               layer[0] = bg;
               prio[1] = prio[0];
@@ -93,12 +93,12 @@ namespace dual::nds {
         /* Check if a OBJ pixel takes priority over one of the two
          * top-most background pixels and insert it accordingly.
          */
-        if ((!window || win_layer_enable[LAYER_OBJ]) &&
+        if((!window || win_layer_enable[LAYER_OBJ]) &&
             dispcnt.enable[ENABLE_OBJ] &&
             buffer_obj[x].color != s_color_transparent) {
           int priority = buffer_obj[x].priority;
 
-          if (priority <= prio[0]) {
+          if(priority <= prio[0]) {
             layer[1] = layer[0];
             layer[0] = LAYER_OBJ;
             is_alpha_obj = buffer_obj[x].alpha;
@@ -106,7 +106,7 @@ namespace dual::nds {
             if constexpr(opengl) {
               prio[0] = priority;
             }
-          } else if (priority <= prio[1]) {
+          } else if(priority <= prio[1]) {
             layer[1] = LAYER_OBJ;
 
             if constexpr(opengl) {
@@ -116,9 +116,9 @@ namespace dual::nds {
         }
 
         // Map layer numbers to pixels.
-        for (int i = 0; i < 2; i++) {
+        for(int i = 0; i < 2; i++) {
           int _layer = layer[i];
-          switch (_layer) {
+          switch(_layer) {
             case 0:
             case 1:
             case 2:
@@ -169,7 +169,7 @@ namespace dual::nds {
               Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
             }
           } else if(blend_mode != BlendControl::Mode::Off) {
-            if (have_dst && sfx_enable) {
+            if(have_dst && sfx_enable) {
               Blend(vcount, pixel[0], pixel[1], (BlendControl::Mode)blend_mode);
             }
           }
@@ -180,13 +180,13 @@ namespace dual::nds {
         layer[0] = LAYER_BD;
 
         // Find the top-most visible background pixel.
-        if (bg_count != 0) {
-          for (int i = bg_count - 1; i >= 0; i--) {
+        if(bg_count != 0) {
+          for(int i = bg_count - 1; i >= 0; i--) {
             int bg = bg_list[i];
 
-            if (!window || win_layer_enable[bg]) {
+            if(!window || win_layer_enable[bg]) {
               u16 pixel_new = buffer_bg[bg][x];
-              if (pixel_new != s_color_transparent) {
+              if(pixel_new != s_color_transparent) {
                 pixel[0] = pixel_new;
                 layer[0] = bg;
 
@@ -200,7 +200,7 @@ namespace dual::nds {
         }
 
         // Check if a OBJ pixel takes priority over the top-most background pixel.
-        if ((!window || win_layer_enable[LAYER_OBJ]) &&
+        if((!window || win_layer_enable[LAYER_OBJ]) &&
             dispcnt.enable[ENABLE_OBJ] &&
             buffer_obj[x].color != s_color_transparent &&
             buffer_obj[x].priority <= prio[0]) {
@@ -229,21 +229,21 @@ namespace dual::nds {
 
     int key = 0;
 
-    if (dispcnt.enable[ENABLE_WIN0] ||
+    if(dispcnt.enable[ENABLE_WIN0] ||
         dispcnt.enable[ENABLE_WIN1] ||
         dispcnt.enable[ENABLE_OBJWIN]) {
       key |= 1;
     }
 
-    if (mmio.bldcnt.blend_mode != BlendControl::Mode::Off || line_contains_alpha_obj) {
+    if(mmio.bldcnt.blend_mode != BlendControl::Mode::Off || line_contains_alpha_obj) {
       key |= 2;
     }
 
-    /*if (ogl.enabled) {
+    /*if(ogl.enabled) {
       key |= 4;
     }*/
 
-    switch (key) {
+    switch(key) {
       case 0b000: ComposeScanlineTmpl<false, false, false>(vcount, bg_min, bg_max); break;
       case 0b001: ComposeScanlineTmpl<true,  false, false>(vcount, bg_min, bg_max); break;
       case 0b010: ComposeScanlineTmpl<false, true,  false>(vcount, bg_min, bg_max); break;
@@ -265,7 +265,7 @@ namespace dual::nds {
     int g1 = (target1 >>  5) & 0x1F;
     int b1 = (target1 >> 10) & 0x1F;
 
-    switch (blend_mode) {
+    switch(blend_mode) {
       case BlendControl::Mode::Alpha: {
         int eva = std::min<int>(16, mmio.bldalpha.a);
         int evb = std::min<int>(16, mmio.bldalpha.b);

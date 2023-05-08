@@ -65,7 +65,7 @@ namespace dual {
         Swap(n, p);
         n = p;
         p = Parent(n);
-      } while (n != 0 && m_heap[p]->timestamp > m_heap[n]->timestamp);
+      } while(n != 0 && m_heap[p]->timestamp > m_heap[n]->timestamp);
     } else {
       Heapify(n);
     }

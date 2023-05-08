@@ -15,7 +15,7 @@ namespace dual::nds {
     int line = mmio.bgvofs[id].half + vcount;
 
     // Apply vertical mosaic
-    if (bgcnt.enable_mosaic) {
+    if(bgcnt.enable_mosaic) {
       line -= mosaic.counter_y;
     }
 
@@ -38,7 +38,7 @@ namespace dual::nds {
 
     u32 base_adjust;
 
-    switch (bgcnt.size) {
+    switch(bgcnt.size) {
       case 0:
         base_adjust = 0;
         break;
@@ -56,7 +56,7 @@ namespace dual::nds {
         break;
     }
 
-    if (screen_x == 1) {
+    if(screen_x == 1) {
       base_adjust *= -1;
     }
 
@@ -65,14 +65,14 @@ namespace dual::nds {
         encoder = atom::read<u16>(render_vram_bg, base + grid_x++ * 2);
 
         // TODO: speed tile decoding itself up.
-        if (encoder != last_encoder) {
+        if(encoder != last_encoder) {
           int number  = encoder & 0x3FF;
           int palette = encoder >> 12;
           bool flip_x = encoder & (1 << 10);
           bool flip_y = encoder & (1 << 11);
           int _tile_y = flip_y ? (tile_y ^ 7) : tile_y;
 
-          if (!bgcnt.full_palette) {
+          if(!bgcnt.full_palette) {
             DecodeTileLine4BPP(tile, tile_base, palette, number, _tile_y, flip_x);
           } else {
             DecodeTileLine8BPP(tile, tile_base, palette, expal_slot, number, _tile_y, flip_x);
@@ -81,42 +81,42 @@ namespace dual::nds {
           last_encoder = encoder;
         }
 
-        if (draw_x >= 0 && draw_x <= 248) {
-          for (int x = 0; x < 8; x++) {
+        if(draw_x >= 0 && draw_x <= 248) {
+          for(int x = 0; x < 8; x++) {
             buffer[draw_x++] = tile[x];
           }
         } else {
           int x = 0;
           int max = 8;
 
-          if (draw_x < 0) {
+          if(draw_x < 0) {
             x = -draw_x;
             draw_x = 0;
-            for (; x < max; x++) {
+            for(; x < max; x++) {
               buffer[draw_x++] = tile[x];
             }
-          } else if (draw_x > 248) {
+          } else if(draw_x > 248) {
             max -= draw_x - 248;
-            for (; x < max; x++) {
+            for(; x < max; x++) {
               buffer[draw_x++] = tile[x];
             }
             break;
           }
         }
-      } while (grid_x < 32);
+      } while(grid_x < 32);
 
       base += base_adjust;
       base_adjust *= -1;
       grid_x = 0;
-    } while (draw_x < 256);
+    } while(draw_x < 256);
 
     // Apply horizontal mosaic
-    if (bgcnt.enable_mosaic && mosaic.size_x != 1) {
+    if(bgcnt.enable_mosaic && mosaic.size_x != 1) {
       int mosaic_x = 0;
 
-      for (int x = 0; x < 256; x++) {
+      for(int x = 0; x < 256; x++) {
         buffer[x] = buffer[x - mosaic_x];
-        if (++mosaic_x == mosaic.size_x) {
+        if(++mosaic_x == mosaic.size_x) {
           mosaic_x = 0;
         }
       }

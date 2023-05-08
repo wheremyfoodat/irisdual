@@ -22,12 +22,12 @@ namespace dual::nds {
 
     int mosaic_x = 0;
 
-    for (int _x = 0; _x < 256; _x++) {
+    for(int _x = 0; _x < 256; _x++) {
       s32 x = ref_x >> 8;
       s32 y = ref_y >> 8;
 
-      if (bg.enable_mosaic) {
-        if (++mosaic_x == mosaic.size_x) {
+      if(bg.enable_mosaic) {
+        if(++mosaic_x == mosaic.size_x) {
           ref_x += mosaic.size_x * pa;
           ref_y += mosaic.size_x * pc;
           mosaic_x = 0;
@@ -37,19 +37,19 @@ namespace dual::nds {
         ref_y += pc;
       }
 
-      if (bg.wraparound) {
-        if (x >= width) {
+      if(bg.wraparound) {
+        if(x >= width) {
           x %= width;
-        } else if (x < 0) {
+        } else if(x < 0) {
           x = width + (x % width);
         }
 
-        if (y >= height) {
+        if(y >= height) {
           y %= height;
-        } else if (y < 0) {
+        } else if(y < 0) {
           y = height + (y % height);
         }
-      } else if (x >= width || y >= height || x < 0 || y < 0) {
+      } else if(x >= width || y >= height || x < 0 || y < 0) {
         buffer[_x] = s_color_transparent;
         continue;
       }
@@ -88,22 +88,22 @@ namespace dual::nds {
 
     u16* buffer = buffer_bg[2 + id];
 
-    if (bg.full_palette) {
+    if(bg.full_palette) {
       int width;
       int height;
 
-      switch (bg.size) {
+      switch(bg.size) {
         case 0: width = 128; height = 128; break;
         case 1: width = 256; height = 256; break;
         case 2: width = 512; height = 256; break;
         case 3: width = 512; height = 512; break;
       }
 
-      if (bg.tile_block & 1) {
+      if(bg.tile_block & 1) {
         // Rotate/Scale direct color bitmap
         AffineRenderLoop(vcount, id, width, height, [&](int line_x, int x, int y) {
           u16 color = atom::read<u16>(render_vram_bg, bg.map_block * 16384 + (y * width + x) * 2);
-          if (color & 0x8000) {
+          if(color & 0x8000) {
             buffer[line_x] = color & 0x7FFF;
           } else {
             buffer[line_x] = s_color_transparent;
@@ -113,7 +113,7 @@ namespace dual::nds {
         // Rotate/Scale 256-color bitmap
         AffineRenderLoop(vcount, id, width, height, [&](int line_x, int x, int y) {
           u8 index = atom::read<u8>(render_vram_bg, bg.map_block * 16384 + y * width + x);
-          if (index == 0) {
+          if(index == 0) {
             buffer[line_x] = s_color_transparent;
           } else {
             buffer[line_x] = ReadPalette(0, index);
@@ -135,8 +135,8 @@ namespace dual::nds {
         int tile_x = x & 7;
         int tile_y = y & 7;
 
-        if (encoder & (1 << 10)) tile_x = 7 - tile_x;
-        if (encoder & (1 << 11)) tile_y = 7 - tile_y;
+        if(encoder & (1 << 10)) tile_x = 7 - tile_x;
+        if(encoder & (1 << 11)) tile_y = 7 - tile_y;
 
         buffer[line_x] = DecodeTilePixel8BPP_BG(tile_base + number * 64, true, palette, 2 + id, tile_x, tile_y);
       });
@@ -152,7 +152,7 @@ namespace dual::nds {
 
     AffineRenderLoop(vcount, 0, width, height, [&](int line_x, int x, int y) {
       u8 index = atom::read<u8>(render_vram_bg, y * width + x);
-      if (index == 0) {
+      if(index == 0) {
         buffer_bg[2][line_x] = s_color_transparent;
       } else {
         buffer_bg[2][line_x] = ReadPalette(0, index);

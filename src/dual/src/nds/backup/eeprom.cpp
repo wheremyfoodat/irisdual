@@ -125,8 +125,8 @@ namespace dual::nds {
       }
       case State::Write: {
         switch(m_write_protect_mode) {
-          case 1: if (m_address >= m_address_upper_quarter) return 0xFF;
-          case 2: if (m_address >= m_address_upper_half) return 0xFF;
+          case 1: if(m_address >= m_address_upper_quarter) return 0xFF;
+          case 2: if(m_address >= m_address_upper_half) return 0xFF;
           case 3: return 0xFF;
         }
 

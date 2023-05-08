@@ -15,7 +15,7 @@ namespace dual::nds {
       , vram_lcdc(memory.vram.region_lcdc)
       , pram(&memory.pram[id * 0x400])
       , oam(&memory.oam[id * 0x400]) {
-    if (id == 0) {
+    if(id == 0) {
       mmio.dispcnt = DisplayControl{0xFFFFFFFFu};
     } else {
       mmio.dispcnt = DisplayControl{0xC033FFF7u};
@@ -77,7 +77,7 @@ namespace dual::nds {
   void PPU::OnDrawScanlineBegin(u16 vcount, bool capture_bg_and_3d) {
     current_vcount = vcount;
 
-    /*if (vcount == 0) {
+    /*if(vcount == 0) {
       ogl.enabled = gpu && gpu->GetOutputImageType() == VideoDevice::ImageType::OpenGL &&
                     mmio.dispcnt.display_mode == 1 &&
                    !capture_bg_and_3d;
@@ -94,12 +94,12 @@ namespace dual::nds {
     auto& mosaic = mmio.mosaic;
 
     // Advance vertical background mosaic counter
-    if (++mosaic.bg.counter_y == mosaic.bg.size_y) {
+    if(++mosaic.bg.counter_y == mosaic.bg.size_y) {
       mosaic.bg.counter_y = 0;
     }
 
     // Advance vertical OBJ mosaic counter
-    if (++mosaic.obj.counter_y == mosaic.obj.size_y) {
+    if(++mosaic.obj.counter_y == mosaic.obj.size_y) {
       mosaic.obj.counter_y = 0;
     }
 
@@ -107,11 +107,11 @@ namespace dual::nds {
      * in that case the internal registers seemingly aren't updated.
      * TODO: needs more research, e.g. what happens if all affine backgrounds are disabled?
      */
-    if (dispcnt.bg_mode != 0) {
+    if(dispcnt.bg_mode != 0) {
       // Advance internal affine registers and apply vertical mosaic if applicable.
-      for (int i = 0; i < 2; i++) {
-        if (mmio.bgcnt[2 + i].enable_mosaic) {
-          if (mosaic.bg.counter_y == 0) {
+      for(int i = 0; i < 2; i++) {
+        if(mmio.bgcnt[2 + i].enable_mosaic) {
+          if(mosaic.bg.counter_y == 0) {
             bgx[i].current += mosaic.bg.size_y * (s16)mmio.bgpb[i].half;
             bgy[i].current += mosaic.bg.size_y * (s16)mmio.bgpd[i].half;
           }
@@ -131,7 +131,7 @@ namespace dual::nds {
     current_vcount = vcount;
 
     // TODO: when exactly are these registers reloaded?
-    if (vcount == 192) {
+    if(vcount == 192) {
       // Reset vertical mosaic counters
       mosaic.bg.counter_y = 0;
       mosaic.obj.counter_y = 0;
@@ -143,7 +143,7 @@ namespace dual::nds {
       bgy[1].current = (s32)bgy[1].initial;
     }
 
-    /*if (ogl.enabled && !ogl.done && render_worker.vcount >= 192) {
+    /*if(ogl.enabled && !ogl.done && render_worker.vcount >= 192) {
       Merge2DWithOpenGL3D();
       ogl.done = true;
     }*/
@@ -154,11 +154,11 @@ namespace dual::nds {
   void PPU::RenderScanline(u16 vcount, bool capture_bg_and_3d) {
     auto display_mode = mmio_copy[vcount].dispcnt.display_mode;
 
-    if (capture_bg_and_3d || display_mode == 1) {
+    if(capture_bg_and_3d || display_mode == 1) {
       RenderBackgroundsAndComposite(vcount);
     }
 
-    switch (display_mode) {
+    switch(display_mode) {
       case 0: RenderDisplayOff(vcount); break;
       case 1: RenderNormal(vcount);     break;
       case 2: RenderVideoMemoryDisplay(vcount); break;
@@ -169,7 +169,7 @@ namespace dual::nds {
   void PPU::RenderDisplayOff(u16 vcount) {
     u32* line = &output[frame][vcount * 256];
 
-    for (uint x = 0; x < 256; x++) {
+    for(uint x = 0; x < 256; x++) {
       line[x] = ConvertColor(0x7FFF);
     }
   }
@@ -177,7 +177,7 @@ namespace dual::nds {
   void PPU::RenderNormal(u16 vcount) {
     u32* line = &output[frame][vcount * 256];
 
-    for (uint x = 0; x < 256; x++) {
+    for(uint x = 0; x < 256; x++) {
       line[x] = ConvertColor(buffer_compose[x]);
     }
 
@@ -189,12 +189,12 @@ namespace dual::nds {
     auto vram_block = mmio_copy[vcount].dispcnt.vram_block;
     u16 const* source = (u16 const*)&render_vram_lcdc[vram_block * 0x20000 + vcount * 256 * sizeof(u16)];
 
-    if (source != nullptr) {
-      for (uint x = 0; x < 256; x++) {
+    if(source != nullptr) {
+      for(uint x = 0; x < 256; x++) {
         line[x] = ConvertColor(*source++);
       }
     } else {
-      for (uint x = 0; x < 256; x++) {
+      for(uint x = 0; x < 256; x++) {
         line[x] = ConvertColor(0);
       }
     }
@@ -205,11 +205,11 @@ namespace dual::nds {
   void PPU::RenderMasterBrightness(int vcount) {
     auto const& master_bright = mmio_copy[vcount].master_bright;
 
-    if (master_bright.mode != MasterBrightness::Mode::Off && master_bright.factor != 0) {
+    if(master_bright.mode != MasterBrightness::Mode::Off && master_bright.factor != 0) {
       int  factor = std::min((int)master_bright.factor, 16);
       u32* buffer = &output[frame][vcount * 256];
 
-      if (master_bright.mode == MasterBrightness::Mode::Up) {
+      if(master_bright.mode == MasterBrightness::Mode::Up) {
         for(int x = 0; x < 256; x++) {
           u32 rgba = *buffer;
           u32 rgba_inv = ~rgba;
@@ -278,7 +278,7 @@ namespace dual::nds {
     }
 
     if(mmio.dispcnt.enable[ENABLE_BG3]) {
-      switch (mmio.dispcnt.bg_mode) {
+      switch(mmio.dispcnt.bg_mode) {
         case 0: RenderLayerText(3, vcount); break;
         case 1:
         case 2: RenderLayerAffine(1, vcount); break;
@@ -300,20 +300,20 @@ namespace dual::nds {
     render_worker.ready = false;
 
     render_worker.thread = std::thread([this]() {
-      while (render_worker.running.load()) {
-        while (render_worker.vcount <= render_worker.vcount_max) {
+      while(render_worker.running.load()) {
+        while(render_worker.vcount <= render_worker.vcount_max) {
           // TODO: this might be racy with SubmitScanline() resetting render_thread_vcount.
           int vcount = render_worker.vcount;
 
-          if (mmio.dispcnt.enable[ENABLE_WIN0]) {
+          if(mmio.dispcnt.enable[ENABLE_WIN0]) {
             RenderWindow(0, vcount);
           }
 
-          if (mmio.dispcnt.enable[ENABLE_WIN1]) {
+          if(mmio.dispcnt.enable[ENABLE_WIN1]) {
             RenderWindow(1, vcount);
           }
 
-          if (vcount < 192) {
+          if(vcount < 192) {
             RenderScanline(vcount, mmio_copy[vcount].capture_bg_and_3d);
           }
 
@@ -329,7 +329,7 @@ namespace dual::nds {
   }
 
   void PPU::StopRenderWorker() {
-    if (!render_worker.running) {
+    if(!render_worker.running) {
       return;
     }
 
@@ -347,7 +347,7 @@ namespace dual::nds {
   void PPU::SubmitScanline(u16 vcount, bool capture_bg_and_3d) {
     mmio.capture_bg_and_3d = capture_bg_and_3d;
 
-    if (vcount < 192) {
+    if(vcount < 192) {
       mmio_copy[vcount] = mmio;
     } else {
       mmio_copy[vcount].dispcnt = mmio.dispcnt;
@@ -357,7 +357,7 @@ namespace dual::nds {
       mmio_copy[vcount].winv[1] = mmio.winv[1];
     }
 
-    if (vcount == 0) {
+    if(vcount == 0) {
       /*// @hack: make sure that glReadPixels() is called on the main thread,
       // by issuing a dummy call to CaptureColor()
       if(capture_bg_and_3d && gpu->GetOutputImageType() == VideoDevice::ImageType::OpenGL) {
