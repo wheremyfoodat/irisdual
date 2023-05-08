@@ -3,7 +3,7 @@
 
 namespace dual::nds {
 
-  const int PPU::s_obj_size[4][4][2] = {
+  static constexpr int k_obj_size[4][4][2] = {
     /* SQUARE */
     {
       { 8 , 8  },
@@ -35,31 +35,31 @@ namespace dual::nds {
   };
 
   void PPU::RenderLayerOAM(u16 vcount) {
-    auto const& mmio = mmio_copy[vcount];
+    auto const& mmio = m_mmio_copy[vcount];
 
     s16 transform[4];
 
     int tile_num;
     u16 pixel;
 
-    line_contains_alpha_obj = false;
+    m_line_contains_alpha_obj = false;
 
     for(int x = 0; x < 256; x++) {
-      buffer_obj[x].priority = 4;
-      buffer_obj[x].color = s_color_transparent;
-      buffer_obj[x].alpha = 0;
-      buffer_obj[x].window = 0;
+      m_buffer_obj[x].priority = 4;
+      m_buffer_obj[x].color = k_color_transparent;
+      m_buffer_obj[x].alpha = 0;
+      m_buffer_obj[x].window = 0;
     }
 
     for(s32 offset = 0; offset <= 127 * 8; offset += 8) {
       // Check if OBJ is disabled (affine=0, attr0bit9=1)
-      if((render_oam[offset + 1] & 3) == 2) {
+      if((m_render_oam[offset + 1] & 3) == 2) {
         continue;
       }
 
-      u16 attr0 = (render_oam[offset + 1] << 8) | render_oam[offset + 0];
-      u16 attr1 = (render_oam[offset + 3] << 8) | render_oam[offset + 2];
-      u16 attr2 = (render_oam[offset + 5] << 8) | render_oam[offset + 4];
+      u16 attr0 = (m_render_oam[offset + 1] << 8) | m_render_oam[offset + 0];
+      u16 attr1 = (m_render_oam[offset + 3] << 8) | m_render_oam[offset + 2];
+      u16 attr2 = (m_render_oam[offset + 5] << 8) | m_render_oam[offset + 4];
 
       int width;
       int height;
@@ -79,8 +79,8 @@ namespace dual::nds {
       int attr0b9 = (attr0 >> 9) & 1;
 
       // Decode OBJ width and height.
-      width  = s_obj_size[shape][size][0];
-      height = s_obj_size[shape][size][1];
+      width  = k_obj_size[shape][size][0];
+      height = k_obj_size[shape][size][1];
 
       int half_width  = width / 2;
       int half_height = height / 2;
@@ -94,10 +94,10 @@ namespace dual::nds {
         int group = ((attr1 >> 9) & 0x1F) << 5;
 
         // Read transform matrix.
-        transform[0] = (render_oam[group + 0x7 ] << 8) | render_oam[group + 0x6 ];
-        transform[1] = (render_oam[group + 0xF ] << 8) | render_oam[group + 0xE ];
-        transform[2] = (render_oam[group + 0x17] << 8) | render_oam[group + 0x16];
-        transform[3] = (render_oam[group + 0x1F] << 8) | render_oam[group + 0x1E];
+        transform[0] = (m_render_oam[group + 0x7 ] << 8) | m_render_oam[group + 0x6 ];
+        transform[1] = (m_render_oam[group + 0xF ] << 8) | m_render_oam[group + 0xE ];
+        transform[2] = (m_render_oam[group + 0x17] << 8) | m_render_oam[group + 0x16];
+        transform[3] = (m_render_oam[group + 0x1F] << 8) | m_render_oam[group + 0x1E];
 
         // Check double-size flag. Doubles size of the view rectangle.
         if(attr0b9) {
@@ -169,16 +169,16 @@ namespace dual::nds {
         if(mode == OBJ_BITMAP) {
           // TODO: Attr 2, Bit 12-15 is used as Alpha-OAM value (instead of as palette setting).
           if(mmio.dispcnt.bitmap_obj_mapping == DisplayControl::Mapping::OneDimensional) {
-            pixel = atom::read<u16>(render_vram_obj, (number * (64 << mmio.dispcnt.bitmap_obj_boundary) + tex_y * width + tex_x) * 2);
+            pixel = atom::read<u16>(m_render_vram_obj, (number * (64 << mmio.dispcnt.bitmap_obj_boundary) + tex_y * width + tex_x) * 2);
           } else {
             auto dimension = mmio.dispcnt.bitmap_obj_dimension;
             auto mask = (16 << dimension) - 1;
 
-            pixel = atom::read<u16>(render_vram_obj, ((number & ~mask) * 64 + (number & mask) * 8 + tex_y * (128 << dimension) + tex_x) * 2);
+            pixel = atom::read<u16>(m_render_vram_obj, ((number & ~mask) * 64 + (number & mask) * 8 + tex_y * (128 << dimension) + tex_x) * 2);
           }
 
           if((pixel & 0x8000) == 0) {
-            pixel = s_color_transparent;
+            pixel = k_color_transparent;
           }
         } else if(is_256) {
           if(mmio.dispcnt.tile_obj_mapping == DisplayControl::Mapping::OneDimensional) {
@@ -202,9 +202,9 @@ namespace dual::nds {
           pixel = DecodeTilePixel4BPP_OBJ(tile_num * 32, palette, tile_x, tile_y);
         }
 
-        auto& point = buffer_obj[global_x];
+        auto& point = m_buffer_obj[global_x];
 
-        if(pixel != s_color_transparent) {
+        if(pixel != k_color_transparent) {
           if(mode == OBJ_WINDOW) {
             point.window = 1;
           } else if(prio < point.priority) {
@@ -212,7 +212,7 @@ namespace dual::nds {
             point.color = pixel;
             point.alpha = (mode == OBJ_SEMI) ? 1 : 0;
             if(point.alpha) {
-              line_contains_alpha_obj = true;
+              m_line_contains_alpha_obj = true;
             }
           }
         }

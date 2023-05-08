@@ -4,7 +4,7 @@
 namespace dual::nds {
 
   void PPU::RenderLayerText(uint id, u16 vcount) {
-    auto const& mmio = mmio_copy[vcount];
+    auto const& mmio = m_mmio_copy[vcount];
     auto const& bgcnt = mmio.bgcnt[id];
     auto const& mosaic = mmio.mosaic.bg;
 
@@ -30,7 +30,7 @@ namespace dual::nds {
     u16 tile[8];
     u32 base = mmio.dispcnt.map_block * 65536 + bgcnt.map_block * 2048 + (grid_y % 32) * 64;
 
-    u16* buffer = buffer_bg[id];
+    u16* buffer = m_buffer_bg[id];
     s32  last_encoder = -1;
     u16  encoder;
 
@@ -62,7 +62,7 @@ namespace dual::nds {
 
     do {
       do {
-        encoder = atom::read<u16>(render_vram_bg, base + grid_x++ * 2);
+        encoder = atom::read<u16>(m_render_vram_bg, base + grid_x++ * 2);
 
         // TODO: speed tile decoding itself up.
         if(encoder != last_encoder) {

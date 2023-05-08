@@ -116,7 +116,7 @@ namespace dual::nds {
         auto final_id = id + (size >> k_page_shift);
         auto data = bank.data();
 
-        while (id < final_id) {
+        while(id < final_id) {
           auto& desc = m_pages.at(id++);
 
           if(desc.page == data) [[likely]] {

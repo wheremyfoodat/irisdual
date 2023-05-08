@@ -3,22 +3,22 @@
 
 #define REG(address) ((address) >> 2)
 
-#define PPU_READ_16__(ppu, reg) ppu.mmio.reg.ReadHalf()
+#define PPU_READ_16__(ppu, reg) ppu.m_mmio.reg.ReadHalf()
 
 #define PPU_READ_1616(ppu, reg_lo, reg_hi, mask) \
-  (((mask) & 0x0000FFFFu ? (ppu.mmio.reg_lo.ReadHalf() <<  0) : 0u) |\
-   ((mask) & 0xFFFF0000u ? (ppu.mmio.reg_hi.ReadHalf() << 16) : 0u))
+  (((mask) & 0x0000FFFFu ? (ppu.m_mmio.reg_lo.ReadHalf() <<  0) : 0u) |\
+   ((mask) & 0xFFFF0000u ? (ppu.m_mmio.reg_hi.ReadHalf() << 16) : 0u))
 
-#define PPU_READ_32(ppu, reg) ppu.mmio.reg.ReadWord()
+#define PPU_READ_32(ppu, reg) ppu.m_mmio.reg.ReadWord()
 
-#define PPU_WRITE_16__(ppu, reg, value, mask) ppu.mmio.reg.WriteHalf(value, (u16)mask);
+#define PPU_WRITE_16__(ppu, reg, value, mask) ppu.m_mmio.reg.WriteHalf(value, (u16)mask);
 
 #define PPU_WRITE_1616(ppu, reg_lo, reg_hi, value, mask) {\
-  if(mask & 0x0000FFFFu) ppu.mmio.reg_lo.WriteHalf((u16)((value) >>  0), (u16)((mask) >>  0));\
-  if(mask & 0xFFFF0000u) ppu.mmio.reg_hi.WriteHalf((u16)((value) >> 16), (u16)((mask) >> 16));\
+  if(mask & 0x0000FFFFu) ppu.m_mmio.reg_lo.WriteHalf((u16)((value) >>  0), (u16)((mask) >>  0));\
+  if(mask & 0xFFFF0000u) ppu.m_mmio.reg_hi.WriteHalf((u16)((value) >> 16), (u16)((mask) >> 16));\
 }
 
-#define PPU_WRITE_32(ppu, reg, value, mask) ppu.mmio.reg.WriteWord(value, mask);
+#define PPU_WRITE_32(ppu, reg, value, mask) ppu.m_mmio.reg.WriteWord(value, mask);
 
 namespace dual::nds::arm9 {
 

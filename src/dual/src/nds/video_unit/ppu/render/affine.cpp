@@ -10,10 +10,10 @@ namespace dual::nds {
     int  height,
     std::function<void(int, int, int)> render_func
   ) {
-    auto const& mmio = mmio_copy[vcount];
+    auto const& mmio = m_mmio_copy[vcount];
     auto const& bg = mmio.bgcnt[2 + id];
     auto const& mosaic = mmio.mosaic.bg;
-    u16* buffer = buffer_bg[2 + id];
+    u16* buffer = m_buffer_bg[2 + id];
 
     s32 ref_x = mmio.bgx[id].current;
     s32 ref_y = mmio.bgy[id].current;
@@ -50,7 +50,7 @@ namespace dual::nds {
           y = height + (y % height);
         }
       } else if(x >= width || y >= height || x < 0 || y < 0) {
-        buffer[_x] = s_color_transparent;
+        buffer[_x] = k_color_transparent;
         continue;
       }
 
@@ -59,10 +59,10 @@ namespace dual::nds {
   }
 
   void PPU::RenderLayerAffine(uint id, u16 vcount) {
-    auto const& mmio = mmio_copy[vcount];
+    auto const& mmio = m_mmio_copy[vcount];
     auto const& bg = mmio.bgcnt[2 + id];
 
-    u16* buffer = buffer_bg[2 + id];
+    u16* buffer = m_buffer_bg[2 + id];
 
     int size = 128 << bg.size;
     int block_width = 16 << bg.size;
@@ -70,7 +70,7 @@ namespace dual::nds {
     u32 tile_base = mmio.dispcnt.tile_block * 65536 + bg.tile_block * 16384;
 
     AffineRenderLoop(vcount, id, size, size, [&](int line_x, int x, int y) {
-      auto tile_number = atom::read<u8>(render_vram_bg, map_base + (y >> 3) * block_width + (x >> 3));
+      auto tile_number = atom::read<u8>(m_render_vram_bg, map_base + (y >> 3) * block_width + (x >> 3));
       buffer[line_x] = DecodeTilePixel8BPP_BG(
         tile_base + tile_number * 64,
         false,
@@ -83,10 +83,10 @@ namespace dual::nds {
   }
 
   void PPU::RenderLayerExtended(uint id, u16 vcount) {
-    auto const& mmio = mmio_copy[vcount];
+    auto const& mmio = m_mmio_copy[vcount];
     auto const& bg = mmio.bgcnt[2 + id];
 
-    u16* buffer = buffer_bg[2 + id];
+    u16* buffer = m_buffer_bg[2 + id];
 
     if(bg.full_palette) {
       int width;
@@ -102,19 +102,19 @@ namespace dual::nds {
       if(bg.tile_block & 1) {
         // Rotate/Scale direct color bitmap
         AffineRenderLoop(vcount, id, width, height, [&](int line_x, int x, int y) {
-          u16 color = atom::read<u16>(render_vram_bg, bg.map_block * 16384 + (y * width + x) * 2);
+          u16 color = atom::read<u16>(m_render_vram_bg, bg.map_block * 16384 + (y * width + x) * 2);
           if(color & 0x8000) {
             buffer[line_x] = color & 0x7FFF;
           } else {
-            buffer[line_x] = s_color_transparent;
+            buffer[line_x] = k_color_transparent;
           }
         });
       } else {
         // Rotate/Scale 256-color bitmap
         AffineRenderLoop(vcount, id, width, height, [&](int line_x, int x, int y) {
-          u8 index = atom::read<u8>(render_vram_bg, bg.map_block * 16384 + y * width + x);
+          u8 index = atom::read<u8>(m_render_vram_bg, bg.map_block * 16384 + y * width + x);
           if(index == 0) {
-            buffer[line_x] = s_color_transparent;
+            buffer[line_x] = k_color_transparent;
           } else {
             buffer[line_x] = ReadPalette(0, index);
           }
@@ -129,7 +129,7 @@ namespace dual::nds {
       u32 tile_base = mmio.dispcnt.tile_block * 65536 + bg.tile_block * 16384;
 
       AffineRenderLoop(vcount, id, size, size, [&](int line_x, int x, int y) {
-        u16 encoder = atom::read<u16>(render_vram_bg, map_base + ((y >> 3) * block_width + (x >> 3)) * 2);
+        u16 encoder = atom::read<u16>(m_render_vram_bg, map_base + ((y >> 3) * block_width + (x >> 3)) * 2);
         int number  = encoder & 0x3FF;
         int palette = encoder >> 12;
         int tile_x = x & 7;
@@ -144,18 +144,18 @@ namespace dual::nds {
   }
 
   void PPU::RenderLayerLarge(u16 vcount) {
-    auto const& mmio = mmio_copy[vcount];
+    auto const& mmio = m_mmio_copy[vcount];
     auto const& bg = mmio.bgcnt[2];
 
     int width = 512 << (bg.size & 1);
     int height = 1024 >> (bg.size & 1);
 
     AffineRenderLoop(vcount, 0, width, height, [&](int line_x, int x, int y) {
-      u8 index = atom::read<u8>(render_vram_bg, y * width + x);
+      u8 index = atom::read<u8>(m_render_vram_bg, y * width + x);
       if(index == 0) {
-        buffer_bg[2][line_x] = s_color_transparent;
+        m_buffer_bg[2][line_x] = k_color_transparent;
       } else {
-        buffer_bg[2][line_x] = ReadPalette(0, index);
+        m_buffer_bg[2][line_x] = ReadPalette(0, index);
       }
     });
   }

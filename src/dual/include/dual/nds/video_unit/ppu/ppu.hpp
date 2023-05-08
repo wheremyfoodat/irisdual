@@ -50,52 +50,52 @@ namespace dual::nds {
         MasterBrightness master_bright;
 
         bool capture_bg_and_3d;
-      } mmio;
+      } m_mmio;
 
       void Reset();
 
       const u32* GetOutput() const {
-        return &output[frame][0];
+        return &m_output[m_frame][0];
       }
 
       void SwapBuffers() {
-        frame ^= 1;
+        m_frame ^= 1;
       }
 
       auto GetComposerOutput() -> u16 const* {
-        return &buffer_compose[0];
+        return &m_buffer_compose[0];
       }
 
       void WaitForRenderWorker() {
-        while (render_worker.vcount <= render_worker.vcount_max) {}
+        while(m_render_worker.vcount <= m_render_worker.vcount_max) {}
       }
 
       void OnWriteVRAM_BG(size_t address_lo, size_t address_hi) {
-        OnRegionWrite(vram_bg, render_vram_bg, vram_bg_dirty, {address_lo, address_hi});
+        OnRegionWrite(m_vram_bg, m_render_vram_bg, m_vram_bg_dirty, {address_lo, address_hi});
       }
 
       void OnWriteVRAM_OBJ(size_t address_lo, size_t address_hi) {
-        OnRegionWrite(vram_obj, render_vram_obj, vram_obj_dirty, {address_lo, address_hi});
+        OnRegionWrite(m_vram_obj, m_render_vram_obj, m_vram_obj_dirty, {address_lo, address_hi});
       }
 
       void OnWriteExtPal_BG(size_t address_lo, size_t address_hi) {
-        OnRegionWrite(extpal_bg, render_extpal_bg, extpal_bg_dirty, {address_lo, address_hi});
+        OnRegionWrite(m_extpal_bg, m_render_extpal_bg, m_extpal_bg_dirty, {address_lo, address_hi});
       }
 
       void OnWriteExtPal_OBJ(size_t address_lo, size_t address_hi) {
-        OnRegionWrite(extpal_obj, render_extpal_obj, extpal_obj_dirty, {address_lo, address_hi});
+        OnRegionWrite(m_extpal_obj, m_render_extpal_obj, m_extpal_obj_dirty, {address_lo, address_hi});
       }
 
       void OnWriteVRAM_LCDC(size_t address_lo, size_t address_hi) {
-        OnRegionWrite(vram_lcdc, render_vram_lcdc, vram_lcdc_dirty, {address_lo, address_hi});
+        OnRegionWrite(m_vram_lcdc, m_render_vram_lcdc, m_vram_lcdc_dirty, {address_lo, address_hi});
       }
 
       void OnWritePRAM(size_t address_lo, size_t address_hi) {
-        OnRegionWrite(pram, render_pram, pram_dirty, {address_lo, address_hi});
+        OnRegionWrite(m_pram, m_render_pram, m_pram_dirty, {address_lo, address_hi});
       }
 
       void OnWriteOAM(size_t address_lo, size_t address_hi) {
-        OnRegionWrite(oam, render_oam, oam_dirty, {address_lo, address_hi});
+        OnRegionWrite(m_oam, m_render_oam, m_oam_dirty, {address_lo, address_hi});
       }
 
       void OnDrawScanlineBegin(u16 vcount, bool capture_bg_and_3d);
@@ -183,30 +183,30 @@ namespace dual::nds {
       }
 
       auto ReadPalette(uint palette, uint index) -> u16 {
-        return atom::read<u16>(render_pram, (palette * 16 + index) * 2) & 0x7FFFu;
+        return atom::read<u16>(m_render_pram, (palette * 16 + index) * 2) & 0x7FFFu;
       }
 
       void DecodeTileLine4BPP(u16* buffer, u32 base, uint palette, uint number, uint y, bool flip) {
         uint xor_x = flip ? 7 : 0;
-        u32  data  = atom::read<u32>(render_vram_bg, base + number * 32 + y * 4);
+        u32  data  = atom::read<u32>(m_render_vram_bg, base + number * 32 + y * 4);
 
-        for (uint x = 0; x < 8; x++) {
+        for(uint x = 0; x < 8; x++) {
           auto index = data & 15;
-          buffer[x ^ xor_x] = index == 0 ? s_color_transparent : ReadPalette(palette, index);
+          buffer[x ^ xor_x] = index == 0 ? k_color_transparent : ReadPalette(palette, index);
           data >>= 4;
         }
       }
 
       void DecodeTileLine8BPP(u16* buffer, u32 base, uint palette, uint extpal_slot, uint number, uint y, bool flip) {
         uint xor_x = flip ? 7 : 0;
-        u64  data  = atom::read<u64>(render_vram_bg, base + number * 64 + y * 8);
+        u64  data  = atom::read<u64>(m_render_vram_bg, base + number * 64 + y * 8);
 
-        for (uint x = 0; x < 8; x++) {
+        for(uint x = 0; x < 8; x++) {
           auto index = data & 0xFF;
-          if (index == 0) {
-            buffer[x ^ xor_x] = s_color_transparent;
-          } else if (mmio.dispcnt.enable_extpal_bg) {
-            buffer[x ^ xor_x] = atom::read<u16>(render_extpal_bg, 0x2000 * extpal_slot + (palette * 256 + index) * sizeof(u16));
+          if(index == 0) {
+            buffer[x ^ xor_x] = k_color_transparent;
+          } else if(m_mmio.dispcnt.enable_extpal_bg) {
+            buffer[x ^ xor_x] = atom::read<u16>(m_render_extpal_bg, 0x2000 * extpal_slot + (palette * 256 + index) * sizeof(u16));
           } else {
             buffer[x ^ xor_x] = ReadPalette(0, index);
           }
@@ -215,36 +215,36 @@ namespace dual::nds {
       }
 
       auto DecodeTilePixel4BPP_OBJ(u32 address, uint palette, int x, int y) -> u16 {
-        u8 tuple = atom::read<u8>(render_vram_obj, address + (y * 4) + (x / 2));
+        u8 tuple = atom::read<u8>(m_render_vram_obj, address + (y * 4) + (x / 2));
         u8 index = (x & 1) ? (tuple >> 4) : (tuple & 0xF);
 
-        if (index == 0) {
-          return s_color_transparent;
+        if(index == 0) {
+          return k_color_transparent;
         } else {
           return ReadPalette(palette, index);
         }
       }
 
       auto DecodeTilePixel8BPP_BG(u32 address, bool enable_extpal, uint palette, uint extpal_slot, int x, int y) -> u16 {
-        u8 index = atom::read<u8>(render_vram_bg, address + (y * 8) + x);
+        u8 index = atom::read<u8>(m_render_vram_bg, address + (y * 8) + x);
 
-        if (index == 0) {
-          return s_color_transparent;
-        } else if (enable_extpal && mmio.dispcnt.enable_extpal_bg) {
-          return atom::read<u16>(render_extpal_bg, 0x2000 * extpal_slot + (palette * 256 + index) * sizeof(u16));
+        if(index == 0) {
+          return k_color_transparent;
+        } else if(enable_extpal && m_mmio.dispcnt.enable_extpal_bg) {
+          return atom::read<u16>(m_render_extpal_bg, 0x2000 * extpal_slot + (palette * 256 + index) * sizeof(u16));
         } else {
           return ReadPalette(0, index);
         }
       }
 
       auto DecodeTilePixel8BPP_OBJ(u32 address, uint palette, int x, int y) -> u16 {
-        u8 index = atom::read<u8>(render_vram_obj, address + (y * 8) + x);
+        u8 index = atom::read<u8>(m_render_vram_obj, address + (y * 8) + x);
 
-        if (index == 0) {
-          return s_color_transparent;
+        if(index == 0) {
+          return k_color_transparent;
         } else {
-          if (mmio.dispcnt.enable_extpal_obj) {
-            return atom::read<u16>(render_extpal_obj, ((palette * 256 + index) * sizeof(u16)) & 0x1FFF);
+          if(m_mmio.dispcnt.enable_extpal_obj) {
+            return atom::read<u16>(m_render_extpal_obj, ((palette * 256 + index) * sizeof(u16)) & 0x1FFF);
           } else {
             return ReadPalette(16, index);
           }
@@ -253,20 +253,20 @@ namespace dual::nds {
 
       template<typename T>
       static void CopyVRAM(T const& src, u8* dst, AddressRange const& range) {
-        for (size_t address = range.lo; address < range.hi; address++) {
+        for(size_t address = range.lo; address < range.hi; address++) {
           dst[address] = src.template Read<u8>(address);
         }
       }
 
       static void CopyVRAM(u8 const* src, u8* dst, AddressRange const& range) {
-        for (size_t address = range.lo; address < range.hi; address++) {
+        for(size_t address = range.lo; address < range.hi; address++) {
           dst[address] = src[address];
         }
       }
 
       template<typename T>
       void OnRegionWrite(T const& region, u8* copy_dst, AddressRange& dirty_range, AddressRange const& write_range) {
-        if (current_vcount < 192) {
+        if(m_vcount < 192) {
           WaitForRenderWorker();
           CopyVRAM(region, copy_dst, write_range);
         } else {
@@ -274,22 +274,21 @@ namespace dual::nds {
         }
       }
 
-      int id;
-      u32 output[2][256 * 192];
-      u16 buffer_compose[256];
-      u16 buffer_bg[4][256];
-      bool buffer_win[2][256];
-      bool window_scanline_enable[2];
-      int buffer_3d_alpha[256];
+      u32 m_output[2][256 * 192];
+      u16 m_buffer_compose[256];
+      u16 m_buffer_bg[4][256];
+      bool m_buffer_win[2][256];
+      bool m_window_scanline_enable[2];
+      int m_buffer_3d_alpha[256];
 
       struct ObjectPixel {
         u16 color;
         u8  priority;
         unsigned alpha  : 1;
         unsigned window : 1;
-      } buffer_obj[256];
+      } m_buffer_obj[256];
 
-      bool line_contains_alpha_obj = false;
+      bool m_line_contains_alpha_obj = false;
 
       struct RenderWorker {
         std::atomic_int vcount;
@@ -299,42 +298,40 @@ namespace dual::nds {
         std::mutex mutex;
         bool ready;
         std::thread thread;
-      } render_worker;
+      } m_render_worker;
 
-      MMIO mmio_copy[263];
+      MMIO m_mmio_copy[263];
 
-      Region<32> const& vram_bg;  //< Background tile, map and bitmap data
-      Region<16> const& vram_obj; //< OBJ tile and bitmap data
-      Region<4, 8192> const& extpal_bg;  //< Background extended palette data
-      Region<1, 8192> const& extpal_obj; //< OBJ extended palette data
-      Region<64> const& vram_lcdc; //< LCDC mapped VRAM
-      u8 const* pram; //< Palette RAM
-      u8 const* oam;  //< Object Attribute Map
+      Region<32> const& m_vram_bg;  //< Background tile, map and bitmap data
+      Region<16> const& m_vram_obj; //< OBJ tile and bitmap data
+      Region<4, 8192> const& m_extpal_bg;  //< Background extended palette data
+      Region<1, 8192> const& m_extpal_obj; //< OBJ extended palette data
+      Region<64> const& m_vram_lcdc; //< LCDC mapped VRAM
+      u8 const* m_pram; //< Palette RAM
+      u8 const* m_oam;  //< Object Attribute Map
 
       // Copies of VRAM, PRAM and OAM read by the rendering thread:
-      u8 render_vram_bg[524288];
-      u8 render_vram_obj[262144];
-      u8 render_extpal_bg[32768];
-      u8 render_extpal_obj[8192];
-      u8 render_vram_lcdc[1048576];
-      u8 render_pram[0x400];
-      u8 render_oam[0x400];
+      u8 m_render_vram_bg[524288];
+      u8 m_render_vram_obj[262144];
+      u8 m_render_extpal_bg[32768];
+      u8 m_render_extpal_obj[8192];
+      u8 m_render_vram_lcdc[1048576];
+      u8 m_render_pram[0x400];
+      u8 m_render_oam[0x400];
 
       // Lowest and highest dirty VRAM addresses
-      AddressRange vram_bg_dirty;
-      AddressRange vram_obj_dirty;
-      AddressRange extpal_bg_dirty;
-      AddressRange extpal_obj_dirty;
-      AddressRange vram_lcdc_dirty;
-      AddressRange pram_dirty;
-      AddressRange oam_dirty;
+      AddressRange m_vram_bg_dirty;
+      AddressRange m_vram_obj_dirty;
+      AddressRange m_extpal_bg_dirty;
+      AddressRange m_extpal_obj_dirty;
+      AddressRange m_vram_lcdc_dirty;
+      AddressRange m_pram_dirty;
+      AddressRange m_oam_dirty;
 
-      int current_vcount;
+      int m_vcount;
+      int m_frame = 0;
 
-      int frame = 0;
-
-      static constexpr u16 s_color_transparent = 0x8000;
-      static const int s_obj_size[4][4][2];
+      static constexpr u16 k_color_transparent = 0x8000u;
   };
 
 } // namespace dual::nds
