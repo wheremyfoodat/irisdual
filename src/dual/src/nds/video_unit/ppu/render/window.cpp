@@ -16,7 +16,7 @@ namespace dual::nds {
       m_window_scanline_enable[id] = false;
     }
 
-    if(m_window_scanline_enable[id] && winh._changed) {
+    if(m_window_scanline_enable[id] && winh.changed) {
       // @todo: X1=00h is treated as 0 (left-most), X2=00h is treated as 100h (right-most).
       // However, the window is not displayed if X1=X2=00h
       if(winh.min <= winh.max) {
@@ -29,7 +29,7 @@ namespace dual::nds {
         }
       }
 
-      winh._changed = false;
+      winh.changed = false;
     }
   }
 

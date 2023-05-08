@@ -142,7 +142,7 @@ namespace dual::nds {
         uint id,
         int  width,
         int  height,
-        std::function<void(int, int, int)> render_func
+        const std::function<void(int, int, int)>& render_func
       );
 
       void RenderScanline(u16 vcount, bool capture_bg_and_3d);

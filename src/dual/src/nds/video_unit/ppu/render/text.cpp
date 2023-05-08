@@ -82,8 +82,8 @@ namespace dual::nds {
         }
 
         if(draw_x >= 0 && draw_x <= 248) {
-          for(int x = 0; x < 8; x++) {
-            buffer[draw_x++] = tile[x];
+          for(u16 pixel : tile) {
+            buffer[draw_x++] = pixel;
           }
         } else {
           int x = 0;
@@ -95,7 +95,7 @@ namespace dual::nds {
             for(; x < max; x++) {
               buffer[draw_x++] = tile[x];
             }
-          } else if(draw_x > 248) {
+          } else {
             max -= draw_x - 248;
             for(; x < max; x++) {
               buffer[draw_x++] = tile[x];

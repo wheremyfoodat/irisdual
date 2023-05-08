@@ -120,12 +120,12 @@ namespace dual::nds {
       u16 half = 0u;
     };
 
-    bool _changed = true;
+    bool changed = true;
 
     void WriteHalf(u16 value, u16 mask) {
       half = (value & mask) | (half & ~mask);
 
-      _changed = true;
+      changed = true;
     }
   };
 

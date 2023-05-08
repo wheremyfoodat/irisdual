@@ -8,7 +8,7 @@ namespace dual::nds {
     uint id,
     int  width,
     int  height,
-    std::function<void(int, int, int)> render_func
+    const std::function<void(int, int, int)>& render_func
   ) {
     const auto& mmio = m_mmio_copy[vcount];
     const auto& bg = mmio.bgcnt[2 + id];
