@@ -137,15 +137,15 @@ namespace dual::nds {
         auto sfx_enable = !window || win_layer_enable[LAYER_SFX];
 
         if constexpr(opengl) {
-          buffer_ogl_color[0][buffer_index] = ConvertColor(pixel[0]);
-          buffer_ogl_color[1][buffer_index] = ConvertColor(pixel[1]);
-
-          buffer_ogl_attribute[buffer_index] = (sfx_enable   ? 0x8000 : 0) |
-                                               (is_alpha_obj ? 0x4000 : 0) |
-                                               (prio[1] << 8) |
-                                               (prio[0] << 6) |
-                                               (layer[1] << 3) |
-                                                layer[0];
+          // buffer_ogl_color[0][buffer_index] = ConvertColor(pixel[0]);
+          // buffer_ogl_color[1][buffer_index] = ConvertColor(pixel[1]);
+          //
+          // buffer_ogl_attribute[buffer_index] = (sfx_enable   ? 0x8000 : 0) |
+          //                                      (is_alpha_obj ? 0x4000 : 0) |
+          //                                      (prio[1] << 8) |
+          //                                      (prio[0] << 6) |
+          //                                      (layer[1] << 3) |
+          //                                       layer[0];
         } else {
           auto blend_mode = mmio.bldcnt.blend_mode;
           bool have_dst = mmio.bldcnt.dst_targets[layer[0]];
@@ -210,8 +210,8 @@ namespace dual::nds {
         }
 
         if constexpr(opengl) {
-          buffer_ogl_color[0][buffer_index] = ConvertColor(pixel[0]);
-          buffer_ogl_attribute[buffer_index] = (prio[0] << 6) | (LAYER_BD << 3) | layer[0];
+          // buffer_ogl_color[0][buffer_index] = ConvertColor(pixel[0]);
+          // buffer_ogl_attribute[buffer_index] = (prio[0] << 6) | (LAYER_BD << 3) | layer[0];
         }
       }
 
