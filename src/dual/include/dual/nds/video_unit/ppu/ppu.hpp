@@ -170,7 +170,7 @@ namespace dual::nds {
       void SubmitScanline(u16 vcount, bool capture_bg_and_3d);
       void RegisterMapUnmapCallbacks();
 
-      static auto ConvertColor(u16 color) -> u32 {
+      static u32 ConvertColor(u16 color) {
         u32 r = (color >>  0) & 0x1F;
         u32 g = (color >>  5) & 0x1F;
         u32 b = (color >> 10) & 0x1F;
@@ -179,39 +179,42 @@ namespace dual::nds {
       }
 
       auto ReadPalette(uint palette, uint index) -> u16 {
-        return atom::read<u16>(m_render_pram, (palette * 16 + index) * 2) & 0x7FFFu;
+        return atom::read<u16>(m_render_pram, palette << 5 | index << 1) & 0x7FFFu;
       }
 
       void DecodeTileLine4BPP(u16* buffer, u32 base, uint palette, uint number, uint y, bool flip) {
-        uint xor_x = flip ? 7 : 0;
-        u32  data  = atom::read<u32>(m_render_vram_bg, base + number * 32 + y * 4);
+        int xor_x = flip ? 7 : 0;
+        u32 data  = atom::read<u32>(m_render_vram_bg, base + (number << 5 | y << 2));
 
-        for(uint x = 0; x < 8; x++) {
-          auto index = data & 15;
-          buffer[x ^ xor_x] = index == 0 ? k_color_transparent : ReadPalette(palette, index);
+        for(int x = 0; x < 8; x++) {
+          uint index = data & 15;
+
+          buffer[x ^ xor_x] = index == 0u ? k_color_transparent : ReadPalette(palette, index);
           data >>= 4;
         }
       }
 
       void DecodeTileLine8BPP(u16* buffer, u32 base, uint palette, uint extpal_slot, uint number, uint y, bool flip) {
-        uint xor_x = flip ? 7 : 0;
-        u64  data  = atom::read<u64>(m_render_vram_bg, base + number * 64 + y * 8);
+        int xor_x = flip ? 7 : 0;
+        u64 data  = atom::read<u64>(m_render_vram_bg, base + (number << 6 | y << 3));
 
         for(uint x = 0; x < 8; x++) {
-          auto index = data & 0xFF;
+          uint index = data & 0xFF;
+
           if(index == 0) {
             buffer[x ^ xor_x] = k_color_transparent;
           } else if(m_mmio.dispcnt.enable_extpal_bg) {
-            buffer[x ^ xor_x] = atom::read<u16>(m_render_extpal_bg, 0x2000 * extpal_slot + (palette * 256 + index) * sizeof(u16));
+            buffer[x ^ xor_x] = atom::read<u16>(m_render_extpal_bg, extpal_slot << 13 | palette << 9 | index << 1);
           } else {
             buffer[x ^ xor_x] = ReadPalette(0, index);
           }
+
           data >>= 8;
         }
       }
 
       auto DecodeTilePixel4BPP_OBJ(u32 address, uint palette, int x, int y) -> u16 {
-        u8 tuple = atom::read<u8>(m_render_vram_obj, address + (y * 4) + (x / 2));
+        u8 tuple = atom::read<u8>(m_render_vram_obj, address + (y << 2 | x >> 1));
         u8 index = (x & 1) ? (tuple >> 4) : (tuple & 0xF);
 
         if(index == 0) {
@@ -222,25 +225,25 @@ namespace dual::nds {
       }
 
       auto DecodeTilePixel8BPP_BG(u32 address, bool enable_extpal, uint palette, uint extpal_slot, int x, int y) -> u16 {
-        u8 index = atom::read<u8>(m_render_vram_bg, address + (y * 8) + x);
+        u8 index = atom::read<u8>(m_render_vram_bg, address + (y << 3) + x);
 
         if(index == 0) {
           return k_color_transparent;
         } else if(enable_extpal && m_mmio.dispcnt.enable_extpal_bg) {
-          return atom::read<u16>(m_render_extpal_bg, 0x2000 * extpal_slot + (palette * 256 + index) * sizeof(u16));
+          return atom::read<u16>(m_render_extpal_bg, extpal_slot << 13 | palette << 9 | index << 1);
         } else {
           return ReadPalette(0, index);
         }
       }
 
       auto DecodeTilePixel8BPP_OBJ(u32 address, uint palette, int x, int y) -> u16 {
-        u8 index = atom::read<u8>(m_render_vram_obj, address + (y * 8) + x);
+        u8 index = atom::read<u8>(m_render_vram_obj, address + (y << 3) + x);
 
         if(index == 0) {
           return k_color_transparent;
         } else {
           if(m_mmio.dispcnt.enable_extpal_obj) {
-            return atom::read<u16>(m_render_extpal_obj, ((palette * 256 + index) * sizeof(u16)) & 0x1FFF);
+            return atom::read<u16>(m_render_extpal_obj, (palette << 9 | index << 1) & 0x1FFF);
           } else {
             return ReadPalette(16, index);
           }
