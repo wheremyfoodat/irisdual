@@ -3,7 +3,7 @@
 #include <dual/nds/backup/flash.hpp>
 
 /*
- * TODO: 
+ * @todo:
  * - figure out the state after a command completed
  * - figure out what happens if /CS is not driven high after sending a command byte.
  * - generate a plausible manufacturer and device id instead of always using the same one.

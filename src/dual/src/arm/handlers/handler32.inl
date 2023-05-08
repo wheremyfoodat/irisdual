@@ -262,7 +262,7 @@ void ARM_MultiplyLong(u32 instruction) {
   if constexpr(accumulate) {
     s64 value = m_state.reg[dst_hi];
 
-    // TODO: in theory we should be able to shift by 32 because value in 64-bit.
+    // @todo: in theory we should be able to shift by 32 because value in 64-bit.
     value <<= 16;
     value <<= 16;
     value  |= m_state.reg[dst_lo];

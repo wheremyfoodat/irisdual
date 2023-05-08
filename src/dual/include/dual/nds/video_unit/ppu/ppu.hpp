@@ -242,6 +242,14 @@ namespace dual::nds {
         }
       }
 
+      static u32 ConvertColor(u16 color) {
+        u32 r = (color >>  0) & 0x1F;
+        u32 g = (color >>  5) & 0x1F;
+        u32 b = (color >> 10) & 0x1F;
+
+        return r << 19 | g << 11 | b << 3 | 0xFF000000;
+      }
+
       template<typename T>
       static void CopyVRAM(const T& src, u8* dst, const AddressRange& range) {
         for(size_t address = range.lo; address < range.hi; address++) {

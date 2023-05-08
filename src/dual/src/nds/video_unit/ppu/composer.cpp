@@ -154,7 +154,7 @@ namespace dual::nds {
           if(is_alpha_obj && have_src) {
             Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
           } if(blend_mode == BlendControl::Mode::Alpha) {
-            // TODO: what does HW do if "enable BG0 3D" is disabled in mode 6.
+            // @todo: what does HW do if "enable BG0 3D" is disabled in mode 6.
             if(layer[0] == 0 && bg0_is_3d && have_src) {
               auto real_bldalpha = mmio.bldalpha;
 

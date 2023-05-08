@@ -64,7 +64,7 @@ namespace dual::nds {
       do {
         encoder = atom::read<u16>(m_render_vram_bg, base + grid_x++ * 2);
 
-        // TODO: speed tile decoding itself up.
+        // @todo: speed tile decoding itself up.
         if(encoder != last_encoder) {
           int number  = encoder & 0x3FF;
           int palette = encoder >> 12;

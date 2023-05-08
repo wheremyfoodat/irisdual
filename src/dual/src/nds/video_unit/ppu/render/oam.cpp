@@ -3,38 +3,14 @@
 
 namespace dual::nds {
 
-  static constexpr int k_obj_size[4][4][2] = {
-    /* SQUARE */
-    {
-      { 8 , 8  },
-      { 16, 16 },
-      { 32, 32 },
-      { 64, 64 }
-    },
-    /* HORIZONTAL */
-    {
-      { 16, 8  },
-      { 32, 8  },
-      { 32, 16 },
-      { 64, 32 }
-    },
-    /* VERTICAL */
-    {
-      { 8 , 16 },
-      { 8 , 32 },
-      { 16, 32 },
-      { 32, 64 }
-    },
-    /* PROHIBITED */
-    {
-      { 0, 0 },
-      { 0, 0 },
-      { 0, 0 },
-      { 0, 0 }
-    }
-  };
-
   void PPU::RenderLayerOAM(u16 vcount) {
+    static constexpr int k_obj_size[4][4][2] = {
+      { { 8 , 8  }, { 16, 16 }, { 32, 32 }, { 64, 64 } }, // Square
+      { { 16, 8  }, { 32, 8  }, { 32, 16 }, { 64, 32 } }, // Horizontal
+      { { 8 , 16 }, { 8 , 32 }, { 16, 32 }, { 32, 64 } }, // Vertical
+      { { 8 , 8  }, { 8 , 8  }, { 8 , 8  }, { 8 , 8  } }  // Prohibited
+    };
+
     const auto& mmio = m_mmio_copy[vcount];
 
     s16 transform[4];
@@ -44,11 +20,11 @@ namespace dual::nds {
 
     m_line_contains_alpha_obj = false;
 
-    for(int x = 0; x < 256; x++) {
-      m_buffer_obj[x].priority = 4;
-      m_buffer_obj[x].color = k_color_transparent;
-      m_buffer_obj[x].alpha = 0;
-      m_buffer_obj[x].window = 0;
+    for(auto& point : m_buffer_obj) {
+      point.priority = 4;
+      point.color = k_color_transparent;
+      point.alpha = 0;
+      point.window = 0;
     }
 
     for(s32 offset = 0; offset <= 127 * 8; offset += 8) {
@@ -57,9 +33,9 @@ namespace dual::nds {
         continue;
       }
 
-      u16 attr0 = (m_render_oam[offset + 1] << 8) | m_render_oam[offset + 0];
-      u16 attr1 = (m_render_oam[offset + 3] << 8) | m_render_oam[offset + 2];
-      u16 attr2 = (m_render_oam[offset + 5] << 8) | m_render_oam[offset + 4];
+      const u16 attr0 = atom::read<u16>(m_render_oam, offset + 0);
+      const u16 attr1 = atom::read<u16>(m_render_oam, offset + 2);
+      const u16 attr2 = atom::read<u16>(m_render_oam, offset + 4);
 
       int width;
       int height;
@@ -94,10 +70,10 @@ namespace dual::nds {
         int group = ((attr1 >> 9) & 0x1F) << 5;
 
         // Read transform matrix.
-        transform[0] = (m_render_oam[group + 0x7 ] << 8) | m_render_oam[group + 0x6 ];
-        transform[1] = (m_render_oam[group + 0xF ] << 8) | m_render_oam[group + 0xE ];
-        transform[2] = (m_render_oam[group + 0x17] << 8) | m_render_oam[group + 0x16];
-        transform[3] = (m_render_oam[group + 0x1F] << 8) | m_render_oam[group + 0x1E];
+        transform[0] = atom::read<s16>(m_render_oam, group + 0x6);
+        transform[1] = atom::read<s16>(m_render_oam, group + 0xE);
+        transform[2] = atom::read<s16>(m_render_oam, group + 0x16);
+        transform[3] = atom::read<s16>(m_render_oam, group + 0x1E);
 
         // Check double-size flag. Doubles size of the view rectangle.
         if(attr0b9) {
@@ -122,7 +98,7 @@ namespace dual::nds {
         continue;
       }
 
-      s16 local_y = vcount - y;
+      s16 local_y = (s16)(vcount - y);
       int number  =  attr2 & 0x3FF;
       int palette = (attr2 >> 12) + 16;
       int flip_h  = !affine && (attr1 & (1 << 12));
@@ -133,7 +109,7 @@ namespace dual::nds {
 
       if(mosaic) {
         mosaic_x = (x - half_width) % mmio.mosaic.obj.size_x;
-        local_y -= mmio.mosaic.obj.counter_y;
+        local_y = (s16)(local_y - mmio.mosaic.obj.counter_y);
       }
 
       // Render OBJ scanline.
@@ -167,7 +143,7 @@ namespace dual::nds {
         int block_y = tex_y / 8;
 
         if(mode == OBJ_BITMAP) {
-          // TODO: Attr 2, Bit 12-15 is used as Alpha-OAM value (instead of as palette setting).
+          // @todo: Attr 2, Bit 12-15 is used as Alpha-OAM value (instead of as palette setting).
           if(mmio.dispcnt.bitmap_obj_mapping == DisplayControl::Mapping::OneDimensional) {
             pixel = atom::read<u16>(m_render_vram_obj, (number * (64 << mmio.dispcnt.bitmap_obj_boundary) + tex_y * width + tex_x) * 2);
           } else {

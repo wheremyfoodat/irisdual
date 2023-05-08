@@ -6,14 +6,6 @@
 
 namespace dual::nds {
 
-  static u32 ConvertColor(u16 color) {
-    u32 r = (color >>  0) & 0x1F;
-    u32 g = (color >>  5) & 0x1F;
-    u32 b = (color >> 10) & 0x1F;
-
-    return r << 19 | g << 11 | b << 3 | 0xFF000000;
-  }
-
   PPU::PPU(int id, SystemMemory& memory)
       : m_vram_bg{memory.vram.region_ppu_bg[id]}
       , m_vram_obj{memory.vram.region_ppu_obj[id]}
@@ -100,7 +92,7 @@ namespace dual::nds {
 
     /* Mode 0 doesn't have any affine backgrounds,
      * in that case the internal registers seemingly aren't updated.
-     * TODO: needs more research, e.g. what happens if all affine backgrounds are disabled?
+     * @todo: needs more research, e.g. what happens if all affine backgrounds are disabled?
      */
     if(dispcnt.bg_mode != 0) {
       // Advance internal affine registers and apply vertical mosaic if applicable.
@@ -125,7 +117,7 @@ namespace dual::nds {
 
     m_vcount = vcount;
 
-    // TODO: when exactly are these registers reloaded?
+    // @todo: when exactly are these registers reloaded?
     if(vcount == 192) {
       // Reset vertical mosaic counters
       mosaic.bg.counter_y = 0;
@@ -234,13 +226,13 @@ namespace dual::nds {
       return;
     }
 
-    // TODO: on a real Nintendo DS all sprites are rendered one scanline ahead.
+    // @todo: on a real Nintendo DS all sprites are rendered one scanline ahead.
     if(mmio.dispcnt.enable[ENABLE_OBJ]) {
       RenderLayerOAM(vcount);
     }
 
     if(mmio.dispcnt.enable[ENABLE_BG0]) {
-      // TODO: what does HW do if "enable BG0 3D" is disabled in mode 6.
+      // @todo: what does HW do if "enable BG0 3D" is disabled in mode 6.
       if(mmio.dispcnt.enable_bg0_3d || mmio.dispcnt.bg_mode == 6) {
         // gpu->CaptureColor(buffer_bg[0], vcount, 256, false);
         // gpu->CaptureAlpha(buffer_3d_alpha, vcount);
@@ -290,7 +282,7 @@ namespace dual::nds {
     m_render_worker.thread = std::thread([this]() {
       while(m_render_worker.running.load()) {
         while(m_render_worker.vcount <= m_render_worker.vcount_max) {
-          // TODO: this might be racy with SubmitScanline() resetting render_thread_vcount.
+          // @todo: this might be racy with SubmitScanline() resetting render_thread_vcount.
           int vcount = m_render_worker.vcount;
 
           if(m_mmio.dispcnt.enable[ENABLE_WIN0]) {
