@@ -54,16 +54,12 @@ namespace dual::nds {
 
       void Reset();
 
-      const u32* GetOutput() const {
-        return &m_output[m_frame][0];
+      [[nodiscard]] const u32* GetFrameBuffer() const {
+        return &m_frame_buffer[m_frame][0];
       }
 
       void SwapBuffers() {
         m_frame ^= 1;
-      }
-
-      auto GetComposerOutput() -> u16 const* {
-        return &m_buffer_compose[0];
       }
 
       void WaitForRenderWorker() {
@@ -274,7 +270,7 @@ namespace dual::nds {
         }
       }
 
-      u32 m_output[2][256 * 192];
+      u32 m_frame_buffer[2][256 * 192];
       u16 m_buffer_compose[256];
       u16 m_buffer_bg[4][256];
       bool m_buffer_win[2][256];

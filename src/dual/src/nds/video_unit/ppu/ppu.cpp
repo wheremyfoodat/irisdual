@@ -28,7 +28,7 @@ namespace dual::nds {
   }
 
   void PPU::Reset() {
-    std::memset(m_output, 0, sizeof(m_output));
+    std::memset(m_frame_buffer, 0, sizeof(m_frame_buffer));
 
     m_mmio.dispcnt = {};
 
@@ -149,7 +149,7 @@ namespace dual::nds {
   }
 
   void PPU::RenderDisplayOff(u16 vcount) {
-    u32* line = &m_output[m_frame][vcount * 256];
+    u32* line = &m_frame_buffer[m_frame][vcount * 256];
 
     for(uint x = 0; x < 256; x++) {
       line[x] = ConvertColor(0x7FFF);
@@ -157,7 +157,7 @@ namespace dual::nds {
   }
 
   void PPU::RenderNormal(u16 vcount) {
-    u32* line = &m_output[m_frame][vcount * 256];
+    u32* line = &m_frame_buffer[m_frame][vcount * 256];
 
     for(uint x = 0; x < 256; x++) {
       line[x] = ConvertColor(m_buffer_compose[x]);
@@ -167,7 +167,7 @@ namespace dual::nds {
   }
 
   void PPU::RenderVideoMemoryDisplay(u16 vcount) {
-    u32* line = &m_output[m_frame][vcount * 256];
+    u32* line = &m_frame_buffer[m_frame][vcount * 256];
     auto vram_block = m_mmio_copy[vcount].dispcnt.vram_block;
     u16 const* source = (u16 const*)&m_render_vram_lcdc[vram_block * 0x20000 + vcount * 256 * sizeof(u16)];
 
@@ -189,7 +189,7 @@ namespace dual::nds {
 
     if(master_bright.mode != MasterBrightness::Mode::Off && master_bright.factor != 0) {
       int  factor = std::min((int)master_bright.factor, 16);
-      u32* buffer = &m_output[m_frame][vcount * 256];
+      u32* buffer = &m_frame_buffer[m_frame][vcount * 256];
 
       if(master_bright.mode == MasterBrightness::Mode::Up) {
         for(int x = 0; x < 256; x++) {
@@ -214,8 +214,6 @@ namespace dual::nds {
 
   void PPU::RenderMainMemoryDisplay(u16 vcount) {
     ATOM_PANIC("PPU: unimplemented main memory display mode.");
-
-    //RenderMasterBrightness(vcount);
   }
 
   void PPU::RenderBackgroundsAndComposite(u16 vcount) {
