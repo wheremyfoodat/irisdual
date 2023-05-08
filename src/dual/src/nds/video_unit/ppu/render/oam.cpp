@@ -35,7 +35,7 @@ namespace dual::nds {
   };
 
   void PPU::RenderLayerOAM(u16 vcount) {
-    auto const& mmio = m_mmio_copy[vcount];
+    const auto& mmio = m_mmio_copy[vcount];
 
     s16 transform[4];
 

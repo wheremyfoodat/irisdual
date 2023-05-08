@@ -4,7 +4,7 @@
 
 namespace dual::nds {
 
-  EEPROM512B::EEPROM512B(std::string const& save_path)
+  EEPROM512B::EEPROM512B(const std::string& save_path)
       : m_save_path(save_path) {
     Reset();
   }

@@ -5,7 +5,7 @@ namespace dual::nds::arm7 {
 
   namespace bit = atom::bit;
 
-  MemoryBus::MemoryBus(SystemMemory& memory, HW const& hw)
+  MemoryBus::MemoryBus(SystemMemory& memory, const HW& hw)
       : m_boot_rom{memory.arm7.bios.data()}
       , m_ewram{memory.ewram.data()}
       , m_iwram{memory.arm7.iwram.data()}

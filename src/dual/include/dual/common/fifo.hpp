@@ -47,7 +47,7 @@ namespace dual {
         return value;
       }
 
-      void Write(T const& value) {
+      void Write(const T& value) {
         if(IsFull()) {
           return;
         }

@@ -16,7 +16,7 @@ namespace dual::nds {
         _8192K
       };
 
-      FLASH(std::string const& save_path, Size size_hint);
+      FLASH(const std::string& save_path, Size size_hint);
 
       void Reset() override;
       void Select() override;

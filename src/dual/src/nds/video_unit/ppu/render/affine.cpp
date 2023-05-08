@@ -10,9 +10,9 @@ namespace dual::nds {
     int  height,
     std::function<void(int, int, int)> render_func
   ) {
-    auto const& mmio = m_mmio_copy[vcount];
-    auto const& bg = mmio.bgcnt[2 + id];
-    auto const& mosaic = mmio.mosaic.bg;
+    const auto& mmio = m_mmio_copy[vcount];
+    const auto& bg = mmio.bgcnt[2 + id];
+    const auto& mosaic = mmio.mosaic.bg;
     u16* buffer = m_buffer_bg[2 + id];
 
     s32 ref_x = mmio.bgx[id].current;
@@ -59,8 +59,8 @@ namespace dual::nds {
   }
 
   void PPU::RenderLayerAffine(uint id, u16 vcount) {
-    auto const& mmio = m_mmio_copy[vcount];
-    auto const& bg = mmio.bgcnt[2 + id];
+    const auto& mmio = m_mmio_copy[vcount];
+    const auto& bg = mmio.bgcnt[2 + id];
 
     u16* buffer = m_buffer_bg[2 + id];
 
@@ -83,8 +83,8 @@ namespace dual::nds {
   }
 
   void PPU::RenderLayerExtended(uint id, u16 vcount) {
-    auto const& mmio = m_mmio_copy[vcount];
-    auto const& bg = mmio.bgcnt[2 + id];
+    const auto& mmio = m_mmio_copy[vcount];
+    const auto& bg = mmio.bgcnt[2 + id];
 
     u16* buffer = m_buffer_bg[2 + id];
 
@@ -144,8 +144,8 @@ namespace dual::nds {
   }
 
   void PPU::RenderLayerLarge(u16 vcount) {
-    auto const& mmio = m_mmio_copy[vcount];
-    auto const& bg = mmio.bgcnt[2];
+    const auto& mmio = m_mmio_copy[vcount];
+    const auto& bg = mmio.bgcnt[2];
 
     int width = 512 << (bg.size & 1);
     int height = 1024 >> (bg.size & 1);

@@ -6,6 +6,14 @@
 
 namespace dual::nds {
 
+  static u32 ConvertColor(u16 color) {
+    u32 r = (color >>  0) & 0x1F;
+    u32 g = (color >>  5) & 0x1F;
+    u32 b = (color >> 10) & 0x1F;
+
+    return r << 19 | g << 11 | b << 3 | 0xFF000000;
+  }
+
   PPU::PPU(int id, SystemMemory& memory)
       : m_vram_bg{memory.vram.region_ppu_bg[id]}
       , m_vram_obj{memory.vram.region_ppu_obj[id]}
@@ -169,7 +177,7 @@ namespace dual::nds {
   void PPU::RenderVideoMemoryDisplay(u16 vcount) {
     u32* line = &m_frame_buffer[m_frame][vcount * 256];
     auto vram_block = m_mmio_copy[vcount].dispcnt.vram_block;
-    u16 const* source = (u16 const*)&m_render_vram_lcdc[vram_block * 0x20000 + vcount * 256 * sizeof(u16)];
+    const u16* source = (const u16*)&m_render_vram_lcdc[vram_block * 0x20000 + vcount * 256 * sizeof(u16)];
 
     if(source != nullptr) {
       for(uint x = 0; x < 256; x++) {
@@ -185,7 +193,7 @@ namespace dual::nds {
   }
 
   void PPU::RenderMasterBrightness(int vcount) {
-    auto const& master_bright = m_mmio_copy[vcount].master_bright;
+    const auto& master_bright = m_mmio_copy[vcount].master_bright;
 
     if(master_bright.mode != MasterBrightness::Mode::Off && master_bright.factor != 0) {
       int  factor = std::min((int)master_bright.factor, 16);
@@ -217,7 +225,7 @@ namespace dual::nds {
   }
 
   void PPU::RenderBackgroundsAndComposite(u16 vcount) {
-    auto const& mmio = m_mmio_copy[vcount];
+    const auto& mmio = m_mmio_copy[vcount];
 
     if(mmio.dispcnt.forced_blank) {
       for(uint x = 0; x < 256; x++) {

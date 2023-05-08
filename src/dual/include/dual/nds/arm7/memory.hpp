@@ -36,7 +36,7 @@ namespace dual::nds::arm7 {
         RTC& rtc;
       };
 
-      MemoryBus(SystemMemory& memory, HW const& hw);
+      MemoryBus(SystemMemory& memory, const HW& hw);
 
       void Reset();
 

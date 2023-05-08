@@ -45,12 +45,12 @@ namespace dual::nds::arm9 {
         } config{};
       };
 
-      MemoryBus(SystemMemory& memory, HW const& hw);
+      MemoryBus(SystemMemory& memory, const HW& hw);
 
       void Reset();
 
-      void SetupDTCM(TCM::Config const& config);
-      void SetupITCM(TCM::Config const& config);
+      void SetupDTCM(const TCM::Config& config);
+      void SetupITCM(const TCM::Config& config);
 
       u8  ReadByte(u32 address, Bus bus) override;
       u16 ReadHalf(u32 address, Bus bus) override;

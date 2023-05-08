@@ -11,7 +11,7 @@
 
 namespace dual::nds {
 
-  FLASH::FLASH(std::string const& save_path, Size size_hint)
+  FLASH::FLASH(const std::string& save_path, Size size_hint)
       : m_save_path(save_path)
       , m_size_hint(size_hint) {
     Reset();

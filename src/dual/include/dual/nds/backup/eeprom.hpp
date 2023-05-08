@@ -16,7 +16,7 @@ namespace dual::nds {
         _128K
       };
 
-      EEPROM(std::string const& save_path, Size size_hint, bool fram);
+      EEPROM(const std::string& save_path, Size size_hint, bool fram);
 
       void Reset() override;
       void Select() override;

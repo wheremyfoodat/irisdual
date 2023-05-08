@@ -131,7 +131,7 @@ namespace dual::nds {
         size_t lo = std::numeric_limits<size_t>::max();
         size_t hi = 0;
 
-        void Expand(AddressRange const& other) {
+        void Expand(const AddressRange& other) {
           lo = std::min(lo, other.lo);
           hi = std::max(hi, other.hi);
         }
@@ -170,15 +170,7 @@ namespace dual::nds {
       void SubmitScanline(u16 vcount, bool capture_bg_and_3d);
       void RegisterMapUnmapCallbacks();
 
-      static u32 ConvertColor(u16 color) {
-        u32 r = (color >>  0) & 0x1F;
-        u32 g = (color >>  5) & 0x1F;
-        u32 b = (color >> 10) & 0x1F;
-
-        return r << 19 | g << 11 | b << 3 | 0xFF000000;
-      }
-
-      auto ReadPalette(uint palette, uint index) -> u16 {
+      u16 ReadPalette(uint palette, uint index) {
         return atom::read<u16>(m_render_pram, palette << 5 | index << 1) & 0x7FFFu;
       }
 
@@ -213,7 +205,7 @@ namespace dual::nds {
         }
       }
 
-      auto DecodeTilePixel4BPP_OBJ(u32 address, uint palette, int x, int y) -> u16 {
+      u16 DecodeTilePixel4BPP_OBJ(u32 address, uint palette, int x, int y) {
         u8 tuple = atom::read<u8>(m_render_vram_obj, address + (y << 2 | x >> 1));
         u8 index = (x & 1) ? (tuple >> 4) : (tuple & 0xF);
 
@@ -224,7 +216,7 @@ namespace dual::nds {
         }
       }
 
-      auto DecodeTilePixel8BPP_BG(u32 address, bool enable_extpal, uint palette, uint extpal_slot, int x, int y) -> u16 {
+      u16 DecodeTilePixel8BPP_BG(u32 address, bool enable_extpal, uint palette, uint extpal_slot, int x, int y) {
         u8 index = atom::read<u8>(m_render_vram_bg, address + (y << 3) + x);
 
         if(index == 0) {
@@ -236,7 +228,7 @@ namespace dual::nds {
         }
       }
 
-      auto DecodeTilePixel8BPP_OBJ(u32 address, uint palette, int x, int y) -> u16 {
+      u16 DecodeTilePixel8BPP_OBJ(u32 address, uint palette, int x, int y) {
         u8 index = atom::read<u8>(m_render_vram_obj, address + (y << 3) + x);
 
         if(index == 0) {
@@ -251,20 +243,20 @@ namespace dual::nds {
       }
 
       template<typename T>
-      static void CopyVRAM(T const& src, u8* dst, AddressRange const& range) {
+      static void CopyVRAM(const T& src, u8* dst, const AddressRange& range) {
         for(size_t address = range.lo; address < range.hi; address++) {
           dst[address] = src.template Read<u8>(address);
         }
       }
 
-      static void CopyVRAM(u8 const* src, u8* dst, AddressRange const& range) {
+      static void CopyVRAM(const u8* src, u8* dst, const AddressRange& range) {
         for(size_t address = range.lo; address < range.hi; address++) {
           dst[address] = src[address];
         }
       }
 
       template<typename T>
-      void OnRegionWrite(T const& region, u8* copy_dst, AddressRange& dirty_range, AddressRange const& write_range) {
+      void OnRegionWrite(const T& region, u8* copy_dst, AddressRange& dirty_range, const AddressRange& write_range) {
         if(m_vcount < 192) {
           WaitForRenderWorker();
           CopyVRAM(region, copy_dst, write_range);
@@ -301,13 +293,13 @@ namespace dual::nds {
 
       MMIO m_mmio_copy[263];
 
-      Region<32> const& m_vram_bg;  //< Background tile, map and bitmap data
-      Region<16> const& m_vram_obj; //< OBJ tile and bitmap data
-      Region<4, 8192> const& m_extpal_bg;  //< Background extended palette data
-      Region<1, 8192> const& m_extpal_obj; //< OBJ extended palette data
-      Region<64> const& m_vram_lcdc; //< LCDC mapped VRAM
-      u8 const* m_pram; //< Palette RAM
-      u8 const* m_oam;  //< Object Attribute Map
+      const Region<32>& m_vram_bg;  //< Background tile, map and bitmap data
+      const Region<16>& m_vram_obj; //< OBJ tile and bitmap data
+      const Region<4, 8192>& m_extpal_bg;  //< Background extended palette data
+      const Region<1, 8192>& m_extpal_obj; //< OBJ extended palette data
+      const Region<64>& m_vram_lcdc; //< LCDC mapped VRAM
+      const u8* m_pram; //< Palette RAM
+      const u8* m_oam;  //< Object Attribute Map
 
       // Copies of VRAM, PRAM and OAM read by the rendering thread:
       u8 m_render_vram_bg[524288];

@@ -4,9 +4,9 @@
 namespace dual::nds {
 
   void PPU::RenderLayerText(uint id, u16 vcount) {
-    auto const& mmio = m_mmio_copy[vcount];
-    auto const& bgcnt = mmio.bgcnt[id];
-    auto const& mosaic = mmio.mosaic.bg;
+    const auto& mmio = m_mmio_copy[vcount];
+    const auto& bgcnt = mmio.bgcnt[id];
+    const auto& mosaic = mmio.mosaic.bg;
 
     uint expal_slot = id | (bgcnt.palette_slot << 1);
 

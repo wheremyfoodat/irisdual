@@ -9,10 +9,10 @@ namespace dual::nds {
 
     u16 backdrop = ReadPalette(0, 0);
 
-    auto const& dispcnt = mmio.dispcnt;
-    auto const& bgcnt = mmio.bgcnt;
-    auto const& winin = mmio.winin;
-    auto const& winout = mmio.winout;
+    const auto& dispcnt = mmio.dispcnt;
+    const auto& bgcnt = mmio.bgcnt;
+    const auto& winin = mmio.winin;
+    const auto& winout = mmio.winout;
 
     bool bg0_is_3d = mmio.dispcnt.enable_bg0_3d || mmio.dispcnt.bg_mode == 6;
 
@@ -224,8 +224,8 @@ namespace dual::nds {
   }
 
   void PPU::ComposeScanline(u16 vcount, int bg_min, int bg_max) {
-    auto const& mmio = m_mmio_copy[vcount];
-    auto const& dispcnt = mmio.dispcnt;
+    const auto& mmio = m_mmio_copy[vcount];
+    const auto& dispcnt = mmio.dispcnt;
 
     int key = 0;
 
@@ -259,7 +259,7 @@ namespace dual::nds {
                   u16& target1,
                   u16  target2,
                   BlendControl::Mode blend_mode) {
-    auto const& mmio = m_mmio_copy[vcount];
+    const auto& mmio = m_mmio_copy[vcount];
 
     int r1 = (target1 >>  0) & 0x1F;
     int g1 = (target1 >>  5) & 0x1F;

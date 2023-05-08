@@ -4,7 +4,7 @@
 
 namespace dual::nds {
 
-  EEPROM::EEPROM(std::string const& save_path, Size size_hint, bool fram)
+  EEPROM::EEPROM(const std::string& save_path, Size size_hint, bool fram)
       : m_save_path(save_path)
       , m_size_hint(size_hint)
       , m_fram(fram) {

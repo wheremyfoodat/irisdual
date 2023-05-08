@@ -21,7 +21,7 @@ namespace dual::nds {
       T Read(u32 offset) const {
         static_assert(atom::is_one_of_v<T, u8, u16, u32, u64>, "T must be u8, u16, u32 or u64");
 
-        auto const& desc = m_pages[(offset >> k_page_shift) & m_mask];
+        const auto& desc = m_pages[(offset >> k_page_shift) & m_mask];
 
         offset &= k_page_mask & ~(sizeof(T) - 1);
 
@@ -44,7 +44,7 @@ namespace dual::nds {
       void Write(u32 offset, T value) {
         static_assert(atom::is_one_of_v<T, u8, u16, u32, u64>, "T must be u8, u16, u32 or u64");
 
-        auto const& desc = m_pages[(offset >> k_page_shift) & m_mask];
+        const auto& desc = m_pages[(offset >> k_page_shift) & m_mask];
 
         offset &= k_page_mask & ~(sizeof(T) - 1);
 
@@ -61,8 +61,8 @@ namespace dual::nds {
       }
 
       template<typename T>
-      T const* GetUnsafePointer(u32 offset) const {
-        auto const& desc = m_pages[(offset >> k_page_shift) & m_mask];
+      const T* GetUnsafePointer(u32 offset) const {
+        const auto& desc = m_pages[(offset >> k_page_shift) & m_mask];
 
         offset &= k_page_mask & ~(sizeof(T) - 1);
 
@@ -74,7 +74,7 @@ namespace dual::nds {
 
       template<typename T>
       T* GetUnsafePointer(u32 offset) {
-        auto const& desc = m_pages[(offset >> k_page_shift) & m_mask];
+        const auto& desc = m_pages[(offset >> k_page_shift) & m_mask];
 
         offset &= k_page_mask & ~(sizeof(T) - 1);
 
@@ -107,11 +107,11 @@ namespace dual::nds {
           data += page_size;
         }
 
-        for(auto const& callback : m_callbacks) callback(offset, size);
+        for(const auto& callback : m_callbacks) callback(offset, size);
       }
 
       template<size_t bank_size>
-      void Unmap(u32 offset, std::array<u8, bank_size> const& bank, size_t size = bank_size) {
+      void Unmap(u32 offset, const std::array<u8, bank_size>& bank, size_t size = bank_size) {
         auto id = static_cast<size_t>(offset >> k_page_shift);
         auto final_id = id + (size >> k_page_shift);
         auto data = bank.data();
@@ -140,10 +140,10 @@ namespace dual::nds {
           data += page_size;
         }
 
-        for(auto const& callback : m_callbacks) callback(offset, size);
+        for(const auto& callback : m_callbacks) callback(offset, size);
       }
 
-      void AddCallback(Callback const& callback) const {
+      void AddCallback(const Callback& callback) const {
         m_callbacks.push_back(callback);
       }
 

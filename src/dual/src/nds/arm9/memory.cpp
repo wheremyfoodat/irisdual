@@ -7,7 +7,7 @@ namespace dual::nds::arm9 {
 
   namespace bit = atom::bit;
 
-  MemoryBus::MemoryBus(SystemMemory& memory, HW const& hw)
+  MemoryBus::MemoryBus(SystemMemory& memory, const HW& hw)
       : m_boot_rom{memory.arm9.bios.data()}
       , m_ewram{memory.ewram.data()}
       , m_pram{memory.pram.data()}
@@ -23,11 +23,11 @@ namespace dual::nds::arm9 {
     m_io.postflg = 0u;
   }
 
-  void MemoryBus::SetupDTCM(TCM::Config const& config) {
+  void MemoryBus::SetupDTCM(const TCM::Config& config) {
     m_dtcm.config = config;
   }
 
-  void MemoryBus::SetupITCM(TCM::Config const& config) {
+  void MemoryBus::SetupITCM(const TCM::Config& config) {
     m_itcm.config = config;
   }
 

@@ -33,8 +33,8 @@ namespace dual::nds {
   }
 
   u32 IPC::Read_FIFOCNT(CPU cpu) {
-    auto const& fifo_tx = m_fifo[(int) cpu];
-    auto const& fifo_rx = m_fifo[(int)~cpu];
+    const auto& fifo_tx = m_fifo[(int) cpu];
+    const auto& fifo_rx = m_fifo[(int)~cpu];
 
     u32 word = fifo_tx.control.word;
 

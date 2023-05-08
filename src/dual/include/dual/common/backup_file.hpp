@@ -17,8 +17,8 @@ namespace dual {
   class BackupFile {
     public:
       static auto OpenOrCreate(
-        std::string const& save_path,
-        std::vector<size_t> const& valid_sizes,
+        const std::string& save_path,
+        const std::vector<size_t>& valid_sizes,
         size_t& default_size
       ) -> std::unique_ptr<BackupFile> {
         namespace fs = std::filesystem;
