@@ -15,7 +15,6 @@ namespace dual::nds {
 
   class VideoUnit {
     public:
-
       VideoUnit(
         Scheduler& scheduler,
         SystemMemory& memory,
