@@ -58,17 +58,6 @@ namespace dual::nds {
         return &output[frame][0];
       }
 
-      /*auto GetOutput() const -> void const* {
-        if(ogl.enabled) {
-          return (void const*)ogl.output_texture->Handle();
-        }
-        return &output[frame][0];
-      }
-
-      auto GetOutputImageType() const -> VideoDevice::ImageType {
-        return ogl.enabled ? VideoDevice::ImageType::OpenGL : VideoDevice::ImageType::Software;
-      }*/
-
       void SwapBuffers() {
         frame ^= 1;
       }
@@ -194,7 +183,7 @@ namespace dual::nds {
       }
 
       auto ReadPalette(uint palette, uint index) -> u16 {
-        return *reinterpret_cast<u16 const*>(&render_pram[(palette * 16 + index) * 2]) & 0x7FFF;
+        return atom::read<u16>(render_pram, (palette * 16 + index) * 2) & 0x7FFFu;
       }
 
       void DecodeTileLine4BPP(u16* buffer, u32 base, uint palette, uint number, uint y, bool flip) {
@@ -285,8 +274,6 @@ namespace dual::nds {
         }
       }
 
-      // void Merge2DWithOpenGL3D();
-
       int id;
       u32 output[2][256 * 192];
       u16 buffer_compose[256];
@@ -294,10 +281,6 @@ namespace dual::nds {
       bool buffer_win[2][256];
       bool window_scanline_enable[2];
       int buffer_3d_alpha[256];
-
-      // buffers for OpenGL 3D-to-2D compositing
-      u32 buffer_ogl_color[2][256 * 192];
-      u16 buffer_ogl_attribute[256 * 192];
 
       struct ObjectPixel {
         u16 color;
@@ -347,8 +330,6 @@ namespace dual::nds {
       AddressRange oam_dirty;
 
       int current_vcount;
-
-      // GPU* gpu;
 
       int frame = 0;
 

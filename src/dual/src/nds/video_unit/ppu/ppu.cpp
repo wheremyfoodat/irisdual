@@ -1,20 +1,20 @@
 
 #include <atom/panic.hpp>
 #include <algorithm>
+#include <cstring>
 #include <dual/nds/video_unit/ppu/ppu.hpp>
-#include <string.h>
 
 namespace dual::nds {
 
   PPU::PPU(int id, SystemMemory& memory)
-      : id(id)
-      , vram_bg(memory.vram.region_ppu_bg[id])
-      , vram_obj(memory.vram.region_ppu_obj[id])
-      , extpal_bg(memory.vram.region_ppu_bg_extpal[id])
-      , extpal_obj(memory.vram.region_ppu_obj_extpal[id])
-      , vram_lcdc(memory.vram.region_lcdc)
-      , pram(&memory.pram[id * 0x400])
-      , oam(&memory.oam[id * 0x400]) {
+      : id{id}
+      , vram_bg{memory.vram.region_ppu_bg[id]}
+      , vram_obj{memory.vram.region_ppu_obj[id]}
+      , extpal_bg{memory.vram.region_ppu_bg_extpal[id]}
+      , extpal_obj{memory.vram.region_ppu_obj_extpal[id]}
+      , vram_lcdc{memory.vram.region_lcdc}
+      , pram{&memory.pram[id * 0x400]}
+      , oam{&memory.oam[id * 0x400]} {
     if(id == 0) {
       mmio.dispcnt = DisplayControl{0xFFFFFFFFu};
     } else {
@@ -29,9 +29,7 @@ namespace dual::nds {
   }
 
   void PPU::Reset() {
-    memset(output, 0, sizeof(output));
-    memset(buffer_ogl_color, 0, sizeof(buffer_ogl_color));
-    memset(buffer_ogl_attribute, 0, sizeof(buffer_ogl_attribute));
+    std::memset(output, 0, sizeof(output));
 
     mmio.dispcnt = {};
 
