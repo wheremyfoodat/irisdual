@@ -24,7 +24,7 @@ int Application::Run(int argc, char **argv) {
   LoadBootROM("boot9.bin", true);
   LoadBootROM("boot7.bin", false);
   if(argc < 2) {
-    LoadROM("pmdblue.nds");
+    LoadROM("pmdeod.nds");
   } else {
     LoadROM(argv[1]);
   }
@@ -131,8 +131,8 @@ void Application::MainLoop() {
 
     m_nds->Step(559241);
 
-    SDL_UpdateTexture(m_textures[0], nullptr, ppu_a.GetOutput(), 256 * sizeof(u32));
-    SDL_UpdateTexture(m_textures[1], nullptr, ppu_b.GetOutput(), 256 * sizeof(u32));
+    SDL_UpdateTexture(m_textures[0], nullptr, ppu_a.GetFrameBuffer(), 256 * sizeof(u32));
+    SDL_UpdateTexture(m_textures[1], nullptr, ppu_b.GetFrameBuffer(), 256 * sizeof(u32));
 
     SDL_RenderClear(m_renderer);
     SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &rects[0]);

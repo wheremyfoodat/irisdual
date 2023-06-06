@@ -118,11 +118,10 @@ namespace dual::nds {
         // Map layer numbers to pixels.
         for(int i = 0; i < 2; i++) {
           int _layer = layer[i];
+
           switch(_layer) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
+            case 0: case 1:
+            case 2: case 3:
               pixel[i] = m_buffer_bg[_layer][x];
               break;
             case 4:
