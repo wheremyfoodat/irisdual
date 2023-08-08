@@ -13,6 +13,7 @@ set(SOURCES
   src/nds/arm7/memory.cpp
   src/nds/arm7/rtc.cpp
   src/nds/arm7/spi.cpp
+  src/nds/arm7/touch_screen.cpp
   src/nds/arm9/cp15.cpp
   src/nds/arm9/dma.cpp
   src/nds/arm9/io.cpp
@@ -59,6 +60,7 @@ set(HEADERS_PUBLIC
   include/dual/nds/arm7/memory.hpp
   include/dual/nds/arm7/rtc.hpp
   include/dual/nds/arm7/spi.hpp
+  include/dual/nds/arm7/touch_screen.hpp
   include/dual/nds/arm9/cp15.hpp
   include/dual/nds/arm9/dma.hpp
   include/dual/nds/arm9/math.hpp

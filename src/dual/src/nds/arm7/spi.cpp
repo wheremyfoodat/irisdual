@@ -1,6 +1,7 @@
 
 #include <atom/logger/logger.hpp>
 #include <dual/nds/arm7/spi.hpp>
+#include <dual/nds/arm7/touch_screen.hpp>
 #include <dual/nds/backup/flash.hpp>
 
 namespace dual::nds::arm7 {
@@ -8,6 +9,8 @@ namespace dual::nds::arm7 {
   SPI::SPI(IRQ& irq) : m_irq{irq} {
     // @todo: better handle the case where firmware.bin does not exist.
     m_device_table[1] = std::make_unique<FLASH>("firmware.bin", FLASH::Size::_256K);
+    m_device_table[2] = std::make_unique<TouchScreen>();
+    ReadAndApplyTouchScreenCalibrationData();
   }
 
   void SPI::Reset() {
@@ -78,6 +81,54 @@ namespace dual::nds::arm7 {
     if(m_spicnt.enable_irq) {
       m_irq.Raise(IRQ::Source::SPI);
     }
+  }
+
+  void SPI::ReadAndApplyTouchScreenCalibrationData() {
+    auto& firmware = (FLASH&)*m_device_table[1];
+    auto& touch_screen = (TouchScreen&)*m_device_table[2];
+
+    const auto send_byte = [&](u8 byte) {
+      firmware.Transfer(byte);
+    };
+
+    const auto send_address = [&](u32 address) {
+      send_byte((u8)(address >> 16));
+      send_byte((u8)(address >>  8));
+      send_byte((u8)(address >>  0));
+    };
+
+    const auto read_byte = [&]() {
+      return firmware.Transfer(0u);
+    };
+
+    const auto read_half = [&]() {
+      u16 data = read_byte();
+      return read_byte() << 8 | data;
+    };
+
+    TouchScreen::CalibrationData calibration_data{};
+
+    u32 user_data_offset;
+    firmware.Select();
+    send_byte(0x03u);
+    send_address(0x20);
+    user_data_offset = read_half();
+    firmware.Deselect();
+
+    firmware.Select();
+    send_byte(0x03u);
+    send_address(user_data_offset * 8u + 0x58u);
+    calibration_data.adc_x1 = read_half();
+    calibration_data.adc_y1 = read_half();
+    calibration_data.screen_x1 = read_byte();
+    calibration_data.screen_y1 = read_byte();
+    calibration_data.adc_x2 = read_half();
+    calibration_data.adc_y2 = read_half();
+    calibration_data.screen_x2 = read_byte();
+    calibration_data.screen_y2 = read_byte();
+    firmware.Deselect();
+
+    touch_screen.SetCalibrationData(calibration_data);
   }
 
 } // namespace dual::nds::arm7

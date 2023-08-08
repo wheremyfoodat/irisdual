@@ -20,7 +20,7 @@ namespace dual::nds::arm7 {
         virtual u8 Transfer(u8 data) = 0;
       };
 
-      SPI(IRQ& irq);
+      explicit SPI(IRQ& irq);
 
       void Reset();
 
@@ -31,6 +31,8 @@ namespace dual::nds::arm7 {
       void Write_SPIDATA(u8 value);
 
     private:
+      void ReadAndApplyTouchScreenCalibrationData();
+
       union SPICNT {
         atom::Bits< 0, 2, u16> baud_rate;
         atom::Bits< 7, 1, u16> busy;
