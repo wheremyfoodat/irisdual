@@ -3,6 +3,16 @@
 
 #define REG(address) ((address) >> 2)
 
+#define APU_MAP_CHANNEL_WRITE_IO(channel) \
+  case REG(0x04000400 | channel << 4): hw.apu.Write_SOUNDxCNT(channel, value, mask); break;\
+  case REG(0x04000404 | channel << 4): hw.apu.Write_SOUNDxSAD(channel, value, mask); break;\
+  case REG(0x04000408 | channel << 4): {\
+    if(mask & 0x0000FFFFu) hw.apu.Write_SOUNDxTMR(channel, value, (u16)(mask >>  0));\
+    if(mask & 0xFFFF0000u) hw.apu.Write_SOUNDxPNT(channel, value, (u16)(mask >> 16));\
+    break;\
+  }\
+  case REG(0x0400040C | channel << 4): hw.apu.Write_SOUNDxLEN(channel, value, mask); break;
+
 namespace dual::nds::arm7 {
 
   static constexpr int GetAccessSize(u32 mask) {
@@ -157,7 +167,24 @@ namespace dual::nds::arm7 {
       case REG(0x04000300): return postflg;
 
       // Sound
-      case REG(0x04000504): return soundbias;
+      case REG(0x04000400): return hw.apu.Read_SOUNDxCNT(0);
+      case REG(0x04000410): return hw.apu.Read_SOUNDxCNT(1);
+      case REG(0x04000420): return hw.apu.Read_SOUNDxCNT(2);
+      case REG(0x04000430): return hw.apu.Read_SOUNDxCNT(3);
+      case REG(0x04000440): return hw.apu.Read_SOUNDxCNT(4);
+      case REG(0x04000450): return hw.apu.Read_SOUNDxCNT(5);
+      case REG(0x04000460): return hw.apu.Read_SOUNDxCNT(6);
+      case REG(0x04000470): return hw.apu.Read_SOUNDxCNT(7);
+      case REG(0x04000480): return hw.apu.Read_SOUNDxCNT(8);
+      case REG(0x04000490): return hw.apu.Read_SOUNDxCNT(9);
+      case REG(0x040004A0): return hw.apu.Read_SOUNDxCNT(10);
+      case REG(0x040004B0): return hw.apu.Read_SOUNDxCNT(11);
+      case REG(0x040004C0): return hw.apu.Read_SOUNDxCNT(12);
+      case REG(0x040004D0): return hw.apu.Read_SOUNDxCNT(13);
+      case REG(0x040004E0): return hw.apu.Read_SOUNDxCNT(14);
+      case REG(0x040004F0): return hw.apu.Read_SOUNDxCNT(15);
+      case REG(0x04000500): return hw.apu.Read_SOUNDCNT();
+      case REG(0x04000504): return hw.apu.Read_SOUNDBIAS();
 
       default: {
         Unhandled();
@@ -241,7 +268,24 @@ namespace dual::nds::arm7 {
       }
 
       // Sound
-      case REG(0x04000504): soundbias = (value & mask & 0x3FFu) | (soundbias & ~(mask & 0x3FFu)); break;
+      APU_MAP_CHANNEL_WRITE_IO(0)
+      APU_MAP_CHANNEL_WRITE_IO(1)
+      APU_MAP_CHANNEL_WRITE_IO(2)
+      APU_MAP_CHANNEL_WRITE_IO(3)
+      APU_MAP_CHANNEL_WRITE_IO(4)
+      APU_MAP_CHANNEL_WRITE_IO(5)
+      APU_MAP_CHANNEL_WRITE_IO(6)
+      APU_MAP_CHANNEL_WRITE_IO(7)
+      APU_MAP_CHANNEL_WRITE_IO(8)
+      APU_MAP_CHANNEL_WRITE_IO(9)
+      APU_MAP_CHANNEL_WRITE_IO(10)
+      APU_MAP_CHANNEL_WRITE_IO(11)
+      APU_MAP_CHANNEL_WRITE_IO(12)
+      APU_MAP_CHANNEL_WRITE_IO(13)
+      APU_MAP_CHANNEL_WRITE_IO(14)
+      APU_MAP_CHANNEL_WRITE_IO(15)
+      case REG(0x04000500):  hw.apu.Write_SOUNDCNT(value, mask); break;
+      case REG(0x04000504): hw.apu.Write_SOUNDBIAS(value, mask); break;
 
       default: {
         Unhandled();

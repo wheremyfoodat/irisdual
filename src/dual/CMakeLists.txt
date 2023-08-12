@@ -8,6 +8,7 @@ set(SOURCES
   src/arm/tablegen/tablegen.cpp
   src/arm/arm.cpp
   src/common/scheduler.cpp
+  src/nds/arm7/apu.cpp
   src/nds/arm7/dma.cpp
   src/nds/arm7/io.cpp
   src/nds/arm7/memory.cpp
@@ -56,6 +57,7 @@ set(HEADERS_PUBLIC
   include/dual/common/backup_file.hpp
   include/dual/common/fifo.hpp
   include/dual/common/scheduler.hpp
+  include/dual/nds/arm7/apu.hpp
   include/dual/nds/arm7/dma.hpp
   include/dual/nds/arm7/memory.hpp
   include/dual/nds/arm7/rtc.hpp

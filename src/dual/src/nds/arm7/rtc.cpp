@@ -5,7 +5,7 @@
 
 #include <ctime>
 
-namespace dual::nds {
+namespace dual::nds::arm7 {
 
   constexpr int RTC::s_argument_count[8];
 
@@ -244,4 +244,4 @@ namespace dual::nds {
     }
   }
 
-} // namespace dual::nds
+} // namespace dual::nds::arm7

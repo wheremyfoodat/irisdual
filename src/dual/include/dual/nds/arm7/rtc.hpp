@@ -3,7 +3,7 @@
 
 #include <atom/integer.hpp>
 
-namespace dual::nds {
+namespace dual::nds::arm7 {
 
   class RTC {
     public:
@@ -88,4 +88,4 @@ namespace dual::nds {
       };
   };
 
-} // namespace dual::nds
+} // namespace dual::nds::arm7

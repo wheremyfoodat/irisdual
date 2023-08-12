@@ -7,6 +7,7 @@
 #include <atom/panic.hpp>
 #include <atom/punning.hpp>
 #include <dual/arm/memory.hpp>
+#include <dual/nds/arm7/apu.hpp>
 #include <dual/nds/arm7/dma.hpp>
 #include <dual/nds/arm7/rtc.hpp>
 #include <dual/nds/arm7/spi.hpp>
@@ -34,6 +35,7 @@ namespace dual::nds::arm7 {
         VideoUnit& video_unit;
         Cartridge& cartridge;
         RTC& rtc;
+        APU& apu;
       };
 
       MemoryBus(SystemMemory& memory, const HW& hw);
@@ -68,7 +70,6 @@ namespace dual::nds::arm7 {
 
         HW hw;
         u8 postflg{};
-        u16 soundbias{};
       } m_io;
 
       u8* m_boot_rom;

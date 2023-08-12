@@ -65,6 +65,7 @@ namespace dual::nds {
 
     m_arm7.spi.Reset();
     m_arm7.rtc.Reset();
+    m_arm7.apu.Reset();
 
     m_ipc.Reset();
 
