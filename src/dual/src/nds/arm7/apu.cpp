@@ -126,8 +126,24 @@ namespace dual::nds::arm7 {
     }
 
     switch(sample_format) {
+      case SampleFormat::PCM8: {
+        const i8 sample = (i8)(u8)channel.samples_pipe;
+        channel.samples_pipe >>= 8;
+        channel.samples_left -= 2;
+
+        channel.current_sample = (f32)sample * (1.f / 127.f);
+        break;
+      }
+      case SampleFormat::PCM16: {
+        const i16 sample = (i16)(u16)channel.samples_pipe;
+        channel.samples_pipe >>= 16;
+        channel.samples_left -= 4;
+
+        channel.current_sample = (f32)sample * (1.f / 32767.f);
+        break;
+      }
       case SampleFormat::ADPCM: {
-        const uint sample = channel.samples_pipe & 0xF;
+        const uint sample = channel.samples_pipe & 0xFu;
         channel.samples_pipe >>= 4;
         channel.samples_left--;
 
