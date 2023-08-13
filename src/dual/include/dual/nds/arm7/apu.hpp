@@ -106,6 +106,8 @@ namespace dual::nds::arm7 {
           int loop_table_index;
         } adpcm{};
 
+        u16 noise_lfsr{};
+
         int samples_left{};
         u32 samples_pipe{};
       };

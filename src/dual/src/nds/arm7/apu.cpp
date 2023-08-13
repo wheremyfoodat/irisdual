@@ -85,85 +85,108 @@ namespace dual::nds::arm7 {
 
     const SampleFormat sample_format = channel.sample_format;
 
-    if(channel.samples_left == 0) {
-      // @todo: do not add sizeof(u32) for PCM audio
-      const u32 loop_address = m_soundxsad[id] + m_soundxpnt[id] * sizeof(u32) + sizeof(u32);
-      const u32 stop_address = loop_address + m_soundxlen[id] * sizeof(u32);
+    if(sample_format == SampleFormat::PSG && id >= 8) {
+      if(id >= 14) {
+        const u16 lfsr = channel.noise_lfsr;
 
-      if(channel.current_address == loop_address && sample_format == SampleFormat::ADPCM) {
-        adpcm.loop_pcm16 = adpcm.current_pcm16;
-        adpcm.loop_table_index = adpcm.current_table_index;
-      }
-
-      if(channel.current_address == stop_address) {
-        // We're at the end of the final word
-        switch((RepeatMode)m_soundxcnt[id].repeat_mode) {
-          case RepeatMode::Manual: {
-            ATOM_PANIC("Unimplemented manual repeat mode");
-          }
-          case RepeatMode::Loop: {
-            channel.current_address = loop_address;
-
-            if(sample_format == SampleFormat::ADPCM) {
-              adpcm.current_pcm16 = adpcm.loop_pcm16;
-              adpcm.current_table_index = adpcm.loop_table_index;
-            }
-            break;
-          }
-          case RepeatMode::OneShot: {
-            m_soundxcnt[id].running = false;
-            break;
-          }
-          case RepeatMode::Prohibited: {
-            ATOM_PANIC("Playing channel was in prohibited repeat mode");
-          }
-        }
-      }
-
-      channel.samples_pipe = m_bus.ReadWord(channel.current_address, arm::Memory::Bus::System);
-      channel.samples_left = 8;
-      channel.current_address += sizeof(u32);
-    }
-
-    switch(sample_format) {
-      case SampleFormat::PCM8: {
-        const i8 sample = (i8)(u8)channel.samples_pipe;
-        channel.samples_pipe >>= 8;
-        channel.samples_left -= 2;
-
-        channel.current_sample = (f32)sample * (1.f / 127.f);
-        break;
-      }
-      case SampleFormat::PCM16: {
-        const i16 sample = (i16)(u16)channel.samples_pipe;
-        channel.samples_pipe >>= 16;
-        channel.samples_left -= 4;
-
-        channel.current_sample = (f32)sample * (1.f / 32767.f);
-        break;
-      }
-      case SampleFormat::ADPCM: {
-        const uint sample = channel.samples_pipe & 0xFu;
-        channel.samples_pipe >>= 4;
-        channel.samples_left--;
-
-        const int table_index = adpcm.current_table_index;
-        const i32 diff = (i32)(k_adpcm_adpcm_tab[table_index] * (((sample & 7) << 1) | 1) >> 3);
-
-        if(sample & 8u) {
-          adpcm.current_pcm16 = (i16)std::max(adpcm.current_pcm16 - diff, -32767);
+        if(lfsr & 1u) {
+          channel.noise_lfsr = (lfsr >> 1) ^ 0x6000u;
+          channel.current_sample = -1.f;
         } else {
-          adpcm.current_pcm16 = (i16)std::min(adpcm.current_pcm16 + diff, +32767);
+          channel.noise_lfsr = lfsr >> 1;
+          channel.current_sample = +1.f;
+        }
+      } else {
+        const u32 current_address = channel.current_address;
+
+        if((current_address ^ 7u) > m_soundxcnt[id].psg_wave_duty) {
+          channel.current_sample = +1.f;
+        } else {
+          channel.current_sample = -1.f;
         }
 
-        adpcm.current_table_index = std::clamp(table_index + k_adpcm_index_tab[sample & 7], 0, 88);
-
-        channel.current_sample = (f32)adpcm.current_pcm16 * (1.f / 32767.f);
-        break;
+        channel.current_address = (current_address + 1u) & 7u;
       }
-      default: {
-        channel.current_sample = 0.f;
-        break;
+    } else {
+      if(channel.samples_left == 0) {
+        const u32 loop_point   = m_soundxpnt[id] + (sample_format == SampleFormat::ADPCM ? 1 : 0);
+        const u32 loop_address = m_soundxsad[id] + loop_point * sizeof(u32);
+        const u32 stop_address = loop_address + m_soundxlen[id] * sizeof(u32);
+
+        if(channel.current_address == loop_address && sample_format == SampleFormat::ADPCM) {
+          adpcm.loop_pcm16 = adpcm.current_pcm16;
+          adpcm.loop_table_index = adpcm.current_table_index;
+        }
+
+        if(channel.current_address == stop_address) {
+          switch((RepeatMode)m_soundxcnt[id].repeat_mode) {
+            case RepeatMode::Manual: {
+              ATOM_PANIC("Unimplemented manual repeat mode");
+            }
+            case RepeatMode::Loop: {
+              channel.current_address = loop_address;
+
+              if(sample_format == SampleFormat::ADPCM) {
+                adpcm.current_pcm16 = adpcm.loop_pcm16;
+                adpcm.current_table_index = adpcm.loop_table_index;
+              }
+              break;
+            }
+            case RepeatMode::OneShot: {
+              m_soundxcnt[id].running = false;
+              break;
+            }
+            case RepeatMode::Prohibited: {
+              ATOM_PANIC("Playing channel was in prohibited repeat mode");
+            }
+          }
+        }
+
+        channel.samples_pipe = m_bus.ReadWord(channel.current_address, arm::Memory::Bus::System);
+        channel.samples_left = 8;
+        channel.current_address += sizeof(u32);
+      }
+
+      switch(sample_format) {
+        case SampleFormat::PCM8: {
+          const i8 sample = (i8)(u8)channel.samples_pipe;
+          channel.samples_pipe >>= 8;
+          channel.samples_left -= 2;
+
+          channel.current_sample = (f32)sample * (1.f / 127.f);
+          break;
+        }
+        case SampleFormat::PCM16: {
+          const i16 sample = (i16)(u16)channel.samples_pipe;
+          channel.samples_pipe >>= 16;
+          channel.samples_left -= 4;
+
+          channel.current_sample = (f32)sample * (1.f / 32767.f);
+          break;
+        }
+        case SampleFormat::ADPCM: {
+          const uint sample = channel.samples_pipe & 0xFu;
+          channel.samples_pipe >>= 4;
+          channel.samples_left--;
+
+          const int table_index = adpcm.current_table_index;
+          const i32 diff = (i32)(k_adpcm_adpcm_tab[table_index] * (((sample & 7) << 1) | 1) >> 3);
+
+          if(sample & 8u) {
+            adpcm.current_pcm16 = (i16)std::max(adpcm.current_pcm16 - diff, -32767);
+          } else {
+            adpcm.current_pcm16 = (i16)std::min(adpcm.current_pcm16 + diff, +32767);
+          }
+
+          adpcm.current_table_index = std::clamp(table_index + k_adpcm_index_tab[sample & 7], 0, 88);
+
+          channel.current_sample = (f32)adpcm.current_pcm16 * (1.f / 32767.f);
+          break;
+        }
+        default: {
+          channel.current_sample = 0.f;
+          break;
+        }
       }
     }
 
@@ -186,6 +209,9 @@ namespace dual::nds::arm7 {
       channel.adpcm.loop_pcm16 = channel.adpcm.current_pcm16;
       channel.adpcm.loop_table_index = channel.adpcm.current_table_index;
       channel.current_address = src_address + sizeof(u32);
+    } else if(sample_format == SampleFormat::PSG) {
+      channel.current_address = 0u;
+      channel.noise_lfsr = 0x7FFFu;
     } else {
       channel.current_address = src_address;
     }
