@@ -90,6 +90,11 @@ namespace dual::nds::arm7 {
       const u32 loop_address = m_soundxsad[id] + m_soundxpnt[id] * sizeof(u32) + sizeof(u32);
       const u32 stop_address = loop_address + m_soundxlen[id] * sizeof(u32);
 
+      if(channel.current_address == loop_address && sample_format == SampleFormat::ADPCM) {
+        adpcm.loop_pcm16 = adpcm.current_pcm16;
+        adpcm.loop_table_index = adpcm.current_table_index;
+      }
+
       if(channel.current_address == stop_address) {
         // We're at the end of the final word
         switch((RepeatMode)m_soundxcnt[id].repeat_mode) {
@@ -118,11 +123,6 @@ namespace dual::nds::arm7 {
       channel.samples_pipe = m_bus.ReadWord(channel.current_address, arm::Memory::Bus::System);
       channel.samples_left = 8;
       channel.current_address += sizeof(u32);
-
-      if(channel.current_address == loop_address && sample_format == SampleFormat::ADPCM) {
-        adpcm.loop_pcm16 = adpcm.current_pcm16;
-        adpcm.loop_table_index = adpcm.current_table_index;
-      }
     }
 
     switch(sample_format) {
