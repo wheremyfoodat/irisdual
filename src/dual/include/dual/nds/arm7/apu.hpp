@@ -54,6 +54,8 @@ namespace dual::nds::arm7 {
 
       void SampleMixers(int cycles_late);
       void SampleChannel(int id, int cycles_late);
+      void SampleChannelPSG(int id);
+      template<SampleFormat sample_format> void SampleChannelPCM(int id);
       void StartChannel(int id);
       void ScheduleSampleChannel(int id, int cycles_lates = 0);
       void CancelSampleChannel(int id);
