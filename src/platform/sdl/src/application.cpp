@@ -115,8 +115,10 @@ void Application::MainLoop() {
 
   SDL_Event event;
 
-  dual::nds::PPU& ppu_a = m_nds->GetVideoUnit().GetPPU(0);
-  dual::nds::PPU& ppu_b = m_nds->GetVideoUnit().GetPPU(1);
+  // dual::nds::PPU& ppu_a = m_nds->GetVideoUnit().GetPPU(0);
+  // dual::nds::PPU& ppu_b = m_nds->GetVideoUnit().GetPPU(1);
+
+  m_emu_thread.Start(std::move(m_nds));
 
   while(true) {
     while(SDL_PollEvent(&event)) {
@@ -125,7 +127,7 @@ void Application::MainLoop() {
       }
     }
 
-    if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F12]) {
+    /*if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F12]) {
       m_nds->DirectBoot();
     }
 
@@ -137,6 +139,6 @@ void Application::MainLoop() {
     SDL_RenderClear(m_renderer);
     SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &rects[0]);
     SDL_RenderCopy(m_renderer, m_textures[1], nullptr, &rects[1]);
-    SDL_RenderPresent(m_renderer);
+    SDL_RenderPresent(m_renderer);*/
   }
 }

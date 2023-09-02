@@ -8,11 +8,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
   src/application.cpp
+  src/emulator_thread.cpp
   src/main.cpp
 )
 
 set(HEADERS
   src/application.hpp
+  src/emulator_thread.hpp
 )
 
 find_package(SDL2 REQUIRED)

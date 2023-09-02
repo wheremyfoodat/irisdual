@@ -6,6 +6,8 @@
 
 #include <SDL.h>
 
+#include "emulator_thread.hpp"
+
 class Application {
   public:
     Application();
@@ -24,4 +26,5 @@ class Application {
     SDL_Texture* m_textures[2];
 
     std::unique_ptr<dual::nds::NDS> m_nds{};
+    EmulatorThread m_emu_thread{};
 };
