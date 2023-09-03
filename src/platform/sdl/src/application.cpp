@@ -3,11 +3,13 @@
 #include <fstream>
 
 #include "application.hpp"
+#include "sdl2_audio_driver.hpp"
 
 Application::Application() {
   SDL_Init(SDL_INIT_VIDEO);
 
   m_nds = std::make_unique<dual::nds::NDS>();
+  m_nds->GetAPU().SetAudioDriver(std::make_shared<SDL2AudioDriver>());
 }
 
 Application::~Application() {
@@ -24,7 +26,7 @@ int Application::Run(int argc, char **argv) {
   LoadBootROM("boot9.bin", true);
   LoadBootROM("boot7.bin", false);
   if(argc < 2) {
-    LoadROM("pmdeod.nds");
+    LoadROM("pmdblue.nds");
   } else {
     LoadROM(argv[1]);
   }
@@ -135,6 +137,8 @@ void Application::MainLoop() {
       SDL_RenderCopy(m_renderer, m_textures[1], nullptr, &rects[1]);
       SDL_RenderPresent(m_renderer);
     }
+
+    m_emu_thread.SetFastForward(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
 
     /*if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F12]) {
       m_nds->DirectBoot();

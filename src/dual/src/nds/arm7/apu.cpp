@@ -3,10 +3,6 @@
 #include <atom/panic.hpp>
 #include <dual/nds/arm7/apu.hpp>
 
-#include <fstream>
-
-static std::fstream file{"audio_output.raw", std::ios::binary | std::ios::out | std::ios::trunc};
-
 namespace dual::nds::arm7 {
 
   static constexpr int k_adpcm_index_tab[8] { -1, -1, -1, -1, 2, 4, 6, 8 };
@@ -49,6 +45,26 @@ namespace dual::nds::arm7 {
     m_scheduler.Add(k_cycles_per_sample, this, &APU::SampleMixers);
   }
 
+  AudioDriverBase* APU::GetAudioDriver() {
+    return m_audio_driver.get();
+  }
+
+  void APU::SetAudioDriver(std::shared_ptr<AudioDriverBase> audio_driver) {
+    if(m_audio_driver) {
+      m_audio_driver->Close();
+    }
+    m_audio_driver = std::move(audio_driver);
+    m_audio_driver->Open(nullptr, nullptr, 32768u, 4096u);
+  }
+
+  bool APU::GetEnableOutput() const {
+    return m_output_enable;
+  }
+
+  void APU::SetEnableOutput(bool enable) {
+    m_output_enable = enable;
+  }
+
   void APU::SampleMixers(int cycles_late) {
     f32 samples[2] {0.f, 0.f};
 
@@ -74,7 +90,15 @@ namespace dual::nds::arm7 {
       for(f32& sample : samples) sample = std::clamp(sample * master_volume, -1.f, +1.f);
     }
 
-    file.write((const char*)samples, 2 * sizeof(f32));
+    m_audio_buffer.PushBack((i16)(samples[0] * 32767));
+    m_audio_buffer.PushBack((i16)(samples[1] * 32767));
+
+    if(m_audio_buffer.Full()) {
+      if(m_output_enable && m_audio_driver) {
+        m_audio_driver->QueueSamples(m_audio_buffer);
+      }
+      m_audio_buffer.Clear();
+    }
 
     m_scheduler.Add(k_cycles_per_sample - cycles_late, this, &APU::SampleMixers);
   }

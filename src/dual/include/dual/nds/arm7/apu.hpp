@@ -2,12 +2,16 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <atom/bit.hpp>
 #include <atom/float.hpp>
 #include <atom/integer.hpp>
+#include <atom/vector_n.hpp>
 #include <dual/arm/memory.hpp>
 #include <dual/common/scheduler.hpp>
+#include <dual/audio_driver.hpp>
 #include <functional>
+#include <memory>
 
 namespace dual::nds::arm7 {
 
@@ -16,6 +20,12 @@ namespace dual::nds::arm7 {
       APU(Scheduler& scheduler, arm::Memory& bus);
 
       void Reset();
+
+      AudioDriverBase* GetAudioDriver();
+      void SetAudioDriver(std::shared_ptr<AudioDriverBase> audio_driver);
+
+      bool GetEnableOutput() const;
+      void SetEnableOutput(bool enable);
 
       u32   Read_SOUNDxCNT(int id) const;
       void Write_SOUNDxCNT(int id, u32 value, u32 mask);
@@ -118,6 +128,10 @@ namespace dual::nds::arm7 {
 
       Scheduler& m_scheduler;
       arm::Memory& m_bus;
+
+      std::shared_ptr<AudioDriverBase> m_audio_driver;
+      atom::Vector_N<i16, 1024> m_audio_buffer;
+      bool m_output_enable{true};
   };
 
 } // namespace dual::nds::arm7

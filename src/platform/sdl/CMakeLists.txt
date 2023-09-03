@@ -9,14 +9,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(SOURCES
   src/application.cpp
   src/emulator_thread.cpp
-  src/frame_limiter.cpp
   src/main.cpp
+  src/sdl2_audio_driver.cpp
 )
 
 set(HEADERS
   src/application.hpp
   src/emulator_thread.hpp
-  src/frame_limiter.hpp
+  src/sdl2_audio_driver.hpp
 )
 
 find_package(SDL2 REQUIRED)

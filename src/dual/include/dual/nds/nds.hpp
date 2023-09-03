@@ -40,6 +40,10 @@ namespace dual::nds {
         return m_video_unit;
       }
 
+      arm7::APU& GetAPU() {
+        return m_arm7.apu;
+      }
+
     private:
       Scheduler m_scheduler{};
 
