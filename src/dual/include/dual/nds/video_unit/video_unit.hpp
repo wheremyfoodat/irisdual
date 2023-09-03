@@ -10,6 +10,7 @@
 #include <dual/nds/enums.hpp>
 #include <dual/nds/irq.hpp>
 #include <dual/nds/system_memory.hpp>
+#include <functional>
 
 namespace dual::nds {
 
@@ -25,6 +26,10 @@ namespace dual::nds {
       );
 
       void Reset();
+
+      void SetPresentationCallback(std::function<void(const u32*, const u32*)> present_callback) {
+        m_present_callback = std::move(present_callback);
+      }
 
       PPU& GetPPU(int id) {
         return m_ppu[id];
@@ -67,6 +72,7 @@ namespace dual::nds {
       IRQ* m_irq[2]{};
       arm9::DMA& m_dma9;
       arm7::DMA& m_dma7;
+      std::function<void(const u32*, const u32*)> m_present_callback;
   };
 
 } // namespace dual::nds

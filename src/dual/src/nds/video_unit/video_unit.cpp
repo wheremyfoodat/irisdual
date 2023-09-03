@@ -44,6 +44,10 @@ namespace dual::nds {
 
       for(auto& ppu : m_ppu) ppu.SwapBuffers();
 
+      if(m_present_callback) [[likely]] {
+        m_present_callback(m_ppu[0].GetFrameBuffer(), m_ppu[1].GetFrameBuffer());
+      }
+
       m_vcount = 0u;
     }
 

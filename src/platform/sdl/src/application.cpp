@@ -115,9 +115,6 @@ void Application::MainLoop() {
 
   SDL_Event event;
 
-  // dual::nds::PPU& ppu_a = m_nds->GetVideoUnit().GetPPU(0);
-  // dual::nds::PPU& ppu_b = m_nds->GetVideoUnit().GetPPU(1);
-
   m_emu_thread.Start(std::move(m_nds));
 
   while(true) {
@@ -127,18 +124,20 @@ void Application::MainLoop() {
       }
     }
 
-    /*if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F12]) {
-      m_nds->DirectBoot();
+    const auto frame = m_emu_thread.AcquireFrame();
+
+    if(frame.has_value()) {
+      SDL_UpdateTexture(m_textures[0], nullptr, frame.value().first, 256 * sizeof(u32));
+      SDL_UpdateTexture(m_textures[1], nullptr, frame.value().second, 256 * sizeof(u32));
+
+      SDL_RenderClear(m_renderer);
+      SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &rects[0]);
+      SDL_RenderCopy(m_renderer, m_textures[1], nullptr, &rects[1]);
+      SDL_RenderPresent(m_renderer);
     }
 
-    m_nds->Step(559241);
-
-    SDL_UpdateTexture(m_textures[0], nullptr, ppu_a.GetFrameBuffer(), 256 * sizeof(u32));
-    SDL_UpdateTexture(m_textures[1], nullptr, ppu_b.GetFrameBuffer(), 256 * sizeof(u32));
-
-    SDL_RenderClear(m_renderer);
-    SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &rects[0]);
-    SDL_RenderCopy(m_renderer, m_textures[1], nullptr, &rects[1]);
-    SDL_RenderPresent(m_renderer);*/
+    /*if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F12]) {
+      m_nds->DirectBoot();
+    }*/
   }
 }
