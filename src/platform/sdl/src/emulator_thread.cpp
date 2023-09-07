@@ -15,7 +15,6 @@ void EmulatorThread::Start(std::unique_ptr<dual::nds::NDS> nds) {
     ATOM_PANIC("Starting an already running emulator thread is illegal.");
   }
   m_nds = std::move(nds);
-  // m_nds->GetVideoUnit().SetPresentationCallback(std::bind<EmulatorThread>(&EmulatorThread::PresentCallback, this));
   m_frame_available = false;
   m_nds->GetVideoUnit().SetPresentationCallback([this](const u32* fb_top, const u32* fb_bottom) {
     PresentCallback(fb_top, fb_bottom);
@@ -47,6 +46,8 @@ void EmulatorThread::SetFastForward(bool fast_forward) {
 void EmulatorThread::ThreadMain() {
   using namespace std::chrono_literals;
 
+  constexpr int k_cycles_per_frame = 560190;
+
   dual::AudioDriverBase* audio_driver = m_nds->GetAPU().GetAudioDriver();
 
   if(!audio_driver) {
@@ -72,7 +73,7 @@ void EmulatorThread::ThreadMain() {
       const int cycles = (int)(full_buffer_size - current_buffer_size) * 1024;
       m_nds->Step(cycles);
     } else {
-      m_nds->Step(559241);
+      m_nds->Step(k_cycles_per_frame);
     }
   }
 }

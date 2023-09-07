@@ -18,7 +18,7 @@ class EmulatorThread {
     void Start(std::unique_ptr<dual::nds::NDS> nds);
     std::unique_ptr<dual::nds::NDS> Stop();
 
-    bool GetFastForward() const;
+    [[nodiscard]] bool GetFastForward() const;
     void SetFastForward(bool fast_forward);
 
 
