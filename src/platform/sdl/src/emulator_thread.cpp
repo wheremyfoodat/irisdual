@@ -15,7 +15,8 @@ void EmulatorThread::Start(std::unique_ptr<dual::nds::NDS> nds) {
     ATOM_PANIC("Starting an already running emulator thread is illegal.");
   }
   m_nds = std::move(nds);
-  m_frame_available = false;
+  m_frame_mailbox.available[0] = false;
+  m_frame_mailbox.available[1] = false;
   m_nds->GetVideoUnit().SetPresentationCallback([this](const u32* fb_top, const u32* fb_bottom) {
     PresentCallback(fb_top, fb_bottom);
   });
@@ -62,6 +63,10 @@ void EmulatorThread::ThreadMain() {
     if(!m_fast_forward) {
       uint current_buffer_size = audio_driver->GetNumberOfQueuedSamples();
 
+      if(current_buffer_size == 0) {
+        fmt::print("Uh oh! Bad! Audio not synced anymore! Fix me!!\n");
+      }
+
       // Sleep until the queue is less than half full
       while(current_buffer_size > half_buffer_size) {
         std::this_thread::sleep_for(1ms);
@@ -79,17 +84,40 @@ void EmulatorThread::ThreadMain() {
 }
 
 std::optional<std::pair<const u32*, const u32*>> EmulatorThread::AcquireFrame() {
-  // @todo: tearing can still happen, if a new frame becomes available during presentation.
-  if(m_frame_available) {
-    m_frame_available = false;
-    return std::make_pair<const u32*, const u32*>(m_frame_mailbox[0], m_frame_mailbox[1]);
+  int read_id = m_frame_mailbox.read_id;
+
+  if(!m_frame_mailbox.available[read_id]) {
+    m_frame_mailbox.read_id ^= 1;
+    read_id ^= 1;
+  }
+
+  if(m_frame_mailbox.available[read_id]) {
+    return std::make_pair<const u32*, const u32*>(
+      m_frame_mailbox.frames[read_id][0], m_frame_mailbox.frames[read_id][1]);
   }
 
   return std::nullopt;
 }
 
+void EmulatorThread::ReleaseFrame() {
+  const int read_id = m_frame_mailbox.read_id;
+
+  m_frame_mailbox.available[read_id] = false;
+}
+
 void EmulatorThread::PresentCallback(const u32* fb_top, const u32* fb_bottom) {
-  std::memcpy(m_frame_mailbox[0], fb_top, sizeof(u32) * 256 * 192);
-  std::memcpy(m_frame_mailbox[1], fb_bottom, sizeof(u32) * 256 * 192);
-  m_frame_available = true;
+  using namespace std::chrono_literals;
+
+  int write_id = m_frame_mailbox.write_id;
+
+  if(m_frame_mailbox.available[write_id]/* && !m_frame_mailbox.available[write_id ^ 1]*/) {
+    m_frame_mailbox.write_id ^= 1;
+    write_id ^= 1;
+  }
+
+  if(!m_frame_mailbox.available[write_id]) {
+    std::memcpy(m_frame_mailbox.frames[write_id][0], fb_top, sizeof(u32) * 256 * 192);
+    std::memcpy(m_frame_mailbox.frames[write_id][1], fb_bottom, sizeof(u32) * 256 * 192);
+    m_frame_mailbox.available[write_id] = true;
+  }
 }

@@ -21,8 +21,8 @@ class EmulatorThread {
     [[nodiscard]] bool GetFastForward() const;
     void SetFastForward(bool fast_forward);
 
-
     std::optional<std::pair<const u32*, const u32*>> AcquireFrame();
+    void ReleaseFrame();
 
   private:
     void ThreadMain();
@@ -33,6 +33,10 @@ class EmulatorThread {
     std::atomic_bool m_running{};
     std::atomic_bool m_fast_forward{};
 
-    u32 m_frame_mailbox[2][256 * 192]{};
-    std::atomic_bool m_frame_available{};
+    struct FrameMailbox {
+      u32 frames[2][2][256 * 192];
+      int read_id = 0;
+      int write_id = 1;
+      std::atomic_bool available[2];
+    } m_frame_mailbox;
 };

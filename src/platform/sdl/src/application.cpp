@@ -136,6 +136,8 @@ void Application::MainLoop() {
       SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &rects[0]);
       SDL_RenderCopy(m_renderer, m_textures[1], nullptr, &rects[1]);
       SDL_RenderPresent(m_renderer);
+
+      m_emu_thread.ReleaseFrame();
     }
 
     m_emu_thread.SetFastForward(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
