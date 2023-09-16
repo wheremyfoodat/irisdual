@@ -36,7 +36,7 @@ int Application::Run(int argc, char **argv) {
 
 void Application::CreateWindow() {
   m_window = SDL_CreateWindow(
-    "ndsemu",
+    "irisdual",
     SDL_WINDOWPOS_CENTERED,
     SDL_WINDOWPOS_CENTERED,
     512,
@@ -142,8 +142,16 @@ void Application::MainLoop() {
 
     m_emu_thread.SetFastForward(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
 
-    /*if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F12]) {
+    if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F11]) {
+      m_nds = m_emu_thread.Stop();
+      m_nds->Reset();
+      m_emu_thread.Start(std::move(m_nds));
+    }
+
+    if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F12]) {
+      m_nds = m_emu_thread.Stop();
       m_nds->DirectBoot();
-    }*/
+      m_emu_thread.Start(std::move(m_nds));
+    }
   }
 }
