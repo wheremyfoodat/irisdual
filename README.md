@@ -12,6 +12,7 @@ I do **not** intend to replace any of the established DS emulators.
 
 ## Copyright
 
-irisdual is Copyright © 2020 - 2023 fleroviux. All rights reserved.
+irisdual is Copyright © 2023 fleroviux. All rights reserved.<br>
+irisdual is released under a free for non-commercial use license. Refer to the [LICENSE](LICENSE.md) file details.
 
 Nintendo DS is a registered trademark of Nintendo Co., Ltd.
