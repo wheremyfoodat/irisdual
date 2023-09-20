@@ -151,25 +151,32 @@ namespace dual::nds {
           bool have_src = mmio.bldcnt.src_targets[layer[1]];
 
           if(is_alpha_obj && have_src) {
-            Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
+            //Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
+            pixel[0] = AlphaBlend(pixel[0], pixel[1], (int)mmio.bldalpha.a, (int)mmio.bldalpha.b);
           } if(blend_mode == BlendControl::Mode::Alpha) {
             // @todo: what does HW do if "enable BG0 3D" is disabled in mode 6.
             if(layer[0] == 0 && bg0_is_3d && have_src) {
-              auto real_bldalpha = mmio.bldalpha;
+              const int eva = m_buffer_3d_alpha[x];
+              const int evb = 16 - eva;
 
-              // Someone should revoke my coding license for this.
-              mmio.bldalpha.a = m_buffer_3d_alpha[x];
-              mmio.bldalpha.b = 16 - mmio.bldalpha.a;
-
-              Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
-
-              mmio.bldalpha.half = real_bldalpha.half;
+              pixel[0] = AlphaBlend(pixel[0], pixel[1], eva, evb);
             } else if(have_dst && have_src && sfx_enable) {
-              Blend(vcount, pixel[0], pixel[1], BlendControl::Mode::Alpha);
+              pixel[0] = AlphaBlend(pixel[0], pixel[1], (int)mmio.bldalpha.a, (int)mmio.bldalpha.b);
             }
           } else if(blend_mode != BlendControl::Mode::Off) {
             if(have_dst && sfx_enable) {
-              Blend(vcount, pixel[0], pixel[1], (BlendControl::Mode)blend_mode);
+              switch((BlendControl::Mode)blend_mode) {
+                case BlendControl::Mode::Alpha:
+                  pixel[0] = AlphaBlend(pixel[0], pixel[1], (int)mmio.bldalpha.a, (int)mmio.bldalpha.b);
+                  break;
+                case BlendControl::Mode::Brighten:
+                  pixel[0] = Brighten(pixel[0], (int)mmio.bldy.half);
+                  break;
+                case BlendControl::Mode::Darken:
+                  pixel[0] = Darken(pixel[0], (int)mmio.bldy.half);
+                  break;
+                default: break;
+              }
             }
           }
         }
@@ -254,49 +261,45 @@ namespace dual::nds {
     }
   }
 
-  void PPU::Blend(u16  vcount,
-                  u16& target1,
-                  u16  target2,
-                  BlendControl::Mode blend_mode) {
-    const auto& mmio = m_mmio_copy[vcount];
+  u16 PPU::AlphaBlend(u16 color_a, u16 color_b, int eva, int evb) {
+    const int r_a = (color_a >>  0) & 0x1F;
+    const int g_a = (color_a >>  5) & 0x1F;
+    const int b_a = (color_a >> 10) & 0x1F;
 
-    int r1 = (target1 >>  0) & 0x1F;
-    int g1 = (target1 >>  5) & 0x1F;
-    int b1 = (target1 >> 10) & 0x1F;
+    const int r_b = (color_b >>  0) & 0x1F;
+    const int g_b = (color_b >>  5) & 0x1F;
+    const int b_b = (color_b >> 10) & 0x1F;
 
-    switch(blend_mode) {
-      case BlendControl::Mode::Alpha: {
-        int eva = std::min<int>(16, mmio.bldalpha.a);
-        int evb = std::min<int>(16, mmio.bldalpha.b);
+    eva = std::min<int>(16, eva);
+    evb = std::min<int>(16, evb);
 
-        int r2 = (target2 >>  0) & 0x1F;
-        int g2 = (target2 >>  5) & 0x1F;
-        int b2 = (target2 >> 10) & 0x1F;
+    return std::min<u8>((r_a * eva + r_b * evb) >> 4, 31) |
+           std::min<u8>((g_a * eva + g_b * evb) >> 4, 31) <<  5 |
+           std::min<u8>((b_a * eva + b_b * evb) >> 4, 31) << 10;
+  }
 
-        r1 = std::min<u8>((r1 * eva + r2 * evb) >> 4, 31);
-        g1 = std::min<u8>((g1 * eva + g2 * evb) >> 4, 31);
-        b1 = std::min<u8>((b1 * eva + b2 * evb) >> 4, 31);
-        break;
-      }
-      case BlendControl::Mode::Brighten: {
-        int evy = std::min<int>(16, (int)mmio.bldy.half);
+  u16 PPU::Brighten(u16 color, int evy) {
+    const int r = (color >>  0) & 0x1F;
+    const int g = (color >>  5) & 0x1F;
+    const int b = (color >> 10) & 0x1F;
 
-        r1 += ((31 - r1) * evy) >> 4;
-        g1 += ((31 - g1) * evy) >> 4;
-        b1 += ((31 - b1) * evy) >> 4;
-        break;
-      }
-      case BlendControl::Mode::Darken: {
-        int evy = std::min<int>(16, (int)mmio.bldy.half);
+    evy = std::min<int>(16, evy);
 
-        r1 -= (r1 * evy) >> 4;
-        g1 -= (g1 * evy) >> 4;
-        b1 -= (b1 * evy) >> 4;
-        break;
-      }
-    }
+    return (r + (((31 - r) * evy) >> 4)) |
+           (g + (((31 - g) * evy) >> 4)) <<  5 |
+           (b + (((31 - b) * evy) >> 4)) << 10;
+  }
 
-    target1 = r1 | (g1 << 5) | (b1 << 10);
+  u16 PPU::Darken(u16 color, int evy) {
+    const int r = (color >>  0) & 0x1F;
+    const int g = (color >>  5) & 0x1F;
+    const int b = (color >> 10) & 0x1F;
+
+    evy = std::min<int>(16, evy);
+
+    return (r - ((r * evy) >> 4)) |
+           (g - ((g * evy) >> 4)) <<  5 |
+           (b - ((b * evy) >> 4)) << 10;
   }
 
 } // namespace nds::nds

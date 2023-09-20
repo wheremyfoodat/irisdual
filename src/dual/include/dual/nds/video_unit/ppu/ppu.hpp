@@ -163,7 +163,9 @@ namespace dual::nds {
       template<bool window, bool blending, bool opengl>
       void ComposeScanlineTmpl(u16 vcount, int bg_min, int bg_max);
       void ComposeScanline(u16 vcount, int bg_min, int bg_max);
-      void Blend(u16 vcount, u16& target1, u16 target2, BlendControl::Mode blend_mode);
+      u16  AlphaBlend(u16 color_a, u16 color_b, int eva, int evb);
+      u16  Brighten(u16 color, int evy);
+      u16  Darken(u16 color, int evy);
 
       void SetupRenderWorker();
       void StopRenderWorker();
