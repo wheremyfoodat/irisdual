@@ -148,9 +148,9 @@ void ARM_DataProcessing(u32 instruction) {
     }
 
     if constexpr(opcode != ARMDataOp::TST &&
-                  opcode != ARMDataOp::TEQ &&
-                  opcode != ARMDataOp::CMP &&
-                  opcode != ARMDataOp::CMN) {
+                 opcode != ARMDataOp::TEQ &&
+                 opcode != ARMDataOp::CMP &&
+                 opcode != ARMDataOp::CMN) {
       if(m_state.cpsr.thumb) {
         ReloadPipeline16();
       } else {

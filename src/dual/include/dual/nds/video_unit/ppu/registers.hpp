@@ -228,10 +228,10 @@ namespace dual::nds {
 
   struct MasterBrightness {
     enum class Mode {
-        Off = 0,
-        Up = 1,
-        Down = 2,
-        Reserved = 3
+      Off = 0,
+      Up = 1,
+      Down = 2,
+      Reserved = 3
     };
 
     union {
