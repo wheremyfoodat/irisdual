@@ -23,6 +23,7 @@ set(SOURCES
   src/nds/backup/eeprom.cpp
   src/nds/backup/eeprom512b.cpp
   src/nds/backup/flash.cpp
+  src/nds/video_unit/gpu/gpu.cpp
   src/nds/video_unit/ppu/render/affine.cpp
   src/nds/video_unit/ppu/render/oam.cpp
   src/nds/video_unit/ppu/render/text.cpp
@@ -70,6 +71,7 @@ set(HEADERS_PUBLIC
   include/dual/nds/backup/eeprom.hpp
   include/dual/nds/backup/eeprom512b.hpp
   include/dual/nds/backup/flash.hpp
+  include/dual/nds/video_unit/gpu/gpu.hpp
   include/dual/nds/video_unit/ppu/ppu.hpp
   include/dual/nds/video_unit/ppu/registers.hpp
   include/dual/nds/video_unit/video_unit.hpp

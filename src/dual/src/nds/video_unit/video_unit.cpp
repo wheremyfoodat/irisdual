@@ -11,7 +11,11 @@ namespace dual::nds {
     IRQ& irq7,
     arm9::DMA& dma9,
     arm7::DMA& dma7
-  )   : m_scheduler{scheduler}, m_ppu{{0, memory}, {1, memory}}, m_dma9{dma9}, m_dma7{dma7} {
+  )   : m_scheduler{scheduler}
+      , m_gpu{scheduler, irq9, dma9, memory.vram}
+      , m_ppu{{0, memory}, {1, memory}}
+      , m_dma9{dma9}
+      , m_dma7{dma7} {
     m_irq[(int)CPU::ARM9] = &irq9;
     m_irq[(int)CPU::ARM7] = &irq7;
   }
@@ -21,6 +25,7 @@ namespace dual::nds {
 
     m_vcount = 0xFFFFu;
 
+    m_gpu.Reset();
     for(auto& ppu : m_ppu) ppu.Reset();
 
     BeginHDraw(0);

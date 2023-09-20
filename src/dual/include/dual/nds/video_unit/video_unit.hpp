@@ -6,6 +6,7 @@
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/arm7/dma.hpp>
 #include <dual/nds/arm9/dma.hpp>
+#include <dual/nds/video_unit/gpu/gpu.hpp>
 #include <dual/nds/video_unit/ppu/ppu.hpp>
 #include <dual/nds/enums.hpp>
 #include <dual/nds/irq.hpp>
@@ -31,6 +32,10 @@ namespace dual::nds {
         m_present_callback = std::move(present_callback);
       }
 
+      GPU& GetGPU() {
+        return m_gpu;
+      }
+
       PPU& GetPPU(int id) {
         return m_ppu[id];
       }
@@ -52,6 +57,7 @@ namespace dual::nds {
 
       Scheduler& m_scheduler;
 
+      GPU m_gpu;
       PPU m_ppu[2];
 
       union DISPSTAT {
