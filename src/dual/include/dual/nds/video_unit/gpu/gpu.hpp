@@ -4,6 +4,7 @@
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/arm9/dma.hpp>
 #include <dual/nds/video_unit/gpu/command_processor.hpp>
+#include <dual/nds/video_unit/gpu/registers.hpp>
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/irq.hpp>
 

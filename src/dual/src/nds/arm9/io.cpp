@@ -230,7 +230,9 @@ namespace dual::nds::arm9 {
       ATOM_ERROR("arm9: IO: unhandled {}-bit write to 0x{:08X} = 0x{:08X}", access_size, access_address, access_value);
     };
 
-    auto& gpu   = hw.video_unit.GetGPU();
+    auto& gpu = hw.video_unit.GetGPU();
+    auto& gpu_cp = gpu.GetCommandProcessor();
+
     auto& ppu_a = hw.video_unit.GetPPU(0);
     auto& ppu_b = hw.video_unit.GetPPU(1);
 
@@ -363,44 +365,44 @@ namespace dual::nds::arm9 {
       case REG(0x04000300): postflg = (value & mask & 3u) | (postflg & ~(mask & 2u)); break;
 
       // GPU Geometry Engine
-      case REG(0x04000400): break; // GXFIFO
-      case REG(0x04000440): break; // MTX_MODE
-      case REG(0x04000444): break; // MTX_PUSH
-      case REG(0x04000448): break; // MTX_POP
-      case REG(0x0400044C): break; // MTX_STORE
-      case REG(0x04000450): break; // MTX_RESTORE
-      case REG(0x04000454): break; // MTX_IDENTITY
-      case REG(0x04000458): break; // MTX_LOAD_4x4
-      case REG(0x0400045C): break; // MTX_LOAD_4x3
-      case REG(0x04000460): break; // MTX_MULT_4x4
-      case REG(0x04000464): break; // MTX_MULT_4x3
-      case REG(0x04000468): break; // MTX_MULT_3x3
-      case REG(0x0400046C): break; // MTX_SCALE
-      case REG(0x04000470): break; // MTX_TRANS
-      case REG(0x04000480): break; // COLOR
-      case REG(0x04000484): break; // NORMAL
-      case REG(0x04000488): break; // TEXCOORD
-      case REG(0x0400048C): break; // VTX_16
-      case REG(0x04000490): break; // VTX_10
-      case REG(0x04000494): break; // VTX_XY
-      case REG(0x04000498): break; // VTX_XZ
-      case REG(0x0400049C): break; // VTX_YZ
-      case REG(0x040004A0): break; // VTX_DIFF
-      case REG(0x040004A4): break; // POLYGON_ATTR
-      case REG(0x040004A8): break; // TEXIMAGE_PARAM
-      case REG(0x040004AC): break; // PLTT_BASE
-      case REG(0x040004C0): break; // DIF_AMB
-      case REG(0x040004C4): break; // SPE_EMI
-      case REG(0x040004C8): break; // LIGHT_VECTOR
-      case REG(0x040004CC): break; // LIGHT_COLOR
-      case REG(0x040004D0): break; // SHININESS
-      case REG(0x04000500): break; // BEGIN_VTXS
-      case REG(0x04000504): break; // END_VTXS
-      case REG(0x04000540): break; // SWAP_BUFFERS
-      case REG(0x04000580): break; // VIEWPORT
-      case REG(0x040005C0): break; // BOX_TEST
-      case REG(0x040005C4): break; // POS_TEST
-      case REG(0x040005C8): break; // VEC_TEST
+      case REG(0x04000400): gpu_cp.Write_GXFIFO(value); break; // GXFIFO
+      case REG(0x04000440): // MTX_MODE
+      case REG(0x04000444): // MTX_PUSH
+      case REG(0x04000448): // MTX_POP
+      case REG(0x0400044C): // MTX_STORE
+      case REG(0x04000450): // MTX_RESTORE
+      case REG(0x04000454): // MTX_IDENTITY
+      case REG(0x04000458): // MTX_LOAD_4x4
+      case REG(0x0400045C): // MTX_LOAD_4x3
+      case REG(0x04000460): // MTX_MULT_4x4
+      case REG(0x04000464): // MTX_MULT_4x3
+      case REG(0x04000468): // MTX_MULT_3x3
+      case REG(0x0400046C): // MTX_SCALE
+      case REG(0x04000470): // MTX_TRANS
+      case REG(0x04000480): // COLOR
+      case REG(0x04000484): // NORMAL
+      case REG(0x04000488): // TEXCOORD
+      case REG(0x0400048C): // VTX_16
+      case REG(0x04000490): // VTX_10
+      case REG(0x04000494): // VTX_XY
+      case REG(0x04000498): // VTX_XZ
+      case REG(0x0400049C): // VTX_YZ
+      case REG(0x040004A0): // VTX_DIFF
+      case REG(0x040004A4): // POLYGON_ATTR
+      case REG(0x040004A8): // TEXIMAGE_PARAM
+      case REG(0x040004AC): // PLTT_BASE
+      case REG(0x040004C0): // DIF_AMB
+      case REG(0x040004C4): // SPE_EMI
+      case REG(0x040004C8): // LIGHT_VECTOR
+      case REG(0x040004CC): // LIGHT_COLOR
+      case REG(0x040004D0): // SHININESS
+      case REG(0x04000500): // BEGIN_VTXS
+      case REG(0x04000504): // END_VTXS
+      case REG(0x04000540): // SWAP_BUFFERS
+      case REG(0x04000580): // VIEWPORT
+      case REG(0x040005C0): // BOX_TEST
+      case REG(0x040005C4): // POS_TEST
+      case REG(0x040005C8): gpu_cp.Write_GXCMDPORT(address, value); break; // VEC_TEST
 
       default: {
         Unhandled();

@@ -73,6 +73,7 @@ set(HEADERS_PUBLIC
   include/dual/nds/backup/flash.hpp
   include/dual/nds/video_unit/gpu/command_processor.hpp
   include/dual/nds/video_unit/gpu/gpu.hpp
+  include/dual/nds/video_unit/gpu/registers.hpp
   include/dual/nds/video_unit/ppu/ppu.hpp
   include/dual/nds/video_unit/ppu/registers.hpp
   include/dual/nds/video_unit/video_unit.hpp
