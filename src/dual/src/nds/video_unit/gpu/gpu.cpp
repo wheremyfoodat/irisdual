@@ -16,6 +16,7 @@ namespace dual::nds {
   }
 
   void GPU::Reset() {
+    m_cmd_processor.Reset();
   }
 
 } // namespace dual::nds
