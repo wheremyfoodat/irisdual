@@ -5,11 +5,23 @@
 #include <atom/integer.hpp>
 #include <atom/panic.hpp>
 #include <dual/common/fifo.hpp>
+#include <dual/common/scheduler.hpp>
+#include <dual/nds/video_unit/gpu/registers.hpp>
+#include <dual/nds/irq.hpp>
 
 namespace dual::nds::gpu {
 
   class CommandProcessor {
     public:
+      explicit CommandProcessor(
+        Scheduler& scheduler,
+        IRQ& arm9_irq,
+        GXSTAT& gxstat
+      )   : m_scheduler{scheduler}
+          , m_arm9_irq{arm9_irq}
+          , m_gxstat{gxstat} {
+      }
+
       void Reset() {
         m_unpack = {};
         m_cmd_pipe.Reset();
@@ -30,7 +42,6 @@ namespace dual::nds::gpu {
         if(m_unpack.cmds_left == 0) {
           m_unpack.cmds_left = 4;
           m_unpack.word = word;
-          ATOM_INFO("New packed CMDs: 0x{:08X}", word);
         }
 
         for(int i = 0; i < 4; i++) {
@@ -70,15 +81,21 @@ namespace dual::nds::gpu {
       };
 
       void EnqueueFIFO(u8 command, u32 param) {
-        ATOM_INFO("gpu: enqueue FIFO entry 0x{:02X} : 0x{:08X}", command, param);
-
         const u64 entry = (u64)command << 32 | param;
 
         if(m_cmd_fifo.IsEmpty() && !m_cmd_pipe.IsFull()) {
           m_cmd_pipe.Write(entry);
         } else {
+          if(m_cmd_fifo.IsFull()) {
+            ATOM_PANIC("gpu: Attempted to write to full GXFIFO, busy={}", m_gxstat.busy);
+          }
+
           m_cmd_fifo.Write(entry);
-          // @todo: Update GXSTAT
+          UpdateFifoState();
+        }
+
+        if(!m_gxstat.busy) {
+          ProcessCommands();
         }
       }
 
@@ -96,11 +113,66 @@ namespace dual::nds::gpu {
             m_cmd_pipe.Write(m_cmd_fifo.Read());
           }
 
-          // @todo: Update GXSTAT
+          UpdateFifoState();
         }
 
         return entry;
       }
+
+      void UpdateFifoState() {
+        m_gxstat.cmd_fifo_size = m_cmd_fifo.Count();
+        m_gxstat.cmd_fifo_empty = m_cmd_fifo.IsEmpty();
+        m_gxstat.cmd_fifo_less_than_half_full = m_cmd_fifo.Count() < 128;
+
+        if(EvaluateFIFOIRQCondition()) {
+          // @todo: according to GBATEK the GXFIFO IRQ is level-sensitive.
+          m_arm9_irq.Raise(IRQ::Source::GXFIFO);
+        }
+      }
+
+      [[nodiscard]] bool EvaluateFIFOIRQCondition() const {
+        switch((GXSTAT::IRQ)m_gxstat.cmd_fifo_irq) {
+          case GXSTAT::IRQ::Empty: return m_cmd_fifo.IsEmpty();
+          case GXSTAT::IRQ::LessThanHalfFull: return m_cmd_fifo.Count() < 128;
+          default: return false;
+        }
+      }
+
+      void ProcessCommands() {
+        if(m_cmd_pipe.IsEmpty()) {
+          m_gxstat.busy = false;
+          return;
+        }
+
+        const u8 command = (u8)(m_cmd_pipe.Peek() >> 32);
+        const size_t number_of_entries = m_cmd_pipe.Count() + m_cmd_fifo.Count();
+
+        if(number_of_entries < k_cmd_num_params[command]) {
+          m_gxstat.busy = false;
+          return;
+        }
+
+        m_gxstat.busy = true;
+
+        m_scheduler.Add(1, [this, command](int _) {
+          ExecuteCommand(command);
+          ProcessCommands();
+        });
+      }
+
+      void ExecuteCommand(u8 command) {
+        if(k_cmd_num_params[command] == 0) {
+          DequeueFIFO();
+        }
+
+        for(int i = 0; i < k_cmd_num_params[command]; i++) {
+          DequeueFIFO();
+        }
+      }
+
+      Scheduler& m_scheduler;
+      IRQ& m_arm9_irq;
+      GXSTAT& m_gxstat;
 
       struct Unpack {
         u32 word = 0u;

@@ -104,6 +104,7 @@ namespace dual::nds::arm9 {
       ATOM_ERROR("arm9: IO: unhandled {}-bit read from 0x{:08X}", access_size, access_address);
     };
 
+    auto& gpu = hw.video_unit.GetGPU();
     auto& ppu_a = hw.video_unit.GetPPU(0);
     auto& ppu_b = hw.video_unit.GetPPU(1);
 
@@ -212,6 +213,9 @@ namespace dual::nds::arm9 {
 
       // POSTFLG
       case REG(0x04000300): return postflg;
+
+      // GPU3D
+      case REG(0x04000600): return gpu.Read_GXSTAT();
 
       default: {
         Unhandled();
@@ -364,7 +368,7 @@ namespace dual::nds::arm9 {
       // POSTFLG
       case REG(0x04000300): postflg = (value & mask & 3u) | (postflg & ~(mask & 2u)); break;
 
-      // GPU Geometry Engine
+      // GPU3D
       case REG(0x04000400): gpu_cp.Write_GXFIFO(value); break; // GXFIFO
       case REG(0x04000440): // MTX_MODE
       case REG(0x04000444): // MTX_PUSH
@@ -403,6 +407,7 @@ namespace dual::nds::arm9 {
       case REG(0x040005C0): // BOX_TEST
       case REG(0x040005C4): // POS_TEST
       case REG(0x040005C8): gpu_cp.Write_GXCMDPORT(address, value); break; // VEC_TEST
+      case REG(0x04000600): gpu.Write_GXSTAT(value, mask); break;
 
       default: {
         Unhandled();
