@@ -23,6 +23,7 @@ set(SOURCES
   src/nds/backup/eeprom.cpp
   src/nds/backup/eeprom512b.cpp
   src/nds/backup/flash.cpp
+  src/nds/video_unit/gpu/command_processor.cpp
   src/nds/video_unit/gpu/gpu.cpp
   src/nds/video_unit/ppu/render/affine.cpp
   src/nds/video_unit/ppu/render/oam.cpp
@@ -73,6 +74,7 @@ set(HEADERS_PUBLIC
   include/dual/nds/backup/flash.hpp
   include/dual/nds/video_unit/gpu/command_processor.hpp
   include/dual/nds/video_unit/gpu/gpu.hpp
+  include/dual/nds/video_unit/gpu/math.hpp
   include/dual/nds/video_unit/gpu/registers.hpp
   include/dual/nds/video_unit/ppu/ppu.hpp
   include/dual/nds/video_unit/ppu/registers.hpp
@@ -90,7 +92,7 @@ set(HEADERS_PUBLIC
 
 add_library(dual ${SOURCES} ${HEADERS} ${HEADERS_PUBLIC})
 
-target_link_libraries(dual PUBLIC atom-common atom-logger)
+target_link_libraries(dual PUBLIC atom-common atom-logger atom-math)
 
 target_include_directories(dual PUBLIC include)
 target_include_directories(dual PRIVATE src)

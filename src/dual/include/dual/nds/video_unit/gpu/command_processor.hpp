@@ -6,6 +6,7 @@
 #include <atom/panic.hpp>
 #include <dual/common/fifo.hpp>
 #include <dual/common/scheduler.hpp>
+#include <dual/nds/video_unit/gpu/math.hpp>
 #include <dual/nds/video_unit/gpu/registers.hpp>
 #include <dual/nds/irq.hpp>
 
@@ -26,6 +27,7 @@ namespace dual::nds::gpu {
         m_unpack = {};
         m_cmd_pipe.Reset();
         m_cmd_fifo.Reset();
+        m_mtx_mode = 0;
       }
 
       void Write_GXFIFO(u32 word) {
@@ -152,23 +154,35 @@ namespace dual::nds::gpu {
           return;
         }
 
-        m_gxstat.busy = true;
+        ExecuteCommand(command);
 
-        m_scheduler.Add(1, [this, command](int _) {
-          ExecuteCommand(command);
+        m_gxstat.busy = true;
+        // @todo: think of a more efficient solution.
+        m_scheduler.Add(1, [this](int _) {
           ProcessCommands();
         });
       }
 
       void ExecuteCommand(u8 command) {
-        if(k_cmd_num_params[command] == 0) {
-          DequeueFIFO();
-        }
+        switch(command) {
+          case 0x11: cmdMtxPush(); break;
+          default: {
+            if(true) {
+              ATOM_PANIC("gpu: Unimplemented command 0x{:02X}", command);
+            } else {
+              if(k_cmd_num_params[command] == 0) {
+                DequeueFIFO();
+              }
 
-        for(int i = 0; i < k_cmd_num_params[command]; i++) {
-          DequeueFIFO();
+              for(int i = 0; i < k_cmd_num_params[command]; i++) {
+                DequeueFIFO();
+              }
+            }
+          }
         }
       }
+
+      void cmdMtxPush();
 
       Scheduler& m_scheduler;
       IRQ& m_arm9_irq;
@@ -182,6 +196,9 @@ namespace dual::nds::gpu {
 
       FIFO<u64, 4>   m_cmd_pipe;
       FIFO<u64, 256> m_cmd_fifo;
+
+      // Matrix engine
+      int m_mtx_mode{};
   };
 
 } // namespace dual::nds::gpu
