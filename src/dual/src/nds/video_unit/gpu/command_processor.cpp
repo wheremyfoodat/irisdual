@@ -171,6 +171,22 @@ namespace dual::nds::gpu {
     }
   }
 
+  void CommandProcessor::cmdMtxScale() {
+    Matrix4<Fixed20x12> rhs_matrix;
+
+    rhs_matrix[0][0] = (i32)(u32)DequeueFIFO();
+    rhs_matrix[1][1] = (i32)(u32)DequeueFIFO();
+    rhs_matrix[2][2] = (i32)(u32)DequeueFIFO();
+    rhs_matrix[3][3] = Fixed20x12::FromInt(1);
+
+    switch(m_mtx_mode) {
+      case 0: m_projection_mtx = m_projection_mtx * rhs_matrix; break;
+      case 1:
+      case 2: m_coordinate_mtx = m_coordinate_mtx * rhs_matrix; break;
+      case 3: m_texture_mtx = m_texture_mtx * rhs_matrix; break;
+    }
+  }
+
   void CommandProcessor::cmdMtxTrans() {
     Matrix4<Fixed20x12> rhs_matrix;
 

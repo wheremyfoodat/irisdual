@@ -194,6 +194,7 @@ namespace dual::nds::gpu {
           case 0x18: cmdMtxMult4x4(); break;
           case 0x19: cmdMtxMult4x3(); break;
           case 0x1A: cmdMtxMult3x3(); break;
+          case 0x1B: cmdMtxScale(); break;
           case 0x1C: cmdMtxTrans(); break;
           case 0x40: cmdBeginVtxs(); break;
           case 0x41: cmdEndVtxs(); break;
@@ -209,10 +210,14 @@ namespace dual::nds::gpu {
             }
 
             if(
-              command != 0x34 && /* SHININESS */
-              command != 0x29 && /* POLYGON_ATTR */
-              command != 0x2A && /* TEXIMAGE_PARAM */
-              command != 0x2B && /* PLTT_BASE */
+              command != 0x30 && // DIF_AMB
+              command != 0x31 && // SPE_EMI
+              command != 0x32 && // LIGHT_VECTOR
+              command != 0x33 && // LIGHT_COLOR
+              command != 0x34 && // SHININESS
+              command != 0x29 && // POLYGON_ATTR
+              command != 0x2A && // TEXIMAGE_PARAM
+              command != 0x2B && // PLTT_BASE
               true
             ) {
               ATOM_PANIC("gpu: Unimplemented command 0x{:02X}", command);
@@ -263,6 +268,7 @@ namespace dual::nds::gpu {
       void cmdMtxMult4x4();
       void cmdMtxMult4x3();
       void cmdMtxMult3x3();
+      void cmdMtxScale();
       void cmdMtxTrans();
       void cmdBeginVtxs();
       void cmdEndVtxs();
