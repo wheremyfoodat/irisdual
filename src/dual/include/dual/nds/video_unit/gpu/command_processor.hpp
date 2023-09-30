@@ -207,20 +207,20 @@ namespace dual::nds::gpu {
       void ExecuteCommand(u8 command) {
         switch(command) {
           case 0x00: DequeueFIFO(); break; // NOP
-          case 0x10: cmdMtxMode(); break;
-          case 0x11: cmdMtxPush(); break;
-          case 0x12: cmdMtxPop(); break;
-          case 0x13: cmdMtxStore(); break;
-          case 0x15: cmdMtxIdentity(); break;
-          case 0x16: cmdMtxLoad4x4(); break;
-          case 0x17: cmdMtxLoad4x3(); break;
-          case 0x18: cmdMtxMult4x4(); break;
-          case 0x19: cmdMtxMult4x3(); break;
-          case 0x1A: cmdMtxMult3x3(); break;
-          case 0x1B: cmdMtxScale(); break;
-          case 0x1C: cmdMtxTrans(); break;
-          case 0x40: cmdBeginVtxs(); break;
-          case 0x41: cmdEndVtxs(); break;
+          case 0x10: cmdMatrixMode(); break;
+          case 0x11: cmdMatrixPush(); break;
+          case 0x12: cmdMatrixPop(); break;
+          case 0x13: cmdMatrixStore(); break;
+          case 0x15: cmdMatrixIdentity(); break;
+          case 0x16: cmdMatrixLoad4x4(); break;
+          case 0x17: cmdMatrixLoad4x3(); break;
+          case 0x18: cmdMatrixMultiply4x4(); break;
+          case 0x19: cmdMatrixMultiply4x3(); break;
+          case 0x1A: cmdMatrixMultiply3x3(); break;
+          case 0x1B: cmdMatrixScale(); break;
+          case 0x1C: cmdMatrixTranslate(); break;
+          case 0x40: cmdBeginVertices(); break;
+          case 0x41: cmdEndVertices(); break;
           case 0x50: cmdSwapBuffers(); break;
           case 0x60: cmdViewport(); break;
           default: {
@@ -282,20 +282,20 @@ namespace dual::nds::gpu {
         m[3][3] = Fixed20x12::FromInt(1);
       }
 
-      void cmdMtxMode();
-      void cmdMtxPush();
-      void cmdMtxPop();
-      void cmdMtxStore();
-      void cmdMtxIdentity();
-      void cmdMtxLoad4x4();
-      void cmdMtxLoad4x3();
-      void cmdMtxMult4x4();
-      void cmdMtxMult4x3();
-      void cmdMtxMult3x3();
-      void cmdMtxScale();
-      void cmdMtxTrans();
-      void cmdBeginVtxs();
-      void cmdEndVtxs();
+      void cmdMatrixMode();
+      void cmdMatrixPush();
+      void cmdMatrixPop();
+      void cmdMatrixStore();
+      void cmdMatrixIdentity();
+      void cmdMatrixLoad4x4();
+      void cmdMatrixLoad4x3();
+      void cmdMatrixMultiply4x4();
+      void cmdMatrixMultiply4x3();
+      void cmdMatrixMultiply3x3();
+      void cmdMatrixScale();
+      void cmdMatrixTranslate();
+      void cmdBeginVertices();
+      void cmdEndVertices();
       void cmdSwapBuffers();
       void cmdViewport();
 

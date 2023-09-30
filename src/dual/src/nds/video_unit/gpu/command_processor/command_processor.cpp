@@ -3,13 +3,13 @@
 
 namespace dual::nds::gpu {
 
-  void CommandProcessor::cmdBeginVtxs() {
+  void CommandProcessor::cmdBeginVertices() {
     DequeueFIFO();
 
     // ...
   }
 
-  void CommandProcessor::cmdEndVtxs() {
+  void CommandProcessor::cmdEndVertices() {
     DequeueFIFO();
 
     // ...
