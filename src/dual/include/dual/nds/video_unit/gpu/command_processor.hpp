@@ -131,16 +131,11 @@ namespace dual::nds::gpu {
         if(--m_unpack.params_left == 0) {
           m_unpack.word >>= 8;
 
-          if(--m_unpack.cmds_left == 0) {
-            return;
-          }
-
-          if(m_unpack.word == 0u) {
+          if(--m_unpack.cmds_left > 0 && m_unpack.word != 0u) {
+            UnpackNextCommands();
+          } else {
             m_unpack.cmds_left = 0;
-            return;
           }
-
-          UnpackNextCommands();
         }
       }
 
