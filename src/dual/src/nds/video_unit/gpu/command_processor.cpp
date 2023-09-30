@@ -84,6 +84,9 @@ namespace dual::nds::gpu {
       case 2: {
         const int stack_address = (int)(parameter & 31u);
 
+        if(stack_address == 31) {
+          m_gxstat.matrix_stack_error_flag = 1;
+        }
         m_coordinate_mtx_stack[stack_address] = m_coordinate_mtx;
         m_direction_mtx_stack[stack_address] = m_direction_mtx;
         break;
