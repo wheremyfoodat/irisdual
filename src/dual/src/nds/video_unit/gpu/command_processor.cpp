@@ -81,8 +81,12 @@ namespace dual::nds::gpu {
     switch(m_mtx_mode) {
       case 0: m_projection_mtx = Matrix4<Fixed20x12>::Identity(); break;
       case 1: m_coordinate_mtx = Matrix4<Fixed20x12>::Identity(); break;
-      case 2: m_direction_mtx  = Matrix4<Fixed20x12>::Identity(); break;
-      case 3: m_texture_mtx    = Matrix4<Fixed20x12>::Identity(); break;
+      case 2: {
+        m_coordinate_mtx = Matrix4<Fixed20x12>::Identity();
+        m_direction_mtx  = Matrix4<Fixed20x12>::Identity();
+        break;
+      }
+      case 3: m_texture_mtx = Matrix4<Fixed20x12>::Identity(); break;
     }
   }
 
@@ -190,6 +194,12 @@ namespace dual::nds::gpu {
       }
       case 3: m_texture_mtx = m_texture_mtx * rhs_matrix; break;
     }
+  }
+
+  void CommandProcessor::cmdBeginVtxs() {
+    DequeueFIFO();
+
+    // ...
   }
 
   void CommandProcessor::cmdEndVtxs() {

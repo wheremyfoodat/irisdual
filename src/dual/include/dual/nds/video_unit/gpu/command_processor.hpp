@@ -179,6 +179,7 @@ namespace dual::nds::gpu {
           case 0x19: cmdMtxMult4x3(); break;
           case 0x1A: cmdMtxMult3x3(); break;
           case 0x1C: cmdMtxTrans(); break;
+          case 0x40: cmdBeginVtxs(); break;
           case 0x41: cmdEndVtxs(); break;
           case 0x50: cmdSwapBuffers(); break;
           case 0x60: cmdViewport(); break;
@@ -247,6 +248,7 @@ namespace dual::nds::gpu {
       void cmdMtxMult4x3();
       void cmdMtxMult3x3();
       void cmdMtxTrans();
+      void cmdBeginVtxs();
       void cmdEndVtxs();
       void cmdSwapBuffers();
       void cmdViewport();
