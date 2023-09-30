@@ -36,7 +36,8 @@ namespace dual::nds {
       void Reset();
       auto GetCPU() -> arm::CPU*;
       void SetCPU(arm::CPU* cpu);
-      void Raise(Source source);
+      void Request(Source source);
+      void SetRequestGXFIFOFlag(bool requested);
 
       u32   Read_IME();
       void Write_IME(u32 value, u32 mask);

@@ -82,7 +82,7 @@ namespace dual::nds {
     channel.counter = channel.tmcnt.reload;
 
     if(channel.tmcnt.enable_irq) {
-      m_irq.Raise((IRQ::Source)((u32)IRQ::Source::Timer0 << id));
+      m_irq.Request((IRQ::Source)((u32)IRQ::Source::Timer0 << id));
     }
 
     if(id != 3) {

@@ -28,7 +28,7 @@ namespace dual::nds {
     sync_rx.recv = sync_tx.send;
 
     if(((value & mask) & 0x2000u) && sync_rx.enable_remote_irq) {
-      m_irq[(int)~cpu]->Raise(IRQ::Source::IPC_Sync);
+      m_irq[(int)~cpu]->Request(IRQ::Source::IPC_Sync);
     }
   }
 
@@ -68,11 +68,11 @@ namespace dual::nds {
     }
 
     if(!old_enable_send_fifo_irq && control.enable_send_fifo_irq &&  fifo_tx.send.IsEmpty()) {
-      m_irq[(int)cpu]->Raise(IRQ::Source::IPC_SendEmpty);
+      m_irq[(int)cpu]->Request(IRQ::Source::IPC_SendEmpty);
     }
 
     if(!old_enable_recv_fifo_irq && control.enable_recv_fifo_irq && !fifo_rx.send.IsEmpty()) {
-      m_irq[(int)cpu]->Raise(IRQ::Source::IPC_ReceiveNotEmpty);
+      m_irq[(int)cpu]->Request(IRQ::Source::IPC_ReceiveNotEmpty);
     }
   }
 
@@ -94,7 +94,7 @@ namespace dual::nds {
     fifo_tx.latch = fifo_rx.send.Read();
 
     if(fifo_rx.send.IsEmpty() && fifo_rx.control.enable_send_fifo_irq) {
-      m_irq[(int)~cpu]->Raise(IRQ::Source::IPC_SendEmpty);
+      m_irq[(int)~cpu]->Request(IRQ::Source::IPC_SendEmpty);
     }
 
     return fifo_tx.latch;
@@ -116,7 +116,7 @@ namespace dual::nds {
     }
 
     if(fifo_tx.send.IsEmpty() && fifo_rx.control.enable_recv_fifo_irq) {
-      m_irq[(int)~cpu]->Raise(IRQ::Source::IPC_ReceiveNotEmpty);
+      m_irq[(int)~cpu]->Request(IRQ::Source::IPC_ReceiveNotEmpty);
     }
 
     fifo_tx.send.Write(value);

@@ -131,7 +131,7 @@ namespace dual::nds::arm9 {
     }
 
     if(dmacnt.enable_irq) {
-      m_irq.Raise((IRQ::Source)((u32)IRQ::Source::DMA0 << id));
+      m_irq.Request((IRQ::Source)((u32)IRQ::Source::DMA0 << id));
     }
   }
 

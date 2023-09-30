@@ -122,20 +122,19 @@ namespace dual::nds::gpu {
       }
 
       void UpdateFifoState() {
-        m_gxstat.cmd_fifo_size = m_cmd_fifo.Count();
-        m_gxstat.cmd_fifo_empty = m_cmd_fifo.IsEmpty();
-        m_gxstat.cmd_fifo_less_than_half_full = m_cmd_fifo.Count() < 128;
+        const auto fifo_size  = m_cmd_fifo.Count();
 
-        if(EvaluateFIFOIRQCondition()) {
-          // @todo: according to GBATEK the GXFIFO IRQ is level-sensitive.
-          m_arm9_irq.Raise(IRQ::Source::GXFIFO);
-        }
+        m_gxstat.cmd_fifo_size = fifo_size;
+        m_gxstat.cmd_fifo_empty = m_cmd_fifo.IsEmpty();
+        m_gxstat.cmd_fifo_less_than_half_full = fifo_size < 128;
+
+        m_arm9_irq.SetRequestGXFIFOFlag(ShouldRequestIRQ());
       }
 
-      [[nodiscard]] bool EvaluateFIFOIRQCondition() const {
+      [[nodiscard]] bool ShouldRequestIRQ() const {
         switch((GXSTAT::IRQ)m_gxstat.cmd_fifo_irq) {
-          case GXSTAT::IRQ::Empty: return m_cmd_fifo.IsEmpty();
-          case GXSTAT::IRQ::LessThanHalfFull: return m_cmd_fifo.Count() < 128;
+          case GXSTAT::IRQ::Empty: return m_gxstat.cmd_fifo_empty;
+          case GXSTAT::IRQ::LessThanHalfFull: return m_gxstat.cmd_fifo_less_than_half_full;
           default: return false;
         }
       }
@@ -176,7 +175,7 @@ namespace dual::nds::gpu {
             }
 
             if(true) {
-              ATOM_PANIC("gpu: Unimplemented command 0x{:02X}", command);
+              //ATOM_PANIC("gpu: Unimplemented command 0x{:02X}", command);
             }
           }
         }

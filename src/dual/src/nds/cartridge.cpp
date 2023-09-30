@@ -126,7 +126,7 @@ namespace dual::nds {
         // } else {
         //   irq9.Raise(IRQ::Source::Cart_DataReady);
         //  }
-        for(auto irq : m_irq) irq->Raise(IRQ::Source::Cart_DataReady);
+        for(auto irq : m_irq) irq->Request(IRQ::Source::Cart_DataReady);
       }
     } else {
       m_scheduler.Add(k_cycles_per_byte[m_romctrl.transfer_clk_rate] * 4, [this](int _) {
@@ -339,7 +339,7 @@ namespace dual::nds {
       // } else {
       //   irq9.Raise(IRQ::Source::Cart_DataReady);
       // }
-      for(auto irq : m_irq) irq->Raise(IRQ::Source::Cart_DataReady);
+      for(auto irq : m_irq) irq->Request(IRQ::Source::Cart_DataReady);
     }
   }
 

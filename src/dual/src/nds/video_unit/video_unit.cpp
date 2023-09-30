@@ -37,7 +37,7 @@ namespace dual::nds {
     const bool new_vmatch_flag = m_vcount == (dispstat.vmatch_setting_msb << 8 | dispstat.vmatch_setting);
 
     if(dispstat.enable_vmatch_irq && !dispstat.vmatch_flag && new_vmatch_flag) {
-      m_irq[(int)cpu]->Raise(IRQ::Source::VMatch);
+      m_irq[(int)cpu]->Request(IRQ::Source::VMatch);
     }
 
     dispstat.vmatch_flag = new_vmatch_flag;
@@ -74,7 +74,7 @@ namespace dual::nds {
           auto& dispstat = m_dispstat[(int)cpu];
 
           if(dispstat.enable_vblank_irq) {
-            m_irq[(int)cpu]->Raise(IRQ::Source::VBlank);
+            m_irq[(int)cpu]->Request(IRQ::Source::VBlank);
           }
 
           m_dma9.Request(arm9::DMA::StartTime::VBlank);
@@ -101,7 +101,7 @@ namespace dual::nds {
       auto& dispstat = m_dispstat[(int)cpu];
 
       if(dispstat.enable_hblank_irq) {
-        m_irq[(int)cpu]->Raise(IRQ::Source::HBlank);
+        m_irq[(int)cpu]->Request(IRQ::Source::HBlank);
       }
 
       dispstat.hblank_flag = true;

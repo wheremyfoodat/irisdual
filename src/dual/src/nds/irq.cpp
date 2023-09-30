@@ -17,8 +17,18 @@ namespace dual::nds {
     m_cpu = cpu;
   }
 
-  void IRQ::Raise(Source source) {
+  void IRQ::Request(Source source) {
     m_reg_if |= (u32)source;
+    UpdateIRQLine();
+  }
+
+  void IRQ::SetRequestGXFIFOFlag(bool requested) {
+    if(requested) {
+      m_reg_if |= (u32)Source::GXFIFO;
+    } else {
+      m_reg_if &= ~(u32)Source::GXFIFO;
+    }
+
     UpdateIRQLine();
   }
 
@@ -51,7 +61,7 @@ namespace dual::nds {
   }
 
   void IRQ::Write_IF(u32 value, u32 mask) {
-    m_reg_if &= ~(value & mask);
+    m_reg_if &= ~(value & mask & ~(u32)IRQ::Source::GXFIFO);
 
     UpdateIRQLine();
   }

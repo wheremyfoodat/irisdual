@@ -79,7 +79,7 @@ namespace dual::nds::arm7 {
     }
 
     if(m_spicnt.enable_irq) {
-      m_irq.Raise(IRQ::Source::SPI);
+      m_irq.Request(IRQ::Source::SPI);
     }
   }
 
