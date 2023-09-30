@@ -75,6 +75,23 @@ namespace dual::nds::gpu {
     }
   }
 
+  void CommandProcessor::cmdMtxStore() {
+    const u32 parameter = (u32)DequeueFIFO();
+
+    switch(m_mtx_mode) {
+      case 0: m_projection_mtx_stack = m_projection_mtx; break;
+      case 1:
+      case 2: {
+        const int stack_address = (int)(parameter & 31u);
+
+        m_coordinate_mtx_stack[stack_address] = m_coordinate_mtx;
+        m_direction_mtx_stack[stack_address] = m_direction_mtx;
+        break;
+      }
+      case 3: m_texture_mtx_stack = m_texture_mtx; break;
+    }
+  }
+
   void CommandProcessor::cmdMtxIdentity() {
     DequeueFIFO();
 

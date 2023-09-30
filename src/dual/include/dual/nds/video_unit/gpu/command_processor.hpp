@@ -188,6 +188,7 @@ namespace dual::nds::gpu {
           case 0x10: cmdMtxMode(); break;
           case 0x11: cmdMtxPush(); break;
           case 0x12: cmdMtxPop(); break;
+          case 0x13: cmdMtxStore(); break;
           case 0x15: cmdMtxIdentity(); break;
           case 0x16: cmdMtxLoad4x4(); break;
           case 0x17: cmdMtxLoad4x3(); break;
@@ -262,6 +263,7 @@ namespace dual::nds::gpu {
       void cmdMtxMode();
       void cmdMtxPush();
       void cmdMtxPop();
+      void cmdMtxStore();
       void cmdMtxIdentity();
       void cmdMtxLoad4x4();
       void cmdMtxLoad4x3();
