@@ -175,6 +175,10 @@ namespace dual::nds::gpu {
           case 0x15: cmdMtxIdentity(); break;
           case 0x16: cmdMtxLoad4x4(); break;
           case 0x17: cmdMtxLoad4x3(); break;
+          case 0x18: cmdMtxMult4x4(); break;
+          case 0x19: cmdMtxMult4x3(); break;
+          case 0x1A: cmdMtxMult3x3(); break;
+          case 0x1C: cmdMtxTrans(); break;
           case 0x41: cmdEndVtxs(); break;
           case 0x50: cmdSwapBuffers(); break;
           case 0x60: cmdViewport(); break;
@@ -214,10 +218,23 @@ namespace dual::nds::gpu {
             m[col][row] = (i32)(u32)DequeueFIFO();
           }
         }
-        m[0][0] = 0;
-        m[0][1] = 0;
-        m[0][2] = 0;
-        m[0][3] = Fixed20x12::FromInt(1);
+        m[0][3] = 0;
+        m[1][3] = 0;
+        m[2][3] = 0;
+        m[3][3] = Fixed20x12::FromInt(1);
+      }
+
+      void DequeueMatrix3x3(Matrix4<Fixed20x12>& m) {
+        for(int col = 0; col < 3; col++) {
+          for(int row = 0; row < 3; row++) {
+            m[col][row] = (i32)(u32)DequeueFIFO();
+          }
+          m[col][3] = 0;
+        }
+        m[3][0] = 0;
+        m[3][1] = 0;
+        m[3][2] = 0;
+        m[3][3] = Fixed20x12::FromInt(1);
       }
 
       void cmdMtxMode();
@@ -226,6 +243,10 @@ namespace dual::nds::gpu {
       void cmdMtxIdentity();
       void cmdMtxLoad4x4();
       void cmdMtxLoad4x3();
+      void cmdMtxMult4x4();
+      void cmdMtxMult4x3();
+      void cmdMtxMult3x3();
+      void cmdMtxTrans();
       void cmdEndVtxs();
       void cmdSwapBuffers();
       void cmdViewport();
