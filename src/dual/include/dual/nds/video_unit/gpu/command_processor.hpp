@@ -167,16 +167,16 @@ namespace dual::nds::gpu {
         switch(command) {
           case 0x11: cmdMtxPush(); break;
           default: {
+            if(k_cmd_num_params[command] == 0) {
+              DequeueFIFO();
+            }
+
+            for(int i = 0; i < k_cmd_num_params[command]; i++) {
+              DequeueFIFO();
+            }
+
             if(true) {
               ATOM_PANIC("gpu: Unimplemented command 0x{:02X}", command);
-            } else {
-              if(k_cmd_num_params[command] == 0) {
-                DequeueFIFO();
-              }
-
-              for(int i = 0; i < k_cmd_num_params[command]; i++) {
-                DequeueFIFO();
-              }
             }
           }
         }
