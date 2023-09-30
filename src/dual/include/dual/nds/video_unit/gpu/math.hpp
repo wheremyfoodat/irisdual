@@ -17,7 +17,7 @@ namespace dual::nds {
         constexpr FixedBase() = default;
         constexpr FixedBase(T value) : value(value) {} // NOLINT(*-explicit-constructor)
 
-        static auto FromInt(int value) -> FixedBase {
+        static FixedBase FromInt(int value) {
           return FixedBase{T{value} << shift};
         }
 
