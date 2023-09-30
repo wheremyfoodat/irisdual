@@ -32,42 +32,10 @@ namespace dual::nds::gpu {
 
       void Write_GXFIFO(u32 word) {
         if(m_unpack.params_left > 0) {
-          EnqueueFIFO((u8)m_unpack.word, word);
-
-          if(--m_unpack.params_left == 0) {
-            m_unpack.word >>= 8;
-            if(--m_unpack.cmds_left == 0) {
-              return;
-            }
-            if(m_unpack.word == 0u) {
-              m_unpack.cmds_left = 0;
-              return;
-            }
-          } else {
-            return;
-          }
-        } else if(m_unpack.cmds_left == 0) {
-          m_unpack.cmds_left = 4;
-          m_unpack.word = word;
+          EnqueuePackedCmdParam(word);
+          return;
         }
-
-        while(m_unpack.cmds_left > 0) {
-          const u8 command = (u8)m_unpack.word;
-          const int number_of_parameters = k_cmd_num_params[command];
-
-          if(number_of_parameters == 0) {
-            EnqueueFIFO(command, 0u);
-            m_unpack.word >>= 8;
-            m_unpack.cmds_left--;
-
-            if(m_unpack.word == 0u) {
-              m_unpack.cmds_left = 0;
-            }
-          } else {
-            m_unpack.params_left = number_of_parameters;
-            break;
-          }
-        }
+        SubmitPackedCmdList(word);
       }
 
       void Write_GXCMDPORT(u32 address, u32 param) {
@@ -144,6 +112,55 @@ namespace dual::nds::gpu {
           case GXSTAT::IRQ::Empty: return m_gxstat.cmd_fifo_empty;
           case GXSTAT::IRQ::LessThanHalfFull: return m_gxstat.cmd_fifo_less_than_half_full;
           default: return false;
+        }
+      }
+
+      void SubmitPackedCmdList(u32 word) {
+        if(m_unpack.cmds_left == 0) {
+          m_unpack.cmds_left = 4;
+          m_unpack.word = word;
+          UnpackNextCommands();
+        }
+      }
+
+      void EnqueuePackedCmdParam(u32 param) {
+        const u8 command = (u8)m_unpack.word;
+
+        EnqueueFIFO(command, param);
+
+        if(--m_unpack.params_left == 0) {
+          m_unpack.word >>= 8;
+
+          if(--m_unpack.cmds_left == 0) {
+            return;
+          }
+
+          if(m_unpack.word == 0u) {
+            m_unpack.cmds_left = 0;
+            return;
+          }
+
+          UnpackNextCommands();
+        }
+      }
+
+      void UnpackNextCommands() {
+        while(m_unpack.cmds_left > 0) {
+          const u8 command = (u8)m_unpack.word;
+          const int number_of_parameters = k_cmd_num_params[command];
+
+          if(number_of_parameters == 0) {
+            EnqueueFIFO(command, 0u);
+            m_unpack.word >>= 8;
+            m_unpack.cmds_left--;
+
+            if(m_unpack.word == 0u) {
+              m_unpack.cmds_left = 0;
+            }
+          } else {
+            m_unpack.params_left = number_of_parameters;
+            break;
+          }
         }
       }
 
