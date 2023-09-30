@@ -17,7 +17,7 @@ namespace dual::nds::gpu {
     union {
       atom::Bits< 0, 1, u32> test_cmd_busy;
       atom::Bits< 1, 1, u32> test_cmd_result;
-      atom::Bits< 8, 5, u32> model_view_stack_level;
+      atom::Bits< 8, 5, u32> coordinate_stack_level;
       atom::Bits<13, 1, u32> projection_stack_level;
       atom::Bits<14, 1, u32> matrix_stack_busy;
       atom::Bits<15, 1, u32> matrix_stack_error_flag;

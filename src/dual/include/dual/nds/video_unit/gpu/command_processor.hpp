@@ -43,6 +43,8 @@ namespace dual::nds::gpu {
       }
 
       [[nodiscard]] u32 Read_GXSTAT() const {
+        m_gxstat.coordinate_stack_level = m_coordinate_mtx_index & 31;
+        m_gxstat.projection_stack_level = m_projection_mtx_index;
         return m_gxstat.word;
       }
 
@@ -50,8 +52,11 @@ namespace dual::nds::gpu {
         const u32 write_mask = mask & 0xC0000000u;
 
         if(value & mask & 0x8000u) {
-          // @todo: reset matrix stack pointer(s).
           m_gxstat.matrix_stack_error_flag = false;
+
+          // @todo: confirm that this is the correct behavior.
+          m_projection_mtx_index = 0;
+          m_texture_mtx_index = 0;
         }
 
         m_gxstat.word = (m_gxstat.word & ~write_mask) | (value & write_mask);
