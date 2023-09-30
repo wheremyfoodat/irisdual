@@ -139,19 +139,19 @@ namespace dual::nds::gpu {
   void CommandProcessor::cmdMatrixMultiply4x4() {
     Matrix4<Fixed20x12> rhs_matrix;
     DequeueMatrix4x4(rhs_matrix);
-    MultiplyCurrentMatrixWithMatrix(rhs_matrix);
+    ApplyMatrixToCurrent(rhs_matrix);
   }
 
   void CommandProcessor::cmdMatrixMultiply4x3() {
     Matrix4<Fixed20x12> rhs_matrix;
     DequeueMatrix4x3(rhs_matrix);
-    MultiplyCurrentMatrixWithMatrix(rhs_matrix);
+    ApplyMatrixToCurrent(rhs_matrix);
   }
 
   void CommandProcessor::cmdMatrixMultiply3x3() {
     Matrix4<Fixed20x12> rhs_matrix;
     DequeueMatrix3x3(rhs_matrix);
-    MultiplyCurrentMatrixWithMatrix(rhs_matrix);
+    ApplyMatrixToCurrent(rhs_matrix);
   }
 
   void CommandProcessor::cmdMatrixScale() {
@@ -181,7 +181,7 @@ namespace dual::nds::gpu {
     rhs_matrix[3][2] = (i32)(u32)DequeueFIFO();
     rhs_matrix[3][3] = Fixed20x12::FromInt(1);
 
-    MultiplyCurrentMatrixWithMatrix(rhs_matrix);
+    ApplyMatrixToCurrent(rhs_matrix);
   }
 
   void CommandProcessor::DequeueMatrix4x4(Matrix4<Fixed20x12>& m) {
@@ -218,7 +218,7 @@ namespace dual::nds::gpu {
   }
 
 
-  void CommandProcessor::MultiplyCurrentMatrixWithMatrix(const Matrix4<Fixed20x12>& rhs_matrix) {
+  void CommandProcessor::ApplyMatrixToCurrent(const Matrix4<Fixed20x12>& rhs_matrix) {
     switch(m_mtx_mode) {
       case 0: m_projection_mtx = m_projection_mtx * rhs_matrix; break;
       case 1: m_coordinate_mtx = m_coordinate_mtx * rhs_matrix; break;
