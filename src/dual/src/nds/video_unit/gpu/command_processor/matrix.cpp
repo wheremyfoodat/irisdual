@@ -1,6 +1,4 @@
 
-#pragma once
-
 #include <dual/nds/video_unit/gpu/command_processor.hpp>
 
 namespace dual::nds::gpu {
@@ -185,6 +183,40 @@ namespace dual::nds::gpu {
 
     MultiplyCurrentMatrixWithMatrix(rhs_matrix);
   }
+
+  void CommandProcessor::DequeueMatrix4x4(Matrix4<Fixed20x12>& m) {
+    for(int col = 0; col < 4; col++) {
+      for(int row = 0; row < 4; row++) {
+        m[col][row] = (i32)(u32)DequeueFIFO();
+      }
+    }
+  }
+
+  void CommandProcessor::DequeueMatrix4x3(Matrix4<Fixed20x12>& m) {
+    for(int col = 0; col < 4; col++) {
+      for(int row = 0; row < 3; row++) {
+        m[col][row] = (i32)(u32)DequeueFIFO();
+      }
+    }
+    m[0][3] = 0;
+    m[1][3] = 0;
+    m[2][3] = 0;
+    m[3][3] = Fixed20x12::FromInt(1);
+  }
+
+  void CommandProcessor::DequeueMatrix3x3(Matrix4<Fixed20x12>& m) {
+    for(int col = 0; col < 3; col++) {
+      for(int row = 0; row < 3; row++) {
+        m[col][row] = (i32)(u32)DequeueFIFO();
+      }
+      m[col][3] = 0;
+    }
+    m[3][0] = 0;
+    m[3][1] = 0;
+    m[3][2] = 0;
+    m[3][3] = Fixed20x12::FromInt(1);
+  }
+
 
   void CommandProcessor::MultiplyCurrentMatrixWithMatrix(const Matrix4<Fixed20x12>& rhs_matrix) {
     switch(m_mtx_mode) {
