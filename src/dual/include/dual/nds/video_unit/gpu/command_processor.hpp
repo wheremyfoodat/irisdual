@@ -294,6 +294,8 @@ namespace dual::nds::gpu {
       void cmdSwapBuffers();
       void cmdViewport();
 
+      void MultiplyCurrentMatrixWithMatrix(const Matrix4<Fixed20x12>& rhs_matrix);
+
       Scheduler& m_scheduler;
       IRQ& m_arm9_irq;
       GXSTAT& m_gxstat;

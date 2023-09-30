@@ -138,57 +138,20 @@ namespace dual::nds::gpu {
 
   void CommandProcessor::cmdMtxMult4x4() {
     Matrix4<Fixed20x12> rhs_matrix;
-
     DequeueMatrix4x4(rhs_matrix);
-
-    switch(m_mtx_mode) {
-      case 0: m_projection_mtx = m_projection_mtx * rhs_matrix; break;
-      case 1: m_coordinate_mtx = m_coordinate_mtx * rhs_matrix; break;
-      case 2: {
-        m_coordinate_mtx = m_coordinate_mtx * rhs_matrix;
-        m_direction_mtx = m_direction_mtx * rhs_matrix;
-        break;
-      }
-      case 3: m_texture_mtx = m_texture_mtx * rhs_matrix; break;
-    }
+    MultiplyCurrentMatrixWithMatrix(rhs_matrix);
   }
 
   void CommandProcessor::cmdMtxMult4x3() {
     Matrix4<Fixed20x12> rhs_matrix;
-
     DequeueMatrix4x3(rhs_matrix);
-
-    // @todo: the code below is the same as cmdMtxMult4x4().
-
-    switch(m_mtx_mode) {
-      case 0: m_projection_mtx = m_projection_mtx * rhs_matrix; break;
-      case 1: m_coordinate_mtx = m_coordinate_mtx * rhs_matrix; break;
-      case 2: {
-        m_coordinate_mtx = m_coordinate_mtx * rhs_matrix;
-        m_direction_mtx = m_direction_mtx * rhs_matrix;
-        break;
-      }
-      case 3: m_texture_mtx = m_texture_mtx * rhs_matrix; break;
-    }
+    MultiplyCurrentMatrixWithMatrix(rhs_matrix);
   }
 
   void CommandProcessor::cmdMtxMult3x3() {
     Matrix4<Fixed20x12> rhs_matrix;
-
     DequeueMatrix3x3(rhs_matrix);
-
-    // @todo: the code below is the same as cmdMtxMult4x4().
-
-    switch(m_mtx_mode) {
-      case 0: m_projection_mtx = m_projection_mtx * rhs_matrix; break;
-      case 1: m_coordinate_mtx = m_coordinate_mtx * rhs_matrix; break;
-      case 2: {
-        m_coordinate_mtx = m_coordinate_mtx * rhs_matrix;
-        m_direction_mtx = m_direction_mtx * rhs_matrix;
-        break;
-      }
-      case 3: m_texture_mtx = m_texture_mtx * rhs_matrix; break;
-    }
+    MultiplyCurrentMatrixWithMatrix(rhs_matrix);
   }
 
   void CommandProcessor::cmdMtxScale() {
@@ -218,18 +181,7 @@ namespace dual::nds::gpu {
     rhs_matrix[3][2] = (i32)(u32)DequeueFIFO();
     rhs_matrix[3][3] = Fixed20x12::FromInt(1);
 
-    // @todo: the code below is the same as cmdMtxMult4x4().
-
-    switch(m_mtx_mode) {
-      case 0: m_projection_mtx = m_projection_mtx * rhs_matrix; break;
-      case 1: m_coordinate_mtx = m_coordinate_mtx * rhs_matrix; break;
-      case 2: {
-        m_coordinate_mtx = m_coordinate_mtx * rhs_matrix;
-        m_direction_mtx = m_direction_mtx * rhs_matrix;
-        break;
-      }
-      case 3: m_texture_mtx = m_texture_mtx * rhs_matrix; break;
-    }
+    MultiplyCurrentMatrixWithMatrix(rhs_matrix);
   }
 
   void CommandProcessor::cmdBeginVtxs() {
@@ -254,6 +206,19 @@ namespace dual::nds::gpu {
     DequeueFIFO();
 
     // ...
+  }
+
+  void CommandProcessor::MultiplyCurrentMatrixWithMatrix(const Matrix4<Fixed20x12>& rhs_matrix) {
+    switch(m_mtx_mode) {
+      case 0: m_projection_mtx = m_projection_mtx * rhs_matrix; break;
+      case 1: m_coordinate_mtx = m_coordinate_mtx * rhs_matrix; break;
+      case 2: {
+        m_coordinate_mtx = m_coordinate_mtx * rhs_matrix;
+        m_direction_mtx = m_direction_mtx * rhs_matrix;
+        break;
+      }
+      case 3: m_texture_mtx = m_texture_mtx * rhs_matrix; break;
+    }
   }
 
 } // namespace dual::nds::gpu
