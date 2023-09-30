@@ -70,6 +70,10 @@ namespace dual::nds::gpu {
         EnqueueFIFO((address & 0x1FFu) >> 2, param);
       }
 
+      void UpdateIRQ() {
+        m_arm9_irq.SetRequestGXFIFOFlag(ShouldRequestIRQ());
+      }
+
     private:
       static constexpr int k_cmd_num_params[256] {
         0, 0, 0, 0,  0, 0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, // 0x00 - 0x0F (all NOPs)
@@ -128,7 +132,7 @@ namespace dual::nds::gpu {
         m_gxstat.cmd_fifo_empty = m_cmd_fifo.IsEmpty();
         m_gxstat.cmd_fifo_less_than_half_full = fifo_size < 128;
 
-        m_arm9_irq.SetRequestGXFIFOFlag(ShouldRequestIRQ());
+        UpdateIRQ();
       }
 
       [[nodiscard]] bool ShouldRequestIRQ() const {

@@ -39,6 +39,8 @@ namespace dual::nds {
         }
 
         m_gxstat.word = (m_gxstat.word & ~write_mask) | (value & write_mask);
+
+        m_cmd_processor.UpdateIRQ();
       }
 
     private:
