@@ -50,6 +50,7 @@ namespace dual::nds::gpu {
           m_gxstat.matrix_stack_error_flag = 1;
         }
         m_projection_mtx = m_projection_mtx_stack;
+        m_clip_mtx_dirty = true;
         break;
       }
       case 1:
@@ -62,6 +63,7 @@ namespace dual::nds::gpu {
         }
         m_coordinate_mtx = m_coordinate_mtx_stack[m_coordinate_mtx_index & 31];
         m_direction_mtx = m_direction_mtx_stack[m_coordinate_mtx_index & 31];
+        m_clip_mtx_dirty = true;
         break;
       }
       case 3: {
@@ -95,15 +97,20 @@ namespace dual::nds::gpu {
     }
   }
 
-  void CommandProcessor::cmdMatrixIdentity() {
+  void CommandProcessor::cmdMatrixLoadIdentity() {
     DequeueFIFO();
 
     switch(m_mtx_mode) {
-      case 0: m_projection_mtx = Matrix4<Fixed20x12>::Identity(); break;
+      case 0: {
+        m_projection_mtx = Matrix4<Fixed20x12>::Identity();
+        m_clip_mtx_dirty = true;
+        break;
+      }
       case 1: m_coordinate_mtx = Matrix4<Fixed20x12>::Identity(); break;
       case 2: {
         m_coordinate_mtx = Matrix4<Fixed20x12>::Identity();
         m_direction_mtx  = Matrix4<Fixed20x12>::Identity();
+        m_clip_mtx_dirty = true;
         break;
       }
       case 3: m_texture_mtx = Matrix4<Fixed20x12>::Identity(); break;
@@ -112,11 +119,20 @@ namespace dual::nds::gpu {
 
   void CommandProcessor::cmdMatrixLoad4x4() {
     switch(m_mtx_mode) {
-      case 0: m_projection_mtx = DequeueMatrix4x4(); break;
-      case 1: m_coordinate_mtx = DequeueMatrix4x4(); break;
+      case 0: {
+        m_projection_mtx = DequeueMatrix4x4();
+        m_clip_mtx_dirty = true;
+        break;
+      }
+      case 1: {
+        m_coordinate_mtx = DequeueMatrix4x4();
+        m_clip_mtx_dirty = true;
+        break;
+      }
       case 2: {
         m_coordinate_mtx = DequeueMatrix4x4();
         m_direction_mtx  = m_coordinate_mtx;
+        m_clip_mtx_dirty = true;
         break;
       }
       case 3: m_texture_mtx = DequeueMatrix4x4(); break;
@@ -125,11 +141,20 @@ namespace dual::nds::gpu {
 
   void CommandProcessor::cmdMatrixLoad4x3() {
     switch(m_mtx_mode) {
-      case 0: m_projection_mtx = DequeueMatrix4x3(); break;
-      case 1: m_coordinate_mtx = DequeueMatrix4x3(); break;
+      case 0: {
+        m_projection_mtx = DequeueMatrix4x3();
+        m_clip_mtx_dirty = true;
+        break;
+      }
+      case 1: {
+        m_coordinate_mtx = DequeueMatrix4x3();
+        m_clip_mtx_dirty = true;
+        break;
+      }
       case 2: {
         m_coordinate_mtx = DequeueMatrix4x3();
         m_direction_mtx  = m_coordinate_mtx;
+        m_clip_mtx_dirty = true;
         break;
       }
       case 3: m_texture_mtx = DequeueMatrix4x3(); break;
@@ -157,9 +182,17 @@ namespace dual::nds::gpu {
     rhs_matrix[3][3] = Fixed20x12::FromInt(1);
 
     switch(m_mtx_mode) {
-      case 0: m_projection_mtx = m_projection_mtx * rhs_matrix; break;
+      case 0: {
+        m_projection_mtx = m_projection_mtx * rhs_matrix;
+        m_clip_mtx_dirty = true;
+        break;
+      }
       case 1:
-      case 2: m_coordinate_mtx = m_coordinate_mtx * rhs_matrix; break;
+      case 2: {
+        m_coordinate_mtx = m_coordinate_mtx * rhs_matrix;
+        m_clip_mtx_dirty = true;
+        break;
+      }
       case 3: m_texture_mtx = m_texture_mtx * rhs_matrix; break;
     }
   }
@@ -226,11 +259,20 @@ namespace dual::nds::gpu {
 
   void CommandProcessor::ApplyMatrixToCurrent(const Matrix4<Fixed20x12>& rhs_matrix) {
     switch(m_mtx_mode) {
-      case 0: m_projection_mtx = m_projection_mtx * rhs_matrix; break;
-      case 1: m_coordinate_mtx = m_coordinate_mtx * rhs_matrix; break;
+      case 0: {
+        m_projection_mtx = m_projection_mtx * rhs_matrix;
+        m_clip_mtx_dirty = true;
+        break;
+      }
+      case 1: {
+        m_coordinate_mtx = m_coordinate_mtx * rhs_matrix;
+        m_clip_mtx_dirty = true;
+        break;
+      }
       case 2: {
         m_coordinate_mtx = m_coordinate_mtx * rhs_matrix;
         m_direction_mtx = m_direction_mtx * rhs_matrix;
+        m_clip_mtx_dirty = true;
         break;
       }
       case 3: m_texture_mtx = m_texture_mtx * rhs_matrix; break;

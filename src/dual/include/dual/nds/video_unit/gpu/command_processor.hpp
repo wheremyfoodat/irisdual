@@ -28,6 +28,10 @@ namespace dual::nds::gpu {
         m_cmd_pipe.Reset();
         m_cmd_fifo.Reset();
         m_mtx_mode = 0;
+        m_projection_mtx_index = 0;
+        m_coordinate_mtx_index = 0;
+        m_texture_mtx_index = 0;
+        m_clip_mtx_dirty = false;
       }
 
       void Write_GXFIFO(u32 word) {
@@ -211,7 +215,7 @@ namespace dual::nds::gpu {
           case 0x11: cmdMatrixPush(); break;
           case 0x12: cmdMatrixPop(); break;
           case 0x13: cmdMatrixStore(); break;
-          case 0x15: cmdMatrixIdentity(); break;
+          case 0x15: cmdMatrixLoadIdentity(); break;
           case 0x16: cmdMatrixLoad4x4(); break;
           case 0x17: cmdMatrixLoad4x3(); break;
           case 0x18: cmdMatrixMultiply4x4(); break;
@@ -257,7 +261,7 @@ namespace dual::nds::gpu {
       void cmdMatrixPush();
       void cmdMatrixPop();
       void cmdMatrixStore();
-      void cmdMatrixIdentity();
+      void cmdMatrixLoadIdentity();
       void cmdMatrixLoad4x4();
       void cmdMatrixLoad4x3();
       void cmdMatrixMultiply4x4();
@@ -295,9 +299,10 @@ namespace dual::nds::gpu {
       Matrix4<Fixed20x12> m_coordinate_mtx;
       Matrix4<Fixed20x12> m_direction_mtx;
       Matrix4<Fixed20x12> m_texture_mtx;
-      size_t m_projection_mtx_index;
-      size_t m_coordinate_mtx_index;
-      size_t m_texture_mtx_index;
+      size_t m_projection_mtx_index{};
+      size_t m_coordinate_mtx_index{};
+      size_t m_texture_mtx_index{};
+      bool m_clip_mtx_dirty{};
   };
 
 } // namespace dual::nds::gpu
