@@ -23,7 +23,8 @@ set(SOURCES
   src/nds/backup/eeprom.cpp
   src/nds/backup/eeprom512b.cpp
   src/nds/backup/flash.cpp
-  src/nds/video_unit/gpu/command_processor.cpp
+  src/nds/video_unit/gpu/command_processor/command_processor.cpp
+  src/nds/video_unit/gpu/command_processor/matrix.cpp
   src/nds/video_unit/gpu/gpu.cpp
   src/nds/video_unit/ppu/render/affine.cpp
   src/nds/video_unit/ppu/render/oam.cpp

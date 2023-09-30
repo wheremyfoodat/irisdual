@@ -1,4 +1,6 @@
 
+#pragma once
+
 #include <dual/nds/video_unit/gpu/command_processor.hpp>
 
 namespace dual::nds::gpu {
@@ -182,30 +184,6 @@ namespace dual::nds::gpu {
     rhs_matrix[3][3] = Fixed20x12::FromInt(1);
 
     MultiplyCurrentMatrixWithMatrix(rhs_matrix);
-  }
-
-  void CommandProcessor::cmdBeginVtxs() {
-    DequeueFIFO();
-
-    // ...
-  }
-
-  void CommandProcessor::cmdEndVtxs() {
-    DequeueFIFO();
-
-    // ...
-  }
-
-  void CommandProcessor::cmdSwapBuffers() {
-    DequeueFIFO();
-
-    // ...
-  }
-
-  void CommandProcessor::cmdViewport() {
-    DequeueFIFO();
-
-    // ...
   }
 
   void CommandProcessor::MultiplyCurrentMatrixWithMatrix(const Matrix4<Fixed20x12>& rhs_matrix) {
