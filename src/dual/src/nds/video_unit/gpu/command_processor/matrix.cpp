@@ -112,46 +112,40 @@ namespace dual::nds::gpu {
 
   void CommandProcessor::cmdMatrixLoad4x4() {
     switch(m_mtx_mode) {
-      case 0: DequeueMatrix4x4(m_projection_mtx); break;
-      case 1: DequeueMatrix4x4(m_coordinate_mtx); break;
+      case 0: m_projection_mtx = DequeueMatrix4x4(); break;
+      case 1: m_coordinate_mtx = DequeueMatrix4x4(); break;
       case 2: {
-        DequeueMatrix4x4(m_coordinate_mtx);
-        m_direction_mtx = m_coordinate_mtx;
+        m_coordinate_mtx = DequeueMatrix4x4();
+        m_direction_mtx  = m_coordinate_mtx;
         break;
       }
-      case 3: DequeueMatrix4x4(m_texture_mtx); break;
+      case 3: m_texture_mtx = DequeueMatrix4x4(); break;
     }
   }
 
   void CommandProcessor::cmdMatrixLoad4x3() {
     switch(m_mtx_mode) {
-      case 0: DequeueMatrix4x3(m_projection_mtx); break;
-      case 1: DequeueMatrix4x3(m_coordinate_mtx); break;
+      case 0: m_projection_mtx = DequeueMatrix4x3(); break;
+      case 1: m_coordinate_mtx = DequeueMatrix4x3(); break;
       case 2: {
-        DequeueMatrix4x3(m_coordinate_mtx);
-        m_direction_mtx = m_coordinate_mtx;
+        m_coordinate_mtx = DequeueMatrix4x3();
+        m_direction_mtx  = m_coordinate_mtx;
         break;
       }
-      case 3: DequeueMatrix4x3(m_texture_mtx); break;
+      case 3: m_texture_mtx = DequeueMatrix4x3(); break;
     }
   }
 
   void CommandProcessor::cmdMatrixMultiply4x4() {
-    Matrix4<Fixed20x12> rhs_matrix;
-    DequeueMatrix4x4(rhs_matrix);
-    ApplyMatrixToCurrent(rhs_matrix);
+    ApplyMatrixToCurrent(DequeueMatrix4x4());
   }
 
   void CommandProcessor::cmdMatrixMultiply4x3() {
-    Matrix4<Fixed20x12> rhs_matrix;
-    DequeueMatrix4x3(rhs_matrix);
-    ApplyMatrixToCurrent(rhs_matrix);
+    ApplyMatrixToCurrent(DequeueMatrix4x3());
   }
 
   void CommandProcessor::cmdMatrixMultiply3x3() {
-    Matrix4<Fixed20x12> rhs_matrix;
-    DequeueMatrix3x3(rhs_matrix);
-    ApplyMatrixToCurrent(rhs_matrix);
+    ApplyMatrixToCurrent(DequeueMatrix3x3());
   }
 
   void CommandProcessor::cmdMatrixScale() {
@@ -184,15 +178,21 @@ namespace dual::nds::gpu {
     ApplyMatrixToCurrent(rhs_matrix);
   }
 
-  void CommandProcessor::DequeueMatrix4x4(Matrix4<Fixed20x12>& m) {
+  Matrix4<Fixed20x12> CommandProcessor::DequeueMatrix4x4() {
+    Matrix4<Fixed20x12> m;
+
     for(int col = 0; col < 4; col++) {
       for(int row = 0; row < 4; row++) {
         m[col][row] = (i32)(u32)DequeueFIFO();
       }
     }
+
+    return m;
   }
 
-  void CommandProcessor::DequeueMatrix4x3(Matrix4<Fixed20x12>& m) {
+  Matrix4<Fixed20x12> CommandProcessor::DequeueMatrix4x3() {
+    Matrix4<Fixed20x12> m;
+
     for(int col = 0; col < 4; col++) {
       for(int row = 0; row < 3; row++) {
         m[col][row] = (i32)(u32)DequeueFIFO();
@@ -202,9 +202,13 @@ namespace dual::nds::gpu {
     m[1][3] = 0;
     m[2][3] = 0;
     m[3][3] = Fixed20x12::FromInt(1);
+
+    return m;
   }
 
-  void CommandProcessor::DequeueMatrix3x3(Matrix4<Fixed20x12>& m) {
+  Matrix4<Fixed20x12> CommandProcessor::DequeueMatrix3x3() {
+    Matrix4<Fixed20x12> m;
+
     for(int col = 0; col < 3; col++) {
       for(int row = 0; row < 3; row++) {
         m[col][row] = (i32)(u32)DequeueFIFO();
@@ -215,6 +219,8 @@ namespace dual::nds::gpu {
     m[3][1] = 0;
     m[3][2] = 0;
     m[3][3] = Fixed20x12::FromInt(1);
+
+    return m;
   }
 
 

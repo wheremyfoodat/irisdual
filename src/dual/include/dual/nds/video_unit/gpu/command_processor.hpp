@@ -249,9 +249,9 @@ namespace dual::nds::gpu {
         }
       }
 
-      void DequeueMatrix4x4(Matrix4<Fixed20x12>& m);
-      void DequeueMatrix4x3(Matrix4<Fixed20x12>& m);
-      void DequeueMatrix3x3(Matrix4<Fixed20x12>& m);
+      Matrix4<Fixed20x12> DequeueMatrix4x4();
+      Matrix4<Fixed20x12> DequeueMatrix4x3();
+      Matrix4<Fixed20x12> DequeueMatrix3x3();
 
       void cmdMatrixMode();
       void cmdMatrixPush();
