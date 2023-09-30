@@ -93,7 +93,7 @@ namespace dual::nds::gpu {
           }
 
           m_cmd_fifo.Write(entry);
-          UpdateFifoState();
+          UpdateFIFOStatus();
         }
 
         if(!m_gxstat.busy) {
@@ -115,13 +115,13 @@ namespace dual::nds::gpu {
             m_cmd_pipe.Write(m_cmd_fifo.Read());
           }
 
-          UpdateFifoState();
+          UpdateFIFOStatus();
         }
 
         return entry;
       }
 
-      void UpdateFifoState() {
+      void UpdateFIFOStatus() {
         const auto fifo_size  = m_cmd_fifo.Count();
 
         m_gxstat.cmd_fifo_size = fifo_size;
