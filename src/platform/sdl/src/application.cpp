@@ -26,7 +26,7 @@ int Application::Run(int argc, char **argv) {
   LoadBootROM("boot9.bin", true);
   LoadBootROM("boot7.bin", false);
   if(argc < 2) {
-    LoadROM("pokesoulsilver.nds");
+    LoadROM("pokeplatin.nds");
   } else {
     LoadROM(argv[1]);
   }

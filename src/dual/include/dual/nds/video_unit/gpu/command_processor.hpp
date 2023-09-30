@@ -168,7 +168,16 @@ namespace dual::nds::gpu {
 
       void ExecuteCommand(u8 command) {
         switch(command) {
+          case 0x00: DequeueFIFO(); break; // NOP
+          case 0x10: cmdMtxMode(); break;
           case 0x11: cmdMtxPush(); break;
+          case 0x12: cmdMtxPop(); break;
+          case 0x15: cmdMtxIdentity(); break;
+          case 0x16: cmdMtxLoad4x4(); break;
+          case 0x17: cmdMtxLoad4x3(); break;
+          case 0x41: cmdEndVtxs(); break;
+          case 0x50: cmdSwapBuffers(); break;
+          case 0x60: cmdViewport(); break;
           default: {
             if(k_cmd_num_params[command] == 0) {
               DequeueFIFO();
@@ -178,14 +187,48 @@ namespace dual::nds::gpu {
               DequeueFIFO();
             }
 
-            if(true) {
-              //ATOM_PANIC("gpu: Unimplemented command 0x{:02X}", command);
+            if(
+              command != 0x34 && /* SHININESS */
+              command != 0x29 && /* POLYGON_ATTR */
+              command != 0x2A && /* TEXIMAGE_PARAM */
+              command != 0x2B && /* PLTT_BASE */
+              true
+            ) {
+              ATOM_PANIC("gpu: Unimplemented command 0x{:02X}", command);
             }
           }
         }
       }
 
+      void DequeueMatrix4x4(Matrix4<Fixed20x12>& m) {
+        for(int col = 0; col < 4; col++) {
+          for(int row = 0; row < 4; row++) {
+            m[col][row] = (i32)(u32)DequeueFIFO();
+          }
+        }
+      }
+
+      void DequeueMatrix4x3(Matrix4<Fixed20x12>& m) {
+        for(int col = 0; col < 4; col++) {
+          for(int row = 0; row < 3; row++) {
+            m[col][row] = (i32)(u32)DequeueFIFO();
+          }
+        }
+        m[0][0] = 0;
+        m[0][1] = 0;
+        m[0][2] = 0;
+        m[0][3] = Fixed20x12::FromInt(1);
+      }
+
+      void cmdMtxMode();
       void cmdMtxPush();
+      void cmdMtxPop();
+      void cmdMtxIdentity();
+      void cmdMtxLoad4x4();
+      void cmdMtxLoad4x3();
+      void cmdEndVtxs();
+      void cmdSwapBuffers();
+      void cmdViewport();
 
       Scheduler& m_scheduler;
       IRQ& m_arm9_irq;
@@ -200,8 +243,19 @@ namespace dual::nds::gpu {
       FIFO<u64, 4>   m_cmd_pipe;
       FIFO<u64, 256> m_cmd_fifo;
 
-      // Matrix engine
+      // Matrix Engine
       int m_mtx_mode{};
+      Matrix4<Fixed20x12> m_projection_mtx_stack;
+      Matrix4<Fixed20x12> m_coordinate_mtx_stack[32];
+      Matrix4<Fixed20x12> m_direction_mtx_stack[32];
+      Matrix4<Fixed20x12> m_texture_mtx_stack;
+      Matrix4<Fixed20x12> m_projection_mtx;
+      Matrix4<Fixed20x12> m_coordinate_mtx;
+      Matrix4<Fixed20x12> m_direction_mtx;
+      Matrix4<Fixed20x12> m_texture_mtx;
+      size_t m_projection_mtx_index;
+      size_t m_coordinate_mtx_index;
+      size_t m_texture_mtx_index;
   };
 
 } // namespace dual::nds::gpu
