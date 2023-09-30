@@ -36,31 +36,35 @@ namespace dual::nds::gpu {
 
           if(--m_unpack.params_left == 0) {
             m_unpack.word >>= 8;
-            m_unpack.cmds_left--;
+            if(--m_unpack.cmds_left == 0) {
+              return;
+            }
+            if(m_unpack.word == 0u) {
+              m_unpack.cmds_left = 0;
+              return;
+            }
+          } else {
+            return;
           }
-          return;
-        }
-
-        if(m_unpack.cmds_left == 0) {
+        } else if(m_unpack.cmds_left == 0) {
           m_unpack.cmds_left = 4;
           m_unpack.word = word;
         }
 
-        for(int i = 0; i < 4; i++) {
+        while(m_unpack.cmds_left > 0) {
           const u8 command = (u8)m_unpack.word;
+          const int number_of_parameters = k_cmd_num_params[command];
 
-          m_unpack.params_left = k_cmd_num_params[command];
+          if(number_of_parameters == 0) {
+            EnqueueFIFO(command, 0u);
+            m_unpack.word >>= 8;
+            m_unpack.cmds_left--;
 
-          if(m_unpack.params_left != 0) {
-            break;
-          }
-
-          EnqueueFIFO(command, 0u);
-          m_unpack.word >>= 8;
-          m_unpack.cmds_left--;
-
-          if(m_unpack.cmds_left == 0 || m_unpack.word == 0u) {
-            m_unpack.cmds_left = 0;
+            if(m_unpack.word == 0u) {
+              m_unpack.cmds_left = 0;
+            }
+          } else {
+            m_unpack.params_left = number_of_parameters;
             break;
           }
         }
