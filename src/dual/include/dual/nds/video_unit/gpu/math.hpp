@@ -107,7 +107,7 @@ namespace dual::nds {
   using Fixed12x4 = detail::FixedBase<s16, s32, 4>;
 
   namespace detail {
-    inline auto operator*(Fixed12x4 lhs, Fixed20x12 rhs) -> Fixed12x4 {
+    inline Fixed12x4 operator*(Fixed12x4 lhs, Fixed20x12 rhs) {
       return Fixed12x4{(s16)(Fixed20x12{lhs.Raw()} * rhs).Raw()};
     }
   } // namespace dual::nds::detail
@@ -118,22 +118,22 @@ namespace atom {
 
   template<>
   struct NumericConstants<dual::nds::Fixed20x12> {
-    static constexpr auto Zero() -> dual::nds::Fixed20x12 {
+    static constexpr dual::nds::Fixed20x12 Zero() {
       return dual::nds::Fixed20x12{};
     }
 
-    static constexpr auto One() -> dual::nds::Fixed20x12 {
+    static constexpr dual::nds::Fixed20x12 One() {
       return dual::nds::Fixed20x12{1 << 12};
     }
   };
 
   template<>
   struct NumericConstants<dual::nds::Fixed12x4> {
-    static constexpr auto Zero() -> dual::nds::Fixed12x4 {
+    static constexpr dual::nds::Fixed12x4 Zero() {
       return dual::nds::Fixed12x4{};
     }
 
-    static constexpr auto One() -> dual::nds::Fixed12x4 {
+    static constexpr dual::nds::Fixed12x4 One() {
       return dual::nds::Fixed12x4{1 << 4};
     }
   };
