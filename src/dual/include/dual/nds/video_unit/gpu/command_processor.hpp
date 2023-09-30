@@ -17,10 +17,10 @@ namespace dual::nds::gpu {
       explicit CommandProcessor(
         Scheduler& scheduler,
         IRQ& arm9_irq,
-        GXSTAT& gxstat
+        gpu::IO& io
       )   : m_scheduler{scheduler}
           , m_arm9_irq{arm9_irq}
-          , m_gxstat{gxstat} {
+          , m_gxstat{io.gxstat} {
       }
 
       void Reset() {
@@ -42,8 +42,21 @@ namespace dual::nds::gpu {
         EnqueueFIFO((address & 0x1FFu) >> 2, param);
       }
 
-      void UpdateIRQ() {
-        m_arm9_irq.SetRequestGXFIFOFlag(ShouldRequestIRQ());
+      [[nodiscard]] u32 Read_GXSTAT() const {
+        return m_gxstat.word;
+      }
+
+      void Write_GXSTAT(u32 value, u32 mask) {
+        const u32 write_mask = mask & 0xC0000000u;
+
+        if(value & mask & 0x8000u) {
+          // @todo: reset matrix stack pointer(s).
+          m_gxstat.matrix_stack_error_flag = false;
+        }
+
+        m_gxstat.word = (m_gxstat.word & ~write_mask) | (value & write_mask);
+
+        RequestOrClearIRQ();
       }
 
     private:
@@ -104,7 +117,11 @@ namespace dual::nds::gpu {
         m_gxstat.cmd_fifo_empty = m_cmd_fifo.IsEmpty();
         m_gxstat.cmd_fifo_less_than_half_full = fifo_size < 128;
 
-        UpdateIRQ();
+        RequestOrClearIRQ();
+      }
+
+      void RequestOrClearIRQ() {
+        m_arm9_irq.SetRequestGXFIFOFlag(ShouldRequestIRQ());
       }
 
       [[nodiscard]] bool ShouldRequestIRQ() const {

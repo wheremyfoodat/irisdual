@@ -4,7 +4,7 @@
 #include <atom/bit.hpp>
 #include <atom/integer.hpp>
 
-namespace dual::nds {
+namespace dual::nds::gpu {
 
   struct GXSTAT {
     enum class IRQ {
@@ -31,4 +31,8 @@ namespace dual::nds {
     };
   };
 
-} // namespace dual::nds
+  struct IO {
+    GXSTAT gxstat;
+  };
+
+} // namespace dual::nds::gpu

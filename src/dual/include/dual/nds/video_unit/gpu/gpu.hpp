@@ -22,30 +22,24 @@ namespace dual::nds {
 
       void Reset();
 
-      gpu::CommandProcessor& GetCommandProcessor() {
-        return m_cmd_processor;
+      void Write_GXFIFO(u32 word) {
+        m_cmd_processor.Write_GXFIFO(word);
+      }
+
+      void Write_GXCMDPORT(u32 address, u32 param) {
+        m_cmd_processor.Write_GXCMDPORT(address, param);
       }
 
       [[nodiscard]] u32 Read_GXSTAT() const {
-        return m_gxstat.word;
+        return m_cmd_processor.Read_GXSTAT();
       }
 
       void Write_GXSTAT(u32 value, u32 mask) {
-        const u32 write_mask = mask & 0xC0000000u;
-
-        if(value & mask & 0x8000u) {
-          // @todo: reset matrix stack pointer(s).
-          m_gxstat.matrix_stack_error_flag = false;
-        }
-
-        m_gxstat.word = (m_gxstat.word & ~write_mask) | (value & write_mask);
-
-        m_cmd_processor.UpdateIRQ();
+        m_cmd_processor.Write_GXSTAT(value, mask);
       }
 
     private:
-
-      GXSTAT m_gxstat{};
+      gpu::IO m_io;
 
       arm9::DMA& m_arm9_dma;
       const Region<4, 131072>& m_vram_texture;

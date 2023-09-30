@@ -11,7 +11,7 @@ namespace dual::nds {
   )   : m_arm9_dma{arm9_dma}
       , m_vram_texture{vram.region_gpu_texture}
       , m_vram_palette{vram.region_gpu_palette}
-      , m_cmd_processor{scheduler, arm9_irq, m_gxstat} {
+      , m_cmd_processor{scheduler, arm9_irq, m_io} {
   }
 
   void GPU::Reset() {

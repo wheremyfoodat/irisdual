@@ -235,7 +235,6 @@ namespace dual::nds::arm9 {
     };
 
     auto& gpu = hw.video_unit.GetGPU();
-    auto& gpu_cp = gpu.GetCommandProcessor();
 
     auto& ppu_a = hw.video_unit.GetPPU(0);
     auto& ppu_b = hw.video_unit.GetPPU(1);
@@ -369,7 +368,7 @@ namespace dual::nds::arm9 {
       case REG(0x04000300): postflg = (value & mask & 3u) | (postflg & ~(mask & 2u)); break;
 
       // GPU3D
-      case REG(0x04000400): gpu_cp.Write_GXFIFO(value); break; // GXFIFO
+      case REG(0x04000400): gpu.Write_GXFIFO(value); break; // GXFIFO
       case REG(0x04000440): // MTX_MODE
       case REG(0x04000444): // MTX_PUSH
       case REG(0x04000448): // MTX_POP
@@ -406,7 +405,7 @@ namespace dual::nds::arm9 {
       case REG(0x04000580): // VIEWPORT
       case REG(0x040005C0): // BOX_TEST
       case REG(0x040005C4): // POS_TEST
-      case REG(0x040005C8): gpu_cp.Write_GXCMDPORT(address, value); break; // VEC_TEST
+      case REG(0x040005C8): gpu.Write_GXCMDPORT(address, value); break; // VEC_TEST
       case REG(0x04000600): gpu.Write_GXSTAT(value, mask); break;
 
       default: {
