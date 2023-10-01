@@ -256,7 +256,6 @@ namespace dual::nds::gpu {
     return m;
   }
 
-
   void CommandProcessor::ApplyMatrixToCurrent(const Matrix4<Fixed20x12>& rhs_matrix) {
     switch(m_mtx_mode) {
       case 0: {
