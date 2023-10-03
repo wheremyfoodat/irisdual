@@ -6,6 +6,7 @@
 #include <atom/panic.hpp>
 #include <dual/common/fifo.hpp>
 #include <dual/common/scheduler.hpp>
+#include <dual/nds/video_unit/gpu/geometry_engine.hpp>
 #include <dual/nds/video_unit/gpu/math.hpp>
 #include <dual/nds/video_unit/gpu/registers.hpp>
 #include <dual/nds/irq.hpp>
@@ -17,7 +18,8 @@ namespace dual::nds::gpu {
       explicit CommandProcessor(
         Scheduler& scheduler,
         IRQ& arm9_irq,
-        gpu::IO& io
+        IO& io,
+        GeometryEngine& geometry_engine
       );
 
       void Reset();
@@ -105,6 +107,7 @@ namespace dual::nds::gpu {
       Scheduler& m_scheduler;
       IRQ& m_arm9_irq;
       GXSTAT& m_gxstat;
+      GeometryEngine& m_geometry_engine;
 
       struct Unpack {
         u32 word = 0u;

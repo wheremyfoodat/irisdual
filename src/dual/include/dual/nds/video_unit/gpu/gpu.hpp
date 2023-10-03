@@ -4,6 +4,7 @@
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/arm9/dma.hpp>
 #include <dual/nds/video_unit/gpu/command_processor.hpp>
+#include <dual/nds/video_unit/gpu/geometry_engine.hpp>
 #include <dual/nds/video_unit/gpu/registers.hpp>
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/irq.hpp>
@@ -46,6 +47,7 @@ namespace dual::nds {
       const Region<8>& m_vram_palette;
 
       gpu::CommandProcessor m_cmd_processor;
+      gpu::GeometryEngine m_geometry_engine;
   };
 
 } // namespace dual::nds

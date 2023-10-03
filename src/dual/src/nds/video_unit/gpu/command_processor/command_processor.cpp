@@ -6,10 +6,12 @@ namespace dual::nds::gpu {
   CommandProcessor::CommandProcessor(
     Scheduler& scheduler,
     IRQ& arm9_irq,
-    gpu::IO& io
+    IO& io,
+    GeometryEngine& geometry_engine
   )   : m_scheduler{scheduler}
       , m_arm9_irq{arm9_irq}
-      , m_gxstat{io.gxstat} {
+      , m_gxstat{io.gxstat}
+      , m_geometry_engine{geometry_engine} {
   }
 
   void CommandProcessor::Reset() {
