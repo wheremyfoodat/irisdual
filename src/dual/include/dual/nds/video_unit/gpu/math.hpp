@@ -209,15 +209,15 @@ namespace dual::nds {
       }
 
       static Color4 FromRGB555(u16 color) {
-        auto r = (color << 1) & 62;
-        auto g = (color >> 4) & 62;
-        auto b = (color >> 9) & 62;
+        const int r = (color << 1) & 62;
+        const int g = (color >> 4) & 62;
+        const int b = (color >> 9) & 62;
 
         return Color4{
-            s8(r | (r >> 5)),
-            s8(g | (g >> 5)),
-            s8(b | (b >> 5)),
-            s8(63)
+          (i8)(r | (r >> 5)),
+          (i8)(g | (g >> 5)),
+          (i8)(b | (b >> 5)),
+          (i8)63
         };
       }
 
