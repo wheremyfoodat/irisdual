@@ -94,6 +94,18 @@ namespace dual::nds::gpu {
       void cmdMatrixMultiply3x3();
       void cmdMatrixScale();
       void cmdMatrixTranslate();
+      void cmdSetColor();
+      void cmdSetNormal();
+      void cmdSetUV();
+      void cmdSubmitVertex16();
+      void cmdSubmitVertex10();
+      void cmdSubmitVertexXY();
+      void cmdSubmitVertexXZ();
+      void cmdSubmitVertexYZ();
+      void cmdSubmitVertexDelta();
+      void cmdSetPolygonAttrs();
+      void cmdSetTextureAttrs();
+      void cmdSetPaletteBase();
       void cmdBeginVertices();
       void cmdEndVertices();
       void cmdSwapBuffers();

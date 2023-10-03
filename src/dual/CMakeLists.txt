@@ -24,6 +24,7 @@ set(SOURCES
   src/nds/backup/eeprom512b.cpp
   src/nds/backup/flash.cpp
   src/nds/video_unit/gpu/command_processor/command_processor.cpp
+  src/nds/video_unit/gpu/command_processor/geometry.cpp
   src/nds/video_unit/gpu/command_processor/matrix.cpp
   src/nds/video_unit/gpu/geometry_engine.cpp
   src/nds/video_unit/gpu/gpu.cpp

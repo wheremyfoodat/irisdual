@@ -168,6 +168,18 @@ namespace dual::nds::gpu {
       case 0x1A: cmdMatrixMultiply3x3(); break;
       case 0x1B: cmdMatrixScale(); break;
       case 0x1C: cmdMatrixTranslate(); break;
+      case 0x20: cmdSetColor(); break;
+      case 0x21: cmdSetNormal(); break;
+      case 0x22: cmdSetUV(); break;
+      case 0x23: cmdSubmitVertex16(); break;
+      case 0x24: cmdSubmitVertex10(); break;
+      case 0x25: cmdSubmitVertexXY(); break;
+      case 0x26: cmdSubmitVertexXZ(); break;
+      case 0x27: cmdSubmitVertexYZ(); break;
+      case 0x28: cmdSubmitVertexDelta(); break;
+      case 0x29: cmdSetPolygonAttrs(); break;
+      case 0x2A: cmdSetTextureAttrs(); break;
+      case 0x2B: cmdSetPaletteBase(); break;
       case 0x40: cmdBeginVertices(); break;
       case 0x41: cmdEndVertices(); break;
       case 0x50: cmdSwapBuffers(); break;
