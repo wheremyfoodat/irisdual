@@ -24,6 +24,6 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: irisdual-${{ runner.os }}
+          name: irisdual
           path: build/bin/sdl/irisdual
           if-no-files-found: error
