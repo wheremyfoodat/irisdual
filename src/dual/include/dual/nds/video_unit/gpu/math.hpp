@@ -15,90 +15,90 @@ namespace dual::nds {
     class FixedBase {
       public:
         constexpr FixedBase() = default;
-        constexpr FixedBase(T value) : value(value) {} // NOLINT(*-explicit-constructor)
+        constexpr FixedBase(T value) : m_value{value} {} // NOLINT(*-explicit-constructor)
 
-        static FixedBase FromInt(int value) {
-          return FixedBase{T{value} << shift};
+        static constexpr FixedBase FromInt(int value) {
+          return FixedBase{(T)((T)value << shift)};
         }
 
         [[nodiscard]] T Int() const {
-          return value >> shift;
+          return m_value >> shift;
         }
 
         [[nodiscard]] T Raw() const {
-          return value;
+          return m_value;
         }
 
         [[nodiscard]] FixedBase Abs() const {
-          return value < 0 ? -value : value;
+          return m_value < 0 ? -m_value : m_value;
         }
 
         FixedBase operator+(FixedBase other) const {
-          return value + other.value;
+          return m_value + other.m_value;
         }
 
         FixedBase operator-(FixedBase other) const {
-          return value - other.value;
+          return m_value - other.m_value;
         }
 
         FixedBase operator*(FixedBase<T, U, shift> other) const {
-          return T((U(value) * U(other.value)) >> shift);
+          return T((U(m_value) * U(other.m_value)) >> shift);
         }
 
         FixedBase operator/(FixedBase other) const {
-          return T((U(value) << shift) / U(other.value));
+          return T((U(m_value) << shift) / U(other.m_value));
         }
 
         FixedBase& operator+=(FixedBase other) {
-          value += other.value;
+          m_value += other.m_value;
           return *this;
         }
 
         FixedBase& operator-=(FixedBase other) {
-          value -= other.value;
+          m_value -= other.m_value;
           return *this;
         }
 
         FixedBase& operator*=(FixedBase other) {
-          value = T((U(value) * U(other.value)) >> shift);
+          m_value = T((U(m_value) * U(other.m_value)) >> shift);
           return *this;
         }
 
         FixedBase& operator/=(FixedBase other) {
-          value = T((U(value) << shift) / U(other.value));
+          m_value = T((U(m_value) << shift) / U(other.m_value));
           return *this;
         }
 
         FixedBase operator-() const {
-          return -value;
+          return -m_value;
         }
 
         bool operator==(FixedBase other) const {
-          return value == other.value;
+          return m_value == other.m_value;
         }
 
         bool operator!=(FixedBase other) const {
-          return value != other.value;
+          return m_value != other.m_value;
         }
 
         bool operator<=(FixedBase other) const {
-          return value <= other.value;
+          return m_value <= other.m_value;
         }
 
         bool operator>=(FixedBase other) const {
-          return value >= other.value;
+          return m_value >= other.m_value;
         }
 
         bool operator<(FixedBase other) const {
-          return value < other.value;
+          return m_value < other.m_value;
         }
 
         bool operator>(FixedBase other) const {
-          return value > other.value;
+          return m_value > other.m_value;
         }
 
       private:
-        T value{};
+        T m_value{};
     };
 
   } // namespace dual::nds::detail
@@ -124,33 +124,33 @@ namespace atom {
   template<>
   struct NumericConstants<dual::nds::Fixed20x12> {
     static constexpr dual::nds::Fixed20x12 Zero() {
-      return dual::nds::Fixed20x12{};
+      return 0;
     }
 
     static constexpr dual::nds::Fixed20x12 One() {
-      return dual::nds::Fixed20x12{1 << 12};
+      return dual::nds::Fixed20x12::FromInt(1);
     }
   };
 
   template<>
   struct NumericConstants<dual::nds::Fixed12x4> {
     static constexpr dual::nds::Fixed12x4 Zero() {
-      return dual::nds::Fixed12x4{};
+      return 0;
     }
 
     static constexpr dual::nds::Fixed12x4 One() {
-      return dual::nds::Fixed12x4{1 << 4};
+      return dual::nds::Fixed12x4::FromInt(1);
     }
   };
 
   template<>
   struct NumericConstants<dual::nds::Fixed6> {
     static constexpr dual::nds::Fixed6 Zero() {
-      return dual::nds::Fixed6{};
+      return 0;
     }
 
     static constexpr dual::nds::Fixed6 One() {
-      return dual::nds::Fixed6{63};
+      return dual::nds::Fixed6::FromInt(1);
     }
   };
 
