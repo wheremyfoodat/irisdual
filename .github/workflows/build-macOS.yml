@@ -20,10 +20,10 @@ jobs:
             -DSDL2_STATIC=ON \
             -DCMAKE_BUILD_TYPE=Release
           cd build
-          make -j${getconf _NPROCESSORS_ONLN)
+          make -j$(getconf _NPROCESSORS_ONLN)
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: irisdual
+          name: irisdual-${{ runner.os }}
           path: build/bin/sdl/irisdual
           if-no-files-found: error
