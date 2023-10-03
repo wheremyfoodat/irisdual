@@ -103,5 +103,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # @todo: remove this when properly implementing key input
-find_package(SDL2 REQUIRED)
-target_link_libraries(dual PRIVATE SDL2::SDL2)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
+target_link_libraries(dual PRIVATE PkgConfig::SDL2)

@@ -20,16 +20,7 @@ set(HEADERS
 )
 
 find_package(PkgConfig REQUIRED)
-
-option(BUILD_STATIC "Build a statically linked executable" OFF)
-
-if(BUILD_STATIC)
-  list(APPEND PKG_CONFIG_EXECUTABLE "--static")
-endif()
-
 pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
-
-#find_package(SDL2 REQUIRED)
 
 add_executable(dual-sdl ${SOURCES} ${HEADERS})
 target_include_directories(dual-sdl PRIVATE src)
