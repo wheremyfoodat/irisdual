@@ -25,5 +25,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: irisdual-${{ runner.os }}
-          path: build/bin/sdl/irisdual
+          path: build/bin/sdl/dual
           if-no-files-found: error
