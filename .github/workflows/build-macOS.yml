@@ -16,7 +16,7 @@ jobs:
       - name: Build irisdual
         run: |
           cmake -Bbuild \
-            -DCMAKE_CXX_FLAGS="-s" \
+            -DCMAKE_CXX_FLAGS="-s -fno-strict-aliasing" \
             -DBUILD_STATIC=ON \
             -DCMAKE_BUILD_TYPE=Release
           cd build
