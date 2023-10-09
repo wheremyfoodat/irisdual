@@ -97,6 +97,26 @@ namespace dual::nds::gpu {
     }
   }
 
+  void CommandProcessor::cmdMatrixRestore() {
+    const u32 parameter = (u32)DequeueFIFO();
+
+    switch(m_mtx_mode) {
+      case 0: m_projection_mtx = m_projection_mtx_stack; break;
+      case 1:
+      case 2: {
+        const int stack_address = (int)(parameter & 31u);
+
+        if(stack_address == 31) {
+          m_gxstat.matrix_stack_error_flag = 1;
+        }
+        m_coordinate_mtx = m_coordinate_mtx_stack[stack_address];
+        m_direction_mtx = m_direction_mtx_stack[stack_address];
+        break;
+      }
+      case 3: m_texture_mtx = m_texture_mtx_stack; break;
+    }
+  }
+
   void CommandProcessor::cmdMatrixLoadIdentity() {
     DequeueFIFO();
 

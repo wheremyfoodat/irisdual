@@ -172,6 +172,7 @@ namespace dual::nds::gpu {
       case 0x11: cmdMatrixPush(); break;
       case 0x12: cmdMatrixPop(); break;
       case 0x13: cmdMatrixStore(); break;
+      case 0x14: cmdMatrixRestore(); break;
       case 0x15: cmdMatrixLoadIdentity(); break;
       case 0x16: cmdMatrixLoad4x4(); break;
       case 0x17: cmdMatrixLoad4x3(); break;

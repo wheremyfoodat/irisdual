@@ -75,6 +75,7 @@ namespace dual::nds::gpu {
       void cmdMatrixPush();
       void cmdMatrixPop();
       void cmdMatrixStore();
+      void cmdMatrixRestore();
       void cmdMatrixLoadIdentity();
       void cmdMatrixLoad4x4();
       void cmdMatrixLoad4x3();
