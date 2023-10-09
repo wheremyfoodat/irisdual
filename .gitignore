@@ -1,13 +1,13 @@
-build
-build-*
+build/
+build-*/
 
 # Visual Studio
-out
-.vs
+out/
+.vs/
 CMakeSettings.json
 
 # JetBrains CLion
-.idea
-cmake-build-*
+.idea/
+cmake-build-*/
 
 .DS_Store

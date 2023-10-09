@@ -28,7 +28,7 @@ jobs:
       - name: Create output directory
         run: |
           mkdir dist
-          cp build/bin/sdl/dual dist/
+          cp build/bin/sdl/irisdual dist/
           cp /usr/local/opt/sdl2/lib/libSDL2-2.0.0.dylib dist/
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
