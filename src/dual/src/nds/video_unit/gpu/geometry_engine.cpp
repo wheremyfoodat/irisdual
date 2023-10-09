@@ -4,8 +4,6 @@
 namespace dual::nds::gpu {
 
   void GeometryEngine::Reset() {
-    m_last_position = {};
-
     for(auto& ram : m_vertex_ram) ram.Clear();
     for(auto& ram : m_polygon_ram) ram.Clear();
   }

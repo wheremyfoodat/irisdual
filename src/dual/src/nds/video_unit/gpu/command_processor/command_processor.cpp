@@ -34,6 +34,7 @@ namespace dual::nds::gpu {
     m_coordinate_mtx_index = 0;
     m_texture_mtx_index = 0;
     m_clip_mtx_dirty = false;
+    m_last_position = {};
   }
 
   void CommandProcessor::EnqueueFIFO(u8 command, u32 param) {

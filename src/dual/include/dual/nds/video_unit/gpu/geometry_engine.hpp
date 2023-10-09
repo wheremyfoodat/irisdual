@@ -23,7 +23,6 @@ namespace dual::nds::gpu {
       void SubmitVertex(Vector3<Fixed20x12> position);
 
     private:
-      Vector3<Fixed20x12> m_last_position;
       atom::Vector_N<Vertex, 6144> m_vertex_ram[2];
       atom::Vector_N<Polygon, 2048> m_polygon_ram[2];
   };

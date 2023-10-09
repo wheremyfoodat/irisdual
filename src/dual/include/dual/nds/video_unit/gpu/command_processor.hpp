@@ -105,6 +105,11 @@ namespace dual::nds::gpu {
       Matrix4<Fixed20x12> DequeueMatrix3x3();
       void ApplyMatrixToCurrent(const Matrix4<Fixed20x12>& rhs_matrix);
 
+      void SubmitVertex(const Vector3<Fixed20x12>& position) {
+        m_last_position = position;
+        m_geometry_engine.SubmitVertex(position);
+      }
+
       Scheduler& m_scheduler;
       IRQ& m_arm9_irq;
       GXSTAT& m_gxstat;
@@ -133,6 +138,8 @@ namespace dual::nds::gpu {
       size_t m_coordinate_mtx_index{};
       size_t m_texture_mtx_index{};
       bool m_clip_mtx_dirty{};
+
+      Vector3<Fixed20x12> m_last_position;
   };
 
 } // namespace dual::nds::gpu
