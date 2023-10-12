@@ -216,6 +216,7 @@ namespace dual::nds::gpu {
           command != 0x29 && // POLYGON_ATTR
           command != 0x2A && // TEXIMAGE_PARAM
           command != 0x2B && // PLTT_BASE
+          command != 0x70 && // BOX_TEST
           true
           ) {
           ATOM_PANIC("gpu: Unimplemented command 0x{:02X}", command);
@@ -223,7 +224,6 @@ namespace dual::nds::gpu {
       }
     }
   }
-
 
   void CommandProcessor::cmdBeginVertices() {
     m_geometry_engine.Begin((u32)DequeueFIFO());

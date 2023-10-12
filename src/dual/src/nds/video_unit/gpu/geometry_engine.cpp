@@ -39,6 +39,10 @@ namespace dual::nds::gpu {
 
     const Vector4<Fixed20x12> clip_position = clip_matrix * Vector4<Fixed20x12>{position};
 
+    if(m_current_vertex_list.Full()) {
+      return; // @todo: better handle this
+    }
+
     // @todo: use proper vertex color and UV:
     m_current_vertex_list.PushBack({clip_position});
 
@@ -56,13 +60,10 @@ namespace dual::nds::gpu {
     atom::Vector_N<Polygon, 2048>& poly_ram = m_polygon_ram[0];
     atom::Vector_N<Vertex,  6144>& vert_ram = m_vertex_ram[0];
 
-    //const int polygon_count = poly_ram.Size();
-
     if(poly_ram.Size() == 2048) {
       return;
     }
 
-    //Polygon& poly = poly_ram.Back();
     Polygon poly;
 
     bool needs_clipping = false;
@@ -113,14 +114,14 @@ namespace dual::nds::gpu {
         next_vertex_list.PushBack(m_current_vertex_list[m_current_vertex_list.Size() - 1]);
       }
 
-      m_current_vertex_list = ClipPolygon(m_current_vertex_list, m_primitive_is_strip && m_primitive_is_strip);
+      m_current_vertex_list = ClipPolygon(m_current_vertex_list, m_primitive_is_quad && m_primitive_is_strip);
     }
 
     for(const Vertex& v : m_current_vertex_list) {
-      // @todo: can we do this more efficiently?
+      // @todo: how does this behave in real hardware?
       if(vert_ram.Size() == 6144) {
         ATOM_ERROR("gpu: Submitted more vertices than fit into Vertex RAM.");
-        break;
+        return;
       }
 
       vert_ram.PushBack(v);
@@ -134,7 +135,7 @@ namespace dual::nds::gpu {
        * |     | --> |     |
        * v1---v3     v1---v2
        */
-      if(m_primitive_is_strip && m_primitive_is_quad) {
+      if(m_primitive_is_quad && m_primitive_is_strip) {
         std::swap(poly.vertices[2], poly.vertices[3]);
       }
     }
@@ -179,10 +180,10 @@ namespace dual::nds::gpu {
     };
 
     // @todo: get this parameter from the polygon parameters
-    const bool render_far_plane_polys = false;
+    const bool render_far_plane_polys = true;
 
     if(!render_far_plane_polys && ClipPolygonAgainstPlane<2, CompareGt>(clipped[0], clipped[1])) {
-      return {};
+      return {}; // @todo: test if this is actually working as intended!
     }
     clipped[0].Clear();
     ClipPolygonAgainstPlane<2, CompareLt>(clipped[1], clipped[0]);
