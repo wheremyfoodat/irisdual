@@ -34,6 +34,7 @@ namespace dual::nds::gpu {
     m_coordinate_mtx_index = 0;
     m_texture_mtx_index = 0;
     m_clip_mtx_dirty = false;
+    m_clip_mtx = Matrix4<Fixed20x12>::Identity();
     m_last_position = {};
   }
 
@@ -225,15 +226,13 @@ namespace dual::nds::gpu {
 
 
   void CommandProcessor::cmdBeginVertices() {
-    DequeueFIFO();
-
-    // ...
+    m_geometry_engine.Begin((u32)DequeueFIFO());
   }
 
   void CommandProcessor::cmdEndVertices() {
     DequeueFIFO();
 
-    // ...
+    m_geometry_engine.End();
   }
 
   void CommandProcessor::cmdSwapBuffers() {
