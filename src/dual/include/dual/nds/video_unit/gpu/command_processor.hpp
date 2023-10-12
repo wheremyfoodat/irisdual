@@ -57,6 +57,8 @@ namespace dual::nds::gpu {
         RequestOrClearIRQ();
       }
 
+      void SwapBuffers();
+
     private:
       void EnqueueFIFO(u8 command, u32 param);
       u64  DequeueFIFO();
@@ -146,6 +148,10 @@ namespace dual::nds::gpu {
       Matrix4<Fixed20x12> m_clip_mtx;
 
       Vector3<Fixed20x12> m_last_position;
+
+      bool m_manual_translucent_y_sorting_pending{};
+      bool m_swap_buffers_pending{};
+      bool m_use_w_buffer_pending{};
   };
 
 } // namespace dual::nds::gpu

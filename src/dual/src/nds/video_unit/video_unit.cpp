@@ -82,6 +82,8 @@ namespace dual::nds {
 
           dispstat.vblank_flag = true;
         }
+
+        m_gpu.SwapBuffers();
       }
 
       if(m_vcount == k_total_lines - 1) {

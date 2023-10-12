@@ -20,6 +20,7 @@ namespace dual::nds::gpu {
   class GeometryEngine {
     public:
       void Reset();
+      void SwapBuffers();
       void Begin(u32 parameter);
       void End();
       void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
@@ -41,6 +42,7 @@ namespace dual::nds::gpu {
       bool m_primitive_is_strip{};
       bool m_first_vertex{};
       int m_polygon_strip_length{};
+      int m_current_buffer{};
   };
 
 } // namespace dual::nds::gpu

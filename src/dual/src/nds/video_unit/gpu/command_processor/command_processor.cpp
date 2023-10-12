@@ -36,6 +36,18 @@ namespace dual::nds::gpu {
     m_clip_mtx_dirty = false;
     m_clip_mtx = Matrix4<Fixed20x12>::Identity();
     m_last_position = {};
+    m_manual_translucent_y_sorting_pending = false;
+    m_swap_buffers_pending = false;
+    m_use_w_buffer_pending = false;
+  }
+
+  void CommandProcessor::SwapBuffers() {
+    if(m_swap_buffers_pending) {
+      m_swap_buffers_pending = false;
+
+      m_geometry_engine.SwapBuffers();
+      ProcessCommands();
+    }
   }
 
   void CommandProcessor::EnqueueFIFO(u8 command, u32 param) {
@@ -144,7 +156,7 @@ namespace dual::nds::gpu {
   }
 
   void CommandProcessor::ProcessCommands() {
-    if(m_cmd_pipe.IsEmpty()) {
+    if(m_cmd_pipe.IsEmpty() || m_swap_buffers_pending) {
       m_gxstat.busy = false;
       return;
     }
@@ -236,9 +248,11 @@ namespace dual::nds::gpu {
   }
 
   void CommandProcessor::cmdSwapBuffers() {
-    DequeueFIFO();
+    const u32 parameter = DequeueFIFO();
 
-    // ...
+    m_manual_translucent_y_sorting_pending = parameter & 1;
+    m_use_w_buffer_pending = parameter & 2;
+    m_swap_buffers_pending = true;
   }
 
   void CommandProcessor::cmdViewport() {

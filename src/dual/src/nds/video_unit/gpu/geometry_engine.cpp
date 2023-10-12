@@ -15,14 +15,23 @@ namespace dual::nds::gpu {
     m_primitive_is_strip = false;
     m_first_vertex = false;
     m_polygon_strip_length = 0;
+    m_current_buffer = 1;
+  }
+
+  void GeometryEngine::SwapBuffers() {
+    m_current_buffer ^= 1;
+
+    m_vertex_ram[m_current_buffer].Clear();
+    m_polygon_ram[m_current_buffer].Clear();
   }
 
   void GeometryEngine::Begin(u32 parameter) {
     m_inside_vertex_list = true;
     m_primitive_is_quad = parameter & 1;
     m_primitive_is_strip = parameter & 2;
-    m_first_vertex = true; // @todo: check this for correctness
-    m_polygon_strip_length = 0; // @todo: check this for correctness
+    m_first_vertex = true;
+    m_polygon_strip_length = 0;
+    m_current_vertex_list.Clear();
   }
 
   void GeometryEngine::End() {
@@ -56,9 +65,8 @@ namespace dual::nds::gpu {
       return;
     }
 
-    // @todo: use the correct buffer for the current frame
-    atom::Vector_N<Polygon, 2048>& poly_ram = m_polygon_ram[0];
-    atom::Vector_N<Vertex,  6144>& vert_ram = m_vertex_ram[0];
+    atom::Vector_N<Polygon, 2048>& poly_ram = m_polygon_ram[m_current_buffer];
+    atom::Vector_N<Vertex,  6144>& vert_ram = m_vertex_ram[m_current_buffer];
 
     if(poly_ram.Size() == 2048) {
       return;

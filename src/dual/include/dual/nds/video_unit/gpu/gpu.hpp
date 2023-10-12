@@ -39,6 +39,10 @@ namespace dual::nds {
         m_cmd_processor.Write_GXSTAT(value, mask);
       }
 
+      void SwapBuffers() {
+        m_cmd_processor.SwapBuffers();
+      }
+
     private:
       gpu::IO m_io;
 
