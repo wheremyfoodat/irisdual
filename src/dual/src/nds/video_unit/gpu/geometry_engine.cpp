@@ -187,10 +187,10 @@ namespace dual::nds::gpu {
       bool operator()(Fixed20x12 x, Fixed20x12 w) { return x >  w; }
     };
 
-    // @todo: get this parameter from the polygon parameters
-    const bool render_far_plane_polys = true;
+    const bool render_far_plane_polys = true; // @todo
 
-    if(!render_far_plane_polys && ClipPolygonAgainstPlane<2, CompareGt>(clipped[0], clipped[1])) {
+    const bool far_plane_intersecting = ClipPolygonAgainstPlane<2, CompareGt>(clipped[0], clipped[1]);
+    if(!render_far_plane_polys && far_plane_intersecting) {
       return {}; // @todo: test if this is actually working as intended!
     }
     clipped[0].Clear();
@@ -214,7 +214,7 @@ namespace dual::nds::gpu {
     const atom::Vector_N<Vertex, 10>& vertex_list_in,
     atom::Vector_N<Vertex, 10>& vertex_list_out
   ) {
-    const int clip_precision = 10;
+    const int clip_precision = 18;
 
     const int size = (int)vertex_list_in.Size();
 
