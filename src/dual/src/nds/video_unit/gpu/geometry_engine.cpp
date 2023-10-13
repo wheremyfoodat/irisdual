@@ -234,12 +234,11 @@ namespace dual::nds::gpu {
           const Vertex& v1 = vertex_list_in[j];
 
           if(!Comparator{}(v1.position[axis], v1.position.W())) {
-            // @todo: remove usage of 'auto' keyword
-            const auto sign = v0.position[axis] < -v0.position.W() ? 1 : -1;
-            const auto numer = v1.position[axis].Raw() + sign * v1.position[3].Raw();
-            const auto denom = (v0.position.W() - v1.position.W()).Raw() + (v0.position[axis] - v1.position[axis]).Raw() * sign;
-            const auto scale = -sign * ((i64)numer << clip_precision) / denom;
-            const auto scale_inv = (1 << clip_precision) - scale;
+            const int sign = v0.position[axis] < -v0.position.W() ? 1 : -1;
+            const i64 numer = v1.position[axis].Raw() + sign * v1.position[3].Raw();
+            const i64 denom = (v0.position.W() - v1.position.W()).Raw() + (v0.position[axis] - v1.position[axis]).Raw() * sign;
+            const i64 scale = -sign * ((i64)numer << clip_precision) / denom;
+            const i64 scale_inv = (1 << clip_precision) - scale;
 
             Vertex clipped_vertex{};
 
