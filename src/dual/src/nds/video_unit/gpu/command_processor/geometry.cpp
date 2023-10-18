@@ -52,8 +52,8 @@ namespace dual::nds::gpu {
 
     SubmitVertex({
       m_last_position.X() + ((i32)((xyz_diff & (0x3FFu <<  0)) << 22) >> 22),
-      m_last_position.Y() + ((i32)((xyz_diff & (0x3FFu << 10)) << 12) >> 12),
-      m_last_position.Z() + ((i32)((xyz_diff & (0x3FFu << 20)) <<  2) >>  2)
+      m_last_position.Y() + ((i32)((xyz_diff & (0x3FFu << 10)) << 12) >> 22),
+      m_last_position.Z() + ((i32)((xyz_diff & (0x3FFu << 20)) <<  2) >> 22)
     });
   }
 
