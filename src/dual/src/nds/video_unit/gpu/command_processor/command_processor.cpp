@@ -256,9 +256,12 @@ namespace dual::nds::gpu {
   }
 
   void CommandProcessor::cmdViewport() {
-    DequeueFIFO();
+    const u32 parameter = DequeueFIFO();
 
-    // ...
+    m_viewport.x0 = (int)(u8)(parameter >>  0);
+    m_viewport.y0 = (int)(u8)(parameter >>  8);
+    m_viewport.x1 = (int)(u8)(parameter >> 16);
+    m_viewport.y1 = (int)(u8)(parameter >> 24);
   }
 
 } // namespace dual::nds::gpu

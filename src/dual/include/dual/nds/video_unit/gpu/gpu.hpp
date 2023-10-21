@@ -26,7 +26,7 @@ namespace dual::nds {
       void Reset();
 
       void Render() {
-        m_renderer->Render(m_geometry_engine.GetPolygonsToRender());
+        m_renderer->Render(m_cmd_processor.GetViewport(), m_geometry_engine.GetPolygonsToRender());
       }
 
       void CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) {

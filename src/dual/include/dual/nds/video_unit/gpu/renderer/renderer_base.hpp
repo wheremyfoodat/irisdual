@@ -8,11 +8,18 @@
 
 namespace dual::nds::gpu {
 
+  struct Viewport {
+    int x0;
+    int x1;
+    int y0;
+    int y1;
+  };
+
   class RendererBase {
     public:
       virtual ~RendererBase() = default;
 
-      virtual void Render(std::span<const Polygon> polygons) = 0;
+      virtual void Render(const Viewport& viewport, std::span<const Polygon> polygons) = 0;
 
       virtual void CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) = 0;
       virtual void CaptureAlpha(int scanline, std::span<int, 256> dst_buffer) = 0;

@@ -12,12 +12,15 @@ namespace dual::nds::gpu {
     public:
       explicit SoftwareRenderer(IO& io);
 
-      void Render(std::span<const Polygon> polygons) override;
+      void Render(const Viewport& viewport, std::span<const Polygon> polygons) override;
 
       void CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) override;
       void CaptureAlpha(int scanline, std::span<int, 256> dst_buffer) override;
 
     private:
+      void RenderRearPlane();
+      void RenderPolygons(const Viewport& viewport, std::span<const Polygon> polygons);
+
       IO& m_io;
       Color4 m_frame_buffer[192][256];
   };

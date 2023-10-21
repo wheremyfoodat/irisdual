@@ -6,7 +6,9 @@ namespace dual::nds::gpu {
   SoftwareRenderer::SoftwareRenderer(IO& io) : m_io{io} {
   }
 
-  void SoftwareRenderer::Render(std::span<const Polygon> polygons) {
+  void SoftwareRenderer::Render(const Viewport& viewport, std::span<const Polygon> polygons) {
+    RenderRearPlane();
+    RenderPolygons(viewport, polygons);
   }
 
   void SoftwareRenderer::CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) {

@@ -6,6 +6,7 @@
 #include <atom/panic.hpp>
 #include <dual/common/fifo.hpp>
 #include <dual/common/scheduler.hpp>
+#include <dual/nds/video_unit/gpu/renderer/renderer_base.hpp>
 #include <dual/nds/video_unit/gpu/geometry_engine.hpp>
 #include <dual/nds/video_unit/gpu/math.hpp>
 #include <dual/nds/video_unit/gpu/registers.hpp>
@@ -58,6 +59,10 @@ namespace dual::nds::gpu {
       }
 
       void SwapBuffers();
+
+      [[nodiscard]] const Viewport& GetViewport() const {
+        return m_viewport;
+      }
 
     private:
       void EnqueueFIFO(u8 command, u32 param);
@@ -152,6 +157,8 @@ namespace dual::nds::gpu {
       bool m_manual_translucent_y_sorting_pending{};
       bool m_swap_buffers_pending{};
       bool m_use_w_buffer_pending{};
+
+      Viewport m_viewport{};
   };
 
 } // namespace dual::nds::gpu
