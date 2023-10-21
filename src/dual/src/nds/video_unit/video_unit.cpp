@@ -169,6 +169,8 @@ namespace dual::nds {
 
     m_ppu[0].SetPowerOn(m_powcnt1.enable_ppu_a);
     m_ppu[1].SetPowerOn(m_powcnt1.enable_ppu_b);
+    m_gpu.SetRenderEnginePowerOn(m_powcnt1.enable_gpu_render_engine);
+    m_gpu.SetGeometryEnginePowerOn(m_powcnt1.enable_gpu_geometry_engine);
   }
 
 

@@ -385,7 +385,12 @@ namespace dual::nds::arm9 {
       case REG(0x04000430):
       case REG(0x04000434):
       case REG(0x04000438):
-      case REG(0x0400043C): gpu.Write_GXFIFO(value); break;
+      case REG(0x0400043C): {
+        if(gpu.GetGeometryEnginePowerOn()) [[likely]] {
+          gpu.Write_GXFIFO(value);
+        }
+        break;
+      }
       case REG(0x04000440): // MTX_MODE
       case REG(0x04000444): // MTX_PUSH
       case REG(0x04000448): // MTX_POP
@@ -422,8 +427,18 @@ namespace dual::nds::arm9 {
       case REG(0x04000580): // VIEWPORT
       case REG(0x040005C0): // BOX_TEST
       case REG(0x040005C4): // POS_TEST
-      case REG(0x040005C8): gpu.Write_GXCMDPORT(address, value); break; // VEC_TEST
-      case REG(0x04000600): gpu.Write_GXSTAT(value, mask); break;
+      case REG(0x040005C8): { // VEC_TEST
+        if(gpu.GetGeometryEnginePowerOn()) [[likely]] {
+          gpu.Write_GXCMDPORT(address, value);
+        }
+        break;
+      }
+      case REG(0x04000600): {
+        if(gpu.GetRenderEnginePowerOn()) [[likely]] {
+          gpu.Write_GXSTAT(value, mask);
+        }
+        break;
+      }
 
       default: {
         Unhandled();

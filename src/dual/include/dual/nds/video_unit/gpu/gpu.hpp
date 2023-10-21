@@ -43,6 +43,22 @@ namespace dual::nds {
         m_cmd_processor.SwapBuffers();
       }
 
+      [[nodiscard]] bool GetRenderEnginePowerOn() const {
+        return m_render_engine_power_on;
+      }
+
+      void SetRenderEnginePowerOn(bool power_on) {
+        m_render_engine_power_on = power_on;
+      }
+
+      [[nodiscard]] bool GetGeometryEnginePowerOn() const {
+        return m_geometry_engine_power_on;
+      }
+
+      void SetGeometryEnginePowerOn(bool power_on) {
+        m_geometry_engine_power_on = power_on;
+      }
+
     private:
       gpu::IO m_io;
 
@@ -52,6 +68,9 @@ namespace dual::nds {
 
       gpu::CommandProcessor m_cmd_processor;
       gpu::GeometryEngine m_geometry_engine;
+
+      bool m_render_engine_power_on{};
+      bool m_geometry_engine_power_on{};
   };
 
 } // namespace dual::nds

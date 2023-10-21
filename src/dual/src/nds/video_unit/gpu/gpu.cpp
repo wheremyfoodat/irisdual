@@ -17,6 +17,9 @@ namespace dual::nds {
   void GPU::Reset() {
     m_cmd_processor.Reset();
     m_geometry_engine.Reset();
+
+    m_render_engine_power_on = false;
+    m_geometry_engine_power_on = false;
   }
 
 } // namespace dual::nds
