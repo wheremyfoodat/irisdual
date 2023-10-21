@@ -27,6 +27,7 @@ namespace dual::nds {
       );
 
       void Reset();
+      void DirectBoot();
 
       void SetPresentationCallback(std::function<void(const u32*, const u32*)> present_callback) {
         m_present_callback = std::move(present_callback);
@@ -44,6 +45,9 @@ namespace dual::nds {
       void Write_DISPSTAT(CPU cpu, u16 value, u16 mask);
 
       u16 Read_VCOUNT();
+
+      u16   Read_POWCNT1();
+      void Write_POWCNT(u16 value, u16 mask);
 
     private:
       static constexpr int k_drawing_lines = 192;
@@ -74,6 +78,19 @@ namespace dual::nds {
       } m_dispstat[2];
 
       u16 m_vcount{};
+
+      union POWCNT1 {
+        atom::Bits< 0, 1, u16> enable_lcds;
+        atom::Bits< 1, 1, u16> enable_ppu_a;
+        atom::Bits< 2, 1, u16> enable_gpu_render_engine;
+        atom::Bits< 3, 1, u16> enable_gpu_geometry_engine;
+        atom::Bits< 9, 1, u16> enable_ppu_b;
+        atom::Bits<15, 1, u16> enable_display_swap;
+
+        u16 half = 0u;
+      } m_powcnt1{};
+
+      bool m_display_swap_latch{};
 
       IRQ* m_irq[2]{};
       arm9::DMA& m_dma9;

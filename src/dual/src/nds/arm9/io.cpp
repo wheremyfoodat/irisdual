@@ -211,8 +211,9 @@ namespace dual::nds::arm9 {
       case REG(0x040002B8): return hw.math.Read_SQRT_PARAM() >>  0;
       case REG(0x040002BC): return hw.math.Read_SQRT_PARAM() >> 32;
 
-      // POSTFLG
+      // System and power control
       case REG(0x04000300): return postflg;
+      case REG(0x04000304): return hw.video_unit.Read_POWCNT1();
 
       // GPU3D
       case REG(0x04000600): return gpu.Read_GXSTAT();
@@ -364,8 +365,9 @@ namespace dual::nds::arm9 {
       case REG(0x040002B8): hw.math.Write_SQRT_PARAM((u64)value <<  0, (u64)mask <<  0); break;
       case REG(0x040002BC): hw.math.Write_SQRT_PARAM((u64)value << 32, (u64)mask << 32); break;
 
-      // POSTFLG
+      // System and power control
       case REG(0x04000300): postflg = (value & mask & 3u) | (postflg & ~(mask & 2u)); break;
+      case REG(0x04000304): hw.video_unit.Write_POWCNT((u16)value, (u16)mask); break;
 
       // GPU3D
       case REG(0x04000400): // GXFIFO (mirrored from 04000400 to 0400043C)

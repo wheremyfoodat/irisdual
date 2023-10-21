@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <atom/logger/logger.hpp>
 #include <dual/nds/video_unit/video_unit.hpp>
 
@@ -24,11 +25,22 @@ namespace dual::nds {
     for(auto& dispstat : m_dispstat) dispstat = {};
 
     m_vcount = 0xFFFFu;
+    m_powcnt1 = {};
+    m_display_swap_latch = false;
 
     m_gpu.Reset();
     for(auto& ppu : m_ppu) ppu.Reset();
 
     BeginHDraw(0);
+  }
+
+  void VideoUnit::DirectBoot() {
+    /**
+     * Enable the LCDs and PPU A and B. This is a mere guess based on how the DS firmware
+     * might initialize this register given that it displays 2D content on both screens and
+     * no 3D content.
+     */
+    Write_POWCNT(0x0203u, 0xFFFFu);
   }
 
   void VideoUnit::UpdateVerticalCounterMatchFlag(CPU cpu) {
@@ -50,9 +62,19 @@ namespace dual::nds {
       for(auto& ppu : m_ppu) ppu.SwapBuffers();
 
       if(m_present_callback) [[likely]] {
-        m_present_callback(m_ppu[0].GetFrameBuffer(), m_ppu[1].GetFrameBuffer());
+        const u32* frames[2] {
+          m_ppu[1].GetFrameBuffer(),
+          m_ppu[0].GetFrameBuffer()
+        };
+
+        if(m_display_swap_latch) {
+          std::swap(frames[0], frames[1]);
+        }
+
+        m_present_callback(frames[0], frames[1]);
       }
 
+      m_display_swap_latch = m_powcnt1.enable_display_swap;
       m_vcount = 0u;
     }
 
@@ -135,5 +157,16 @@ namespace dual::nds {
   u16 VideoUnit::Read_VCOUNT() {
     return m_vcount;
   }
+
+  u16 VideoUnit::Read_POWCNT1() {
+    return m_powcnt1.half;
+  }
+
+  void VideoUnit::Write_POWCNT(u16 value, u16 mask) {
+    const u16 write_mask = 0x820Fu & mask;
+
+    m_powcnt1.half = (value & write_mask) | (m_powcnt1.half & ~write_mask);
+  }
+
 
 } // namespace dual::nds

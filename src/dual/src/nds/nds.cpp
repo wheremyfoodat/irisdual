@@ -191,6 +191,8 @@ namespace dual::nds {
     m_arm7.bus.WriteByte(0x04000300, 1u, dual::arm::Memory::Bus::Data);
 
     m_cartridge.DirectBoot();
+
+    m_video_unit.DirectBoot();
   }
 
 } // namespace dual::nds
