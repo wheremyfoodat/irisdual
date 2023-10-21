@@ -26,6 +26,7 @@ set(SOURCES
   src/nds/video_unit/gpu/command_processor/command_processor.cpp
   src/nds/video_unit/gpu/command_processor/geometry.cpp
   src/nds/video_unit/gpu/command_processor/matrix.cpp
+  src/nds/video_unit/gpu/renderer/software/software_renderer.cpp
   src/nds/video_unit/gpu/geometry_engine.cpp
   src/nds/video_unit/gpu/gpu.cpp
   src/nds/video_unit/ppu/render/affine.cpp
@@ -75,6 +76,8 @@ set(HEADERS_PUBLIC
   include/dual/nds/backup/eeprom.hpp
   include/dual/nds/backup/eeprom512b.hpp
   include/dual/nds/backup/flash.hpp
+  include/dual/nds/video_unit/gpu/renderer/renderer_base.hpp
+  include/dual/nds/video_unit/gpu/renderer/software_renderer.hpp
   include/dual/nds/video_unit/gpu/command_processor.hpp
   include/dual/nds/video_unit/gpu/geometry_engine.hpp
   include/dual/nds/video_unit/gpu/gpu.hpp

@@ -1,8 +1,21 @@
-//
-// Created by fleroviux on 21/09/2023.
-//
 
-#ifndef DUAL_RENDERER_BASE_HPP
-#define DUAL_RENDERER_BASE_HPP
+#pragma once
 
-#endif //DUAL_RENDERER_BASE_HPP
+// @todo: move the Polygon and Vertex definitions outside the geometry engine header.
+#include <dual/nds/video_unit/gpu/geometry_engine.hpp>
+
+#include <span>
+
+namespace dual::nds::gpu {
+
+  class RendererBase {
+    public:
+      virtual ~RendererBase() = default;
+
+      virtual void Render(std::span<const Polygon> polygons) = 0;
+
+      virtual void CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) = 0;
+      virtual void CaptureAlpha(int scanline, std::span<int, 256> dst_buffer) = 0;
+  };
+
+} // namespace dual::nds::gpu

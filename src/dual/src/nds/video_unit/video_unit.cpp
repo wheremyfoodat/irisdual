@@ -14,7 +14,7 @@ namespace dual::nds {
     arm7::DMA& dma7
   )   : m_scheduler{scheduler}
       , m_gpu{scheduler, irq9, dma9, memory.vram}
-      , m_ppu{{0, memory}, {1, memory}}
+      , m_ppu{{0, memory, &m_gpu}, {1, memory}}
       , m_dma9{dma9}
       , m_dma7{dma7} {
     m_irq[(int)CPU::ARM9] = &irq9;
@@ -106,6 +106,19 @@ namespace dual::nds {
         }
 
         m_gpu.SwapBuffers();
+      }
+
+      // The GPU begins rendering the frame in the last 48 scanlines of V-blank.
+      if(m_vcount == k_total_lines - 48) {
+        /**
+         * PPU A may read from the GPU's framebuffer, so make sure that it finishes its frame
+         * before we start rendering the next GPU frame.
+         *
+         * @todo: see if using a double buffer would be more efficient instead of always syncing?
+         */
+        m_ppu[0].WaitForRenderWorker();
+
+        m_gpu.Render();
       }
 
       if(m_vcount == k_total_lines - 1) {

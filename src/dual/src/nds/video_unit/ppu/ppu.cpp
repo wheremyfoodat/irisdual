@@ -6,14 +6,18 @@
 
 namespace dual::nds {
 
-  PPU::PPU(int id, SystemMemory& memory)
-      : m_vram_bg{memory.vram.region_ppu_bg[id]}
+  PPU::PPU(
+    int id,
+    SystemMemory& memory,
+    GPU* gpu
+  )   : m_vram_bg{memory.vram.region_ppu_bg[id]}
       , m_vram_obj{memory.vram.region_ppu_obj[id]}
       , m_extpal_bg{memory.vram.region_ppu_bg_extpal[id]}
       , m_extpal_obj{memory.vram.region_ppu_obj_extpal[id]}
       , m_vram_lcdc{memory.vram.region_lcdc}
       , m_pram{&memory.pram[id * 0x400]}
-      , m_oam{&memory.oam[id * 0x400]} {
+      , m_oam{&memory.oam[id * 0x400]}
+      , m_gpu{gpu} {
     if(id == 0) {
       m_mmio.dispcnt = DisplayControl{0xFFFFFFFFu};
     } else {
@@ -236,8 +240,8 @@ namespace dual::nds {
     if(mmio.dispcnt.enable[ENABLE_BG0]) {
       // @todo: what does HW do if "enable BG0 3D" is disabled in mode 6.
       if(mmio.dispcnt.enable_bg0_3d || mmio.dispcnt.bg_mode == 6) {
-        // gpu->CaptureColor(buffer_bg[0], vcount, 256, false);
-        // gpu->CaptureAlpha(buffer_3d_alpha, vcount);
+        m_gpu->CaptureColor(vcount, m_buffer_bg[0], 256, false);
+        m_gpu->CaptureAlpha(vcount, m_buffer_3d_alpha);
       } else {
         RenderLayerText(0, vcount);
       }

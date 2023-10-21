@@ -1,4 +1,5 @@
 
+#include <dual/nds/video_unit/gpu/renderer/software_renderer.hpp>
 #include <dual/nds/video_unit/gpu/gpu.hpp>
 
 namespace dual::nds {
@@ -13,6 +14,7 @@ namespace dual::nds {
       , m_vram_palette{vram.region_gpu_palette}
       , m_cmd_processor{scheduler, arm9_irq, m_io, m_geometry_engine}
       , m_geometry_engine{m_io} {
+    m_renderer = std::make_unique<gpu::SoftwareRenderer>(m_io);
   }
 
   void GPU::Reset() {

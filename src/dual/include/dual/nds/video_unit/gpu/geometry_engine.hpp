@@ -28,6 +28,10 @@ namespace dual::nds::gpu {
       void End();
       void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
 
+      [[nodiscard]] std::span<const Polygon> GetPolygonsToRender() const {
+        return m_polygon_ram[m_current_buffer ^ 1];
+      }
+
     private:
       atom::Vector_N<Vertex, 10> ClipPolygon(const atom::Vector_N<Vertex, 10>& vertex_list, bool quad_strip);
 

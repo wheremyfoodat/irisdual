@@ -5,6 +5,7 @@
 #include <atom/punning.hpp>
 #include <atomic>
 #include <condition_variable>
+#include <dual/nds/video_unit/gpu/gpu.hpp>
 #include <dual/nds/video_unit/ppu/registers.hpp>
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/system_memory.hpp>
@@ -19,7 +20,11 @@ namespace dual::nds {
    */
   class PPU {
     public:
-      PPU(int id, SystemMemory& memory);
+      PPU(
+        int id,
+        SystemMemory& memory,
+        GPU* gpu = nullptr
+      );
 
      ~PPU();
 
@@ -341,6 +346,8 @@ namespace dual::nds {
       int m_frame = 0;
 
       bool m_power_on{};
+
+      GPU* m_gpu{};
 
       static constexpr u16 k_color_transparent = 0x8000u;
   };

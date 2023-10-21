@@ -3,11 +3,13 @@
 
 #include <dual/common/scheduler.hpp>
 #include <dual/nds/arm9/dma.hpp>
+#include <dual/nds/video_unit/gpu/renderer/renderer_base.hpp>
 #include <dual/nds/video_unit/gpu/command_processor.hpp>
 #include <dual/nds/video_unit/gpu/geometry_engine.hpp>
 #include <dual/nds/video_unit/gpu/registers.hpp>
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/irq.hpp>
+#include <memory>
 
 namespace dual::nds {
 
@@ -22,6 +24,19 @@ namespace dual::nds {
       );
 
       void Reset();
+
+      void Render() {
+        m_renderer->Render(m_geometry_engine.GetPolygonsToRender());
+      }
+
+      void CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) {
+        m_renderer->CaptureColor(scanline, dst_buffer, dst_width, display_capture);
+      }
+
+      void CaptureAlpha(int scanline, std::span<int, 256> dst_buffer) {
+        m_renderer->CaptureAlpha(scanline, dst_buffer);
+      }
+
 
       [[nodiscard]] u32 Read_DISP3DCNT() const {
         return m_io.disp3dcnt.half;
@@ -85,6 +100,8 @@ namespace dual::nds {
 
       bool m_render_engine_power_on{};
       bool m_geometry_engine_power_on{};
+
+      std::unique_ptr<gpu::RendererBase> m_renderer{};
   };
 
 } // namespace dual::nds
