@@ -81,7 +81,12 @@ namespace dual::nds::arm9 {
 
       template<typename T>
       T ReadPRAM(u32 address) {
-        return atom::read<T>(m_pram, address & 0x7FFu);
+        const u32 offset = address & 0x7FFu;
+
+        if(!m_io.hw.video_unit.GetPPU((int)(offset >> 10)).GetPowerOn()) [[unlikely]] {
+          return 0u;
+        }
+        return atom::read<T>(m_pram, offset);
       }
 
       template<typename T>
@@ -117,9 +122,12 @@ namespace dual::nds::arm9 {
       void WritePRAM(u32 address, T value) {
         const u32 offset = address & 0x7FFu;
         const int ppu_id = (int)(offset >> 10);
+        PPU& ppu = m_io.hw.video_unit.GetPPU(ppu_id);
 
-        atom::write<T>(m_pram, offset, value);
-        m_io.hw.video_unit.GetPPU(ppu_id).OnWritePRAM(offset & 0x3FFu, (offset & 0x3FFu) + sizeof(T));
+        if(ppu.GetPowerOn()) [[likely]] {
+          atom::write<T>(m_pram, offset, value);
+          ppu.OnWritePRAM(offset & 0x3FFu, (offset & 0x3FFu) + sizeof(T));
+        }
       }
 
       template<typename T>
