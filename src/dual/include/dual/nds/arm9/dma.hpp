@@ -18,7 +18,7 @@ namespace dual::nds::arm9 {
         MainMemoryDisplay = 4,
         Slot1 = 5,
         Slot2 = 6,
-        GxFIFO = 7
+        GXFIFO = 7
       };
 
       DMA(arm::Memory& bus, IRQ& irq) : m_bus{bus}, m_irq{irq} {}

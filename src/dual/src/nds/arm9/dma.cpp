@@ -72,6 +72,10 @@ namespace dual::nds::arm9 {
       if(dmacnt.timing == StartTime::Immediate) {
         Run(id);
       }
+
+      if(dmacnt.timing == StartTime::GXFIFO) {
+        ATOM_PANIC("arm9: DMA: unimplemented GXFIFO DMA enabled.");
+      }
     }
   }
 
