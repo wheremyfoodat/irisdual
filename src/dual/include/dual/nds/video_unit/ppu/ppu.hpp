@@ -98,6 +98,14 @@ namespace dual::nds {
       void OnDrawScanlineEnd();
       void OnBlankScanlineBegin(u16 vcount);
 
+      [[nodiscard]] bool GetPowerOn() const {
+        return m_power_on;
+      }
+
+      void SetPowerOn(bool power_on) {
+        m_power_on = power_on;
+      }
+
     private:
       enum ObjectMode {
         OBJ_NORMAL = 0,
@@ -331,6 +339,8 @@ namespace dual::nds {
 
       int m_vcount;
       int m_frame = 0;
+
+      bool m_power_on{};
 
       static constexpr u16 k_color_transparent = 0x8000u;
   };

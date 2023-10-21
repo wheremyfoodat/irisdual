@@ -65,6 +65,8 @@ namespace dual::nds {
     m_pram_dirty = {0,sizeof(m_render_pram)};
     m_oam_dirty = {0, sizeof(m_render_oam)};
 
+    m_power_on = false;
+
     SetupRenderWorker();
   }
 

@@ -166,6 +166,9 @@ namespace dual::nds {
     const u16 write_mask = 0x820Fu & mask;
 
     m_powcnt1.half = (value & write_mask) | (m_powcnt1.half & ~write_mask);
+
+    m_ppu[0].SetPowerOn(m_powcnt1.enable_ppu_a);
+    m_ppu[1].SetPowerOn(m_powcnt1.enable_ppu_b);
   }
 
 
