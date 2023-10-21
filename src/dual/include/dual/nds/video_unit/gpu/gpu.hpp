@@ -23,6 +23,20 @@ namespace dual::nds {
 
       void Reset();
 
+      [[nodiscard]] u32 Read_DISP3DCNT() const {
+        return m_io.disp3dcnt.half;
+      }
+
+      void Write_DISP3DCNT(u16 value, u16 mask) {
+        const u16 write_mask = 0x4FFFu & mask;
+
+        m_io.disp3dcnt.half = (value & write_mask) | (m_io.disp3dcnt.half & ~write_mask);
+
+        if(value & mask & 0x2000u) {
+          m_io.disp3dcnt.poly_or_vert_ram_overflow = false;
+        }
+      }
+
       void Write_GXFIFO(u32 word) {
         m_cmd_processor.Write_GXFIFO(word);
       }

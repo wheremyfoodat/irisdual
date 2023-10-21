@@ -109,7 +109,7 @@ namespace dual::nds::arm9 {
     auto& ppu_b = hw.video_unit.GetPPU(1);
 
     switch(REG(address)) {
-      // PPU A
+      // PPU A, GPU DISP3DCNT
       case REG(0x04000000): return PPU_READ_32(ppu_a, dispcnt);
       case REG(0x04000004): {
         if(mask & 0x0000FFFFu) value |= hw.video_unit.Read_DISPSTAT(CPU::ARM9) << 0;
@@ -120,6 +120,7 @@ namespace dual::nds::arm9 {
       case REG(0x0400000C): return PPU_READ_1616(ppu_a, bgcnt[2], bgcnt[3], mask);
       case REG(0x04000048): return PPU_READ_1616(ppu_a, winin, winout, mask);
       case REG(0x04000050): return PPU_READ_1616(ppu_a, bldcnt, bldalpha, mask);
+      case REG(0x04000060): return gpu.Read_DISP3DCNT();
       case REG(0x0400006C): return PPU_READ_16__(ppu_a, master_bright);
 
       // PPU B
@@ -241,7 +242,7 @@ namespace dual::nds::arm9 {
     auto& ppu_b = hw.video_unit.GetPPU(1);
 
     switch(REG(address)) {
-      // PPU A
+      // PPU A, GPU DISP3DCNT
       case REG(0x04000000): PPU_WRITE_32  (ppu_a, dispcnt, value, mask); break;
       case REG(0x04000004): hw.video_unit.Write_DISPSTAT(CPU::ARM9, value, (u16)mask); break;
       case REG(0x04000008): if(ppu_a.GetPowerOn()) [[likely]] PPU_WRITE_1616(ppu_a, bgcnt[0], bgcnt[1], value, mask); break;
@@ -264,6 +265,7 @@ namespace dual::nds::arm9 {
       case REG(0x0400004C): if(ppu_a.GetPowerOn()) [[likely]] PPU_WRITE_16__(ppu_a, mosaic, value, mask); break;
       case REG(0x04000050): if(ppu_a.GetPowerOn()) [[likely]] PPU_WRITE_1616(ppu_a, bldcnt, bldalpha, value, mask); break;
       case REG(0x04000054): if(ppu_a.GetPowerOn()) [[likely]] PPU_WRITE_16__(ppu_a, bldy, value, mask); break;
+      case REG(0x04000060): gpu.Write_DISP3DCNT((u16)value, (u16)mask); break;
       case REG(0x0400006C): PPU_WRITE_16__(ppu_a, master_bright, value, mask); break;
 
       // PPU B

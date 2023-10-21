@@ -6,6 +6,9 @@
 
 namespace dual::nds::gpu {
 
+  GeometryEngine::GeometryEngine(gpu::IO& io) : m_io{io} {
+  }
+
   void GeometryEngine::Reset() {
     for(auto& ram : m_vertex_ram) ram.Clear();
     for(auto& ram : m_polygon_ram) ram.Clear();
@@ -68,10 +71,6 @@ namespace dual::nds::gpu {
     atom::Vector_N<Polygon, 2048>& poly_ram = m_polygon_ram[m_current_buffer];
     atom::Vector_N<Vertex,  6144>& vert_ram = m_vertex_ram[m_current_buffer];
 
-    if(poly_ram.Size() == 2048) {
-      return;
-    }
-
     Polygon poly;
 
     bool needs_clipping = false;
@@ -129,6 +128,8 @@ namespace dual::nds::gpu {
       // @todo: how does this behave in real hardware?
       if(vert_ram.Size() == 6144) {
         ATOM_ERROR("gpu: Submitted more vertices than fit into Vertex RAM.");
+
+        m_io.disp3dcnt.poly_or_vert_ram_overflow = true;
         return;
       }
 
@@ -166,7 +167,11 @@ namespace dual::nds::gpu {
       // @todo: copy polygon params, texture params and calculate sorting key
 
       // @todo: this is not ideal in terms of performance
-      poly_ram.PushBack(poly);
+      if(!poly_ram.Full()) [[likely]] {
+        poly_ram.PushBack(poly);
+      } else {
+        m_io.disp3dcnt.poly_or_vert_ram_overflow = true;
+      }
     }
   }
 

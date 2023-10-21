@@ -3,6 +3,7 @@
 
 #include <atom/vector_n.hpp>
 #include <dual/nds/video_unit/gpu/math.hpp>
+#include <dual/nds/video_unit/gpu/registers.hpp>
 #include <span>
 
 namespace dual::nds::gpu {
@@ -19,6 +20,8 @@ namespace dual::nds::gpu {
 
   class GeometryEngine {
     public:
+      explicit GeometryEngine(gpu::IO& io);
+
       void Reset();
       void SwapBuffers();
       void Begin(u32 parameter);
@@ -33,6 +36,8 @@ namespace dual::nds::gpu {
         const atom::Vector_N<Vertex, 10>& vertex_list_in,
         atom::Vector_N<Vertex, 10>& vertex_list_out
       );
+
+      gpu::IO& m_io;
 
       atom::Vector_N<Vertex, 6144> m_vertex_ram[2];
       atom::Vector_N<Polygon, 2048> m_polygon_ram[2];
