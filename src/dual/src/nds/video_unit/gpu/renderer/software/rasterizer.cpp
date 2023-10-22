@@ -39,8 +39,9 @@ namespace dual::nds::gpu {
       bool should_render = true;
 
       int initial_vertex;
-      i32 lowest_y = std::numeric_limits<i32>::max();
-      i32 highest_y = std::numeric_limits<i32>::min();
+      int final_vertex;
+      i32 y_min = std::numeric_limits<i32>::max();
+      i32 y_max = std::numeric_limits<i32>::min();
 
       for(int i = 0; i < vertex_count; i++) {
         const Vertex* vertex = polygon.vertices[i];
@@ -60,19 +61,16 @@ namespace dual::nds::gpu {
         const i32 y = (((-(i64)position.Y().Raw() + w) * viewport_height + 0x800) / two_w) + viewport_y0;
         const u32 depth = (u32)((((i64)position.Z().Raw() << 14) / w + 0x3FFF) << 9);
 
-//        if(x >= 0 && x < 256 && y >= 0 && y < 192) {
-          //m_frame_buffer[y][x] = Color4{63, 0, 0};
-//        }
-
         points[i] = Edge::Point{x, y, depth, (i32)w, vertex};
 
-        if(y < lowest_y) { // @todo: confirm it is < and not <=
-          lowest_y = y;
+        if(y < y_min) {
+          y_min = y;
           initial_vertex = i;
         }
 
-        if(y > highest_y) {
-          highest_y = y;
+        if(y > y_max) {
+          y_max = y;
+          final_vertex = i;
         }
       }
 
@@ -96,7 +94,7 @@ namespace dual::nds::gpu {
         {points[initial_vertex], points[end[1]]}
       };
 
-      for(i32 y = lowest_y; y <= highest_y; y++) {
+      for(i32 y = y_min; y <= y_max; y++) {
         for(int i = 0; i < 2; i++) {
           edge[i].Interpolate(y, span.x0[i], span.x1[i]);
 
@@ -109,20 +107,25 @@ namespace dual::nds::gpu {
           }
         }
 
-        if(y >= points[end[0]].y) {
+        if(y >= points[end[0]].y && end[0] != final_vertex) {
           start[0] = end[0];
           if(--end[0] == -1) {
             end[0] = vertex_count - 1;
           }
           edge[0] = Edge{points[start[0]], points[end[0]]};
+
+          if(points[start[0]].y == points[end[0]].y) y--;
         }
 
-        if(y >= points[end[1]].y) {
+        if(y >= points[end[1]].y && end[1] != final_vertex) {
           start[1] = end[1];
           if(++end[1] == vertex_count) {
             end[1] = 0;
           }
           edge[1] = Edge{points[start[1]], points[end[1]]};
+
+          // @todo: make sure that we do not end up drawing spans more than once because of this fix.
+          if(points[start[1]].y == points[end[1]].y) y--;
         }
       }
     }
