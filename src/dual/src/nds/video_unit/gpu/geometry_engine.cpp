@@ -3,37 +3,10 @@
 #include <atom/float.hpp>
 #include <atom/panic.hpp>
 #include <dual/nds/video_unit/gpu/geometry_engine.hpp>
+#include <cmath>
+#include <limits>
 
 namespace dual::nds::gpu {
-
-  static bool IsFrontFacing(const Vector4<Fixed20x12>& v0, const Vector4<Fixed20x12>& v1, const Vector4<Fixed20x12>& v2, bool invert_winding) {
-    const float a[3] {
-      (float)(v1.X() - v0.X()).Raw() / (float)(1 << 12),
-      (float)(v1.Y() - v0.Y()).Raw() / (float)(1 << 12),
-      (float)(v1.W() - v0.W()).Raw() / (float)(1 << 12)
-    };
-
-    const float b[3] {
-      (float)(v2.X() - v0.X()).Raw() / (float)(1 << 12),
-      (float)(v2.Y() - v0.Y()).Raw() / (float)(1 << 12),
-      (float)(v2.W() - v0.W()).Raw() / (float)(1 << 12)
-    };
-
-    const float normal[3] {
-      a[1] * b[2] - a[2] * b[1],
-      a[2] * b[0] - a[0] * b[2],
-      a[0] * b[1] - a[1] * b[0]
-    };
-
-    const float dot = ((float)v0.X().Raw() / (float)(1 << 12)) * normal[0] +
-                      ((float)v0.Y().Raw() / (float)(1 << 12)) * normal[1] +
-                      ((float)v0.W().Raw() / (float)(1 << 12)) * normal[2];
-
-    if(invert_winding) {
-      return dot >= 0;
-    }
-    return dot < 0;
-  }
 
   GeometryEngine::GeometryEngine(gpu::IO& io) : m_io{io} {
   }
@@ -140,25 +113,30 @@ namespace dual::nds::gpu {
       }
     }
 
-    bool front_facing;
-
+    int windedness;
+    
     if(poly.vertices.Size() == 2) {
-      const Vector4<Fixed20x12>& v0 = poly.vertices[0]->position;
-      const Vector4<Fixed20x12>& v1 = m_current_vertex_list.Back().position;
-      const Vector4<Fixed20x12>& v2 = poly.vertices[1]->position;
-
-      front_facing = IsFrontFacing(v0, v1, v2, invert_winding);
+      windedness = CalculateWindedness(
+        poly.vertices[0]->position,
+        m_current_vertex_list.Back().position,
+        poly.vertices[1]->position
+      );
     } else {
-      const Vector4<Fixed20x12>& v0 = m_current_vertex_list[0].position;
-      const Vector4<Fixed20x12>& v1 = m_current_vertex_list.Back().position;
-      const Vector4<Fixed20x12>& v2 = m_current_vertex_list[1].position;
+      windedness = CalculateWindedness(
+        m_current_vertex_list[0].position,
+        m_current_vertex_list.Back().position,
+        m_current_vertex_list[1].position
+      );
+    }
 
-      front_facing = IsFrontFacing(v0, v1, v2, invert_winding);
+    if(invert_winding) {
+      windedness = -windedness;
     }
 
     const bool cull = !(
-      (m_polygon_attributes.render_front_face &&  front_facing) ||
-      (m_polygon_attributes.render_back_face  && !front_facing)
+      windedness == 0 ||
+      (m_polygon_attributes.render_front_face && windedness < 0) ||
+      (m_polygon_attributes.render_back_face  && windedness > 0)
     );
 
     if(cull) {
@@ -204,7 +182,11 @@ namespace dual::nds::gpu {
         next_vertex_list.PushBack(m_current_vertex_list[m_current_vertex_list.Size() - 1]);
       }
 
-      m_current_vertex_list = ClipPolygon(m_current_vertex_list, m_primitive_is_quad && m_primitive_is_strip);
+      m_current_vertex_list = ClipPolygon(
+        m_current_vertex_list,
+        m_primitive_is_quad && m_primitive_is_strip,
+        m_polygon_attributes.render_far_plane_intersecting
+      );
     }
 
     for(const Vertex& v : m_current_vertex_list) {
@@ -258,7 +240,11 @@ namespace dual::nds::gpu {
     }
   }
 
-  atom::Vector_N<Vertex, 10> GeometryEngine::ClipPolygon(const atom::Vector_N<Vertex, 10>& vertex_list, bool quad_strip) {
+  atom::Vector_N<Vertex, 10> GeometryEngine::ClipPolygon(
+    const atom::Vector_N<Vertex, 10>& vertex_list,
+    bool quad_strip,
+    bool render_far_plane_intersecting
+  ) {
     atom::Vector_N<Vertex, 10> clipped[2];
 
     clipped[0] = vertex_list;
@@ -276,7 +262,7 @@ namespace dual::nds::gpu {
     };
 
     const bool far_plane_intersecting = ClipPolygonAgainstPlane<2, CompareGt>(clipped[0], clipped[1]);
-    if(!m_polygon_attributes.render_far_plane_intersecting && far_plane_intersecting) {
+    if(!render_far_plane_intersecting && far_plane_intersecting) {
       // @todo: test if this is actually working as intended!
       return {};
     }
@@ -349,6 +335,40 @@ namespace dual::nds::gpu {
     }
 
     return clipped;
+  }
+
+  int GeometryEngine::CalculateWindedness(
+    const Vector4<Fixed20x12>& v0,
+    const Vector4<Fixed20x12>& v1,
+    const Vector4<Fixed20x12>& v2
+  ) {
+    const f32 a[3] {
+      (f32)(v1.X() - v0.X()).Raw() / (f32)(1 << 12),
+      (f32)(v1.Y() - v0.Y()).Raw() / (f32)(1 << 12),
+      (f32)(v1.W() - v0.W()).Raw() / (f32)(1 << 12)
+    };
+
+    const f32 b[3] {
+      (f32)(v2.X() - v0.X()).Raw() / (f32)(1 << 12),
+      (f32)(v2.Y() - v0.Y()).Raw() / (f32)(1 << 12),
+      (f32)(v2.W() - v0.W()).Raw() / (f32)(1 << 12)
+    };
+
+    const f32 normal[3] {
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0]
+    };
+
+    const f32 dot = ((f32)v0.X().Raw() / (f32)(1 << 12)) * normal[0] +
+                    ((f32)v0.Y().Raw() / (f32)(1 << 12)) * normal[1] +
+                    ((f32)v0.W().Raw() / (f32)(1 << 12)) * normal[2];
+
+    if(std::abs(dot) < std::numeric_limits<f32>::epsilon()) {
+      // @todo: ensure that this check is sufficient to detect lines.
+      return 0;
+    }
+    return dot > 0 ? +1 : -1;
   }
 
 } // namespace dual::nds::gpu

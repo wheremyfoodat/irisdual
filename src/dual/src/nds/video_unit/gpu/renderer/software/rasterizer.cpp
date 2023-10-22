@@ -102,7 +102,7 @@ namespace dual::nds::gpu {
           const int x1 = span.x1[i] >> 18;
           for(int x = x0; x <= x1; x++) {
             if(x >= 0 && x < 256 && y >= 0 && y < 192) {
-              m_frame_buffer[y][x] = points[start[0]].vertex->color;
+              m_frame_buffer[y][x] = i == 0 ? Color4{63, 0, 0} : Color4{0, 63, 0};//points[start[0]].vertex->color;
             }
           }
         }

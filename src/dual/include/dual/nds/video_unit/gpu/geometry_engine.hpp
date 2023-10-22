@@ -66,12 +66,22 @@ namespace dual::nds::gpu {
       }
 
     private:
-      atom::Vector_N<Vertex, 10> ClipPolygon(const atom::Vector_N<Vertex, 10>& vertex_list, bool quad_strip);
+      static atom::Vector_N<Vertex, 10> ClipPolygon(
+        const atom::Vector_N<Vertex, 10>& vertex_list,
+        bool quad_strip,
+        bool render_far_plane_intersecting
+      );
 
       template<int axis, typename Comparator>
-      bool ClipPolygonAgainstPlane(
+      static bool ClipPolygonAgainstPlane(
         const atom::Vector_N<Vertex, 10>& vertex_list_in,
         atom::Vector_N<Vertex, 10>& vertex_list_out
+      );
+
+      static int CalculateWindedness(
+        const Vector4<Fixed20x12>& v0,
+        const Vector4<Fixed20x12>& v1,
+        const Vector4<Fixed20x12>& v2
       );
 
       gpu::IO& m_io;
