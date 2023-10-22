@@ -30,6 +30,12 @@ namespace dual::nds::gpu {
       }
 
       void Interpolate(i32 y, i32& x0, i32& x1) {
+        #ifndef NDEBUG
+          if(y < m_p0->y || y > m_p1->y) {
+            ATOM_PANIC("gpu: SW: y-coordinate {} was not in range [{}, {}] during edge interpolation", y, m_p0->y, m_p1->y);
+          }
+        #endif
+
         if(m_x_major) {
           // @todo: ensure that this is correct (particular for negative x-slopes)
           if(m_x_slope >= 0) {

@@ -30,11 +30,11 @@ namespace dual::nds::gpu {
       ATOM_PANIC("gpu: Failed viewport validation: {} <= {}, {} <= {}\n", viewport.x0, viewport.x1, viewport.y0, viewport.y1);
     }
 
-    Span span;
+    Span span{};
     Edge::Point points[10];
 
     for(const Polygon& polygon : polygons) {
-      const int vertex_count = polygon.vertices.Size();
+      const int vertex_count = (int)polygon.vertices.Size();
 
       bool should_render = true;
 
@@ -57,8 +57,8 @@ namespace dual::nds::gpu {
           break;
         }
 
-        const i32 x = ((( (i64)position.X().Raw() + w) * viewport_width  + 0x800) / two_w) + viewport_x0;
-        const i32 y = (((-(i64)position.Y().Raw() + w) * viewport_height + 0x800) / two_w) + viewport_y0;
+        const i32 x = (i32)(((( (i64)position.X().Raw() + w) * viewport_width  + 0x800) / two_w) + viewport_x0);
+        const i32 y = (i32)((((-(i64)position.Y().Raw() + w) * viewport_height + 0x800) / two_w) + viewport_y0);
         const u32 depth = (u32)((((i64)position.Z().Raw() << 14) / w + 0x3FFF) << 9);
 
         points[i] = Edge::Point{x, y, depth, (i32)w, vertex};
@@ -107,25 +107,20 @@ namespace dual::nds::gpu {
           }
         }
 
-        if(y >= points[end[0]].y && end[0] != final_vertex) {
+        while(y >= points[end[0]].y - 1 && end[0] != final_vertex) {
           start[0] = end[0];
           if(--end[0] == -1) {
             end[0] = vertex_count - 1;
           }
           edge[0] = Edge{points[start[0]], points[end[0]]};
-
-          if(points[start[0]].y == points[end[0]].y) y--;
         }
 
-        if(y >= points[end[1]].y && end[1] != final_vertex) {
+        while(y >= points[end[1]].y - 1 && end[1] != final_vertex) {
           start[1] = end[1];
           if(++end[1] == vertex_count) {
             end[1] = 0;
           }
           edge[1] = Edge{points[start[1]], points[end[1]]};
-
-          // @todo: make sure that we do not end up drawing spans more than once because of this fix.
-          if(points[start[1]].y == points[end[1]].y) y--;
         }
       }
     }
