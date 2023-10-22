@@ -131,39 +131,63 @@ namespace dual::nds::gpu {
         {points[initial_vertex], points[end[1]]}
       };
 
-      for(i32 y = y_min; y <= y_max; y++) {
-        for(int i = 0; i < 2; i++) {
-          edge[i].Interpolate(y, span.x0[i], span.x1[i]);
+      // Allow horizontal line polygons to render.
+      if(y_min == y_max) y_max++;
 
-          const int x0 = span.x0[i] >> 18;
-          const int x1 = span.x1[i] >> 18;
-
-          for(int x = x0; x <= x1; x++) {
-            if(x >= 0 && x < 256 && y >= 0 && y < 192) {
-              m_frame_buffer[y][x] = i == 0 ? Color4{63, 0, 0} : Color4{0, 63, 0};//points[start[0]].vertex->color;
+      for(i32 y = y_min; y < y_max; y++) {
+        if(y >= points[end[a]].y && end[a] != final_vertex) {
+          do {
+            start[a] = end[a];
+            if(++end[a] == vertex_count) {
+              end[a] = 0;
             }
-          }
-        }
+          } while(y >= points[end[a]].y && end[a] != final_vertex);
 
-        if(span.x0[0]-(1<<18) > span.x1[1]) {
-          // this is probably related to inclusive vs exclusive ranges?
-          //ATOM_PANIC("gpu: SW: detected swapped left and right edges in span: {} {}", span.x0[0]>>18, span.x1[1]>>18);
-        }
-
-        while(y >= points[end[a]].y - 1 && end[a] != final_vertex) {
-          start[a] = end[a];
-          if(++end[a] == vertex_count) {
-            end[a] = 0;
-          }
           edge[a] = Edge{points[start[a]], points[end[a]]};
         }
 
-        while(y >= points[end[b]].y - 1 && end[b] != final_vertex) {
-          start[b] = end[b];
-          if(--end[b] == -1) {
-            end[b] = vertex_count - 1;
-          }
+        if(y >= points[end[b]].y && end[b] != final_vertex) {
+          do {
+            start[b] = end[b];
+            if(--end[b] == -1) {
+              end[b] = vertex_count - 1;
+            }
+          } while(y >= points[end[b]].y && end[b] != final_vertex);
+
           edge[b] = Edge{points[start[b]], points[end[b]]};
+        }
+
+        for(int i = 0; i < 2; i++) {
+          edge[i].Interpolate(y, span.x0[i], span.x1[i]);
+        }
+
+        if(y >= 0 && y < 192) {
+          const bool force_render_inner_span = y == y_min || y == y_max - 1;
+
+          const int xl0 = span.x0[0] >> 18;
+          const int xl1 = span.x1[0] >> 18;
+          const int xr0 = span.x0[1] >> 18;
+          const int xr1 = span.x1[1] >> 18;
+
+          for(int x = xl0; x <= xl1; x++) {
+            if(x >= 0 && x < 256) {
+              m_frame_buffer[y][x] = Color4{63, 0, 0};
+            }
+          }
+
+          if(force_render_inner_span) {
+            for(int x = xl1 + 1; x <= xr0 - 1; x++) {
+              if(x >= 0 && x < 256) {
+                m_frame_buffer[y][x] = Color4{0, 63, 0};
+              }
+            }
+          }
+
+          for(int x = xr0; x <= xr1; x++) {
+            if(x >= 0 && x < 256) {
+              m_frame_buffer[y][x] = Color4{63, 0, 0};
+            }
+          }
         }
       }
     }
