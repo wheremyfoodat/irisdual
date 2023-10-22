@@ -48,6 +48,9 @@ namespace dual::nds::gpu {
     m_first_vertex = false;
     m_polygon_strip_length = 0;
     m_current_buffer = 1;
+    m_pending_polygon_attributes = 0u;
+    m_polygon_attributes = {};
+    m_vertex_color = {};
   }
 
   void GeometryEngine::SwapBuffers() {
@@ -64,6 +67,8 @@ namespace dual::nds::gpu {
     m_first_vertex = true;
     m_polygon_strip_length = 0;
     m_current_vertex_list.Clear();
+
+    m_polygon_attributes.word = m_pending_polygon_attributes;
   }
 
   void GeometryEngine::End() {
@@ -151,13 +156,9 @@ namespace dual::nds::gpu {
       front_facing = IsFrontFacing(v0, v1, v2, invert_winding);
     }
 
-    // @todo: do not hardcode this
-    const bool render_front_side = true;
-    const bool render_back_side = false;
-
     const bool cull = !(
-      (render_front_side &&  front_facing) ||
-      (render_back_side  && !front_facing)
+      (m_polygon_attributes.render_front_face &&  front_facing) ||
+      (m_polygon_attributes.render_back_face  && !front_facing)
     );
 
     if(cull) {
@@ -245,7 +246,8 @@ namespace dual::nds::gpu {
     }
 
     if(!poly.vertices.Empty()) {
-      // @todo: copy polygon params, texture params and calculate sorting key
+      // @todo: copy texture params and calculate sorting key
+      poly.attributes = m_polygon_attributes;
 
       // @todo: this is not ideal in terms of performance
       if(!poly_ram.Full()) [[likely]] {
@@ -273,11 +275,10 @@ namespace dual::nds::gpu {
       bool operator()(Fixed20x12 x, Fixed20x12 w) { return x >  w; }
     };
 
-    const bool render_far_plane_polys = true; // @todo
-
     const bool far_plane_intersecting = ClipPolygonAgainstPlane<2, CompareGt>(clipped[0], clipped[1]);
-    if(!render_far_plane_polys && far_plane_intersecting) {
-      return {}; // @todo: test if this is actually working as intended!
+    if(!m_polygon_attributes.render_far_plane_intersecting && far_plane_intersecting) {
+      // @todo: test if this is actually working as intended!
+      return {};
     }
     clipped[0].Clear();
     ClipPolygonAgainstPlane<2, CompareLt>(clipped[1], clipped[0]);

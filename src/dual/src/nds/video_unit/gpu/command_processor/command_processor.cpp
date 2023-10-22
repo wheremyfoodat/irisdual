@@ -203,7 +203,7 @@ namespace dual::nds::gpu {
       case 0x26: cmdSubmitVertexXZ(); break;
       case 0x27: cmdSubmitVertexYZ(); break;
       case 0x28: cmdSubmitVertexDelta(); break;
-      case 0x29: cmdSetPolygonAttrs(); break;
+      case 0x29: cmdSetPolygonAttributes(); break;
       case 0x2A: cmdSetTextureAttrs(); break;
       case 0x2B: cmdSetPaletteBase(); break;
       case 0x40: cmdBeginVertices(); break;

@@ -57,8 +57,8 @@ namespace dual::nds::gpu {
     });
   }
 
-  void CommandProcessor::cmdSetPolygonAttrs() {
-    DequeueFIFO();
+  void CommandProcessor::cmdSetPolygonAttributes() {
+    m_geometry_engine.SetPolygonAttributes((u32)DequeueFIFO());
   }
 
   void CommandProcessor::cmdSetTextureAttrs() {
