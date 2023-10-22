@@ -5,7 +5,7 @@
 namespace dual::nds::gpu {
 
   void CommandProcessor::cmdSetColor() {
-    DequeueFIFO();
+    m_geometry_engine.SetVertexColor(Color4::FromRGB555((u16)DequeueFIFO()));
   }
 
   void CommandProcessor::cmdSetNormal() {

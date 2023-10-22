@@ -55,8 +55,8 @@ namespace dual::nds::gpu {
       return; // @todo: better handle this
     }
 
-    // @todo: use proper vertex color and UV:
-    m_current_vertex_list.PushBack({clip_position});
+    // @todo: use the correct UV coordinate:
+    m_current_vertex_list.PushBack({clip_position, {}, m_vertex_color});
 
     int required_vertex_count = m_primitive_is_quad ? 4 : 3;
 
