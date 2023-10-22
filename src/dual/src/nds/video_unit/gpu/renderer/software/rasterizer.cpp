@@ -21,6 +21,37 @@ namespace dual::nds::gpu {
   }
 
   void SoftwareRenderer::RenderPolygons(const Viewport& viewport, std::span<const Polygon> polygons) {
+
+#ifdef DEBUG_SLOPES
+    const int dx = 69;
+    const int dy = 49;
+    const int ox = 256 / 2;
+    const int oy = (192 - dy) / 2;
+
+    Edge::Point a{ox, oy, 0, 0, nullptr};
+    Edge::Point b{ox + dx, oy + dy, 0, 0, nullptr};
+    Edge::Point c{ox - dx, oy + dy, 0, 0, nullptr};
+
+    Edge edge1{a, b};
+    Edge edge2{a, c};
+
+    for(i32 y = a.y; y < b.y; y++) {
+      i32 x0, x1;
+
+      edge1.Interpolate(y, x0, x1);
+      for(int x = x0>>18; x <= x1>>18; x++) {
+        m_frame_buffer[y][x] = Color4{63, 0, 0};
+      }
+
+      edge2.Interpolate(y, x0, x1);
+      for(int x = x0>>18; x <= x1>>18; x++) {
+        m_frame_buffer[y][x] = Color4{63, 0, 0};
+      }
+    }
+
+    return;
+  #endif
+
     const int viewport_x0 = viewport.x0;
     const int viewport_y0 = viewport.y0;
     const int viewport_width = 1 + viewport.x1 - viewport_x0;
