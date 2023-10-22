@@ -55,6 +55,7 @@ set(HEADERS
   src/arm/tablegen/gen_arm.hpp
   src/arm/tablegen/gen_thumb.hpp
   src/arm/arm.hpp
+  src/nds/video_unit/gpu/renderer/software/edge.hpp
 )
 
 set(HEADERS_PUBLIC
