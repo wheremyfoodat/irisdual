@@ -18,52 +18,6 @@ namespace dual::nds::gpu {
       };
 
       Edge(const Point& p0, const Point& p1) : m_p0{&p0}, m_p1{&p1} {
-        CalculateSlope();
-      }
-
-      [[nodiscard]] i32 GetXSlope() const {
-        return m_x_slope;
-      }
-
-      [[nodiscard]] bool IsXMajor() const {
-        return m_x_major;
-      }
-
-      void Interpolate(i32 y, i32& x0, i32& x1) const {
-        #ifndef NDEBUG
-          if(y < m_p0->y || y > m_p1->y) {
-            ATOM_PANIC("gpu: SW: y-coordinate {} was not in range [{}, {}] during edge interpolation", y, m_p0->y, m_p1->y);
-          }
-        #endif
-
-        if(m_x_major) {
-          // @todo: ensure that this is correct (particular for negative x-slopes)
-          if(m_x_slope >= 0) {
-            x0 = (m_p0->x << 18) + m_x_slope * (y - m_p0->y) + (1 << 17);
-
-            if(y != m_p1->y || m_flat_horizontal) {
-              x1 = (x0 & ~0x1FF) + m_x_slope - (1 << 18);
-            } else {
-              x1 = x0;
-            }
-          } else {
-            x1 = (m_p0->x << 18) + m_x_slope * (y - m_p0->y) + (1 << 17);
-
-            if(y != m_p1->y || m_flat_horizontal) {
-              x0 = (x1 & ~0x1FF) + m_x_slope;
-            } else {
-              x0 = x1;
-            }
-          }
-        } else {
-          x0 = (m_p0->x << 18) + m_x_slope * (y - m_p0->y);
-          x1 = x0;
-        }
-      }
-
-    private:
-
-      void CalculateSlope() {
         const i32 x_diff = m_p1->x - m_p0->x;
         const i32 y_diff = m_p1->y - m_p0->y;
 
@@ -80,6 +34,38 @@ namespace dual::nds::gpu {
         }
       }
 
+      void Interpolate(i32 y, i32& x0, i32& x1) const {
+        #ifndef NDEBUG
+          if(y < m_p0->y || y > m_p1->y) {
+            ATOM_PANIC("gpu: SW: y-coordinate {} was not in range [{}, {}] during edge interpolation", y, m_p0->y, m_p1->y);
+          }
+        #endif
+
+        if(m_x_major) {
+          if(m_x_slope >= 0) {
+            x0 = (m_p0->x << 18) + m_x_slope * (y - m_p0->y) + (1 << 17);
+
+            if(y != m_p1->y || m_flat_horizontal) {
+              x1 = (x0 & ~0x1FF) + m_x_slope - (1 << 18);
+            } else {
+              x1 = x0;
+            }
+          } else {
+            x1 = (m_p0->x << 18) + m_x_slope * (y - m_p0->y) - (1 << 17);
+
+            if(y != m_p1->y || m_flat_horizontal) {
+              x0 = (x1 |  0x1FF) + (m_x_slope) + (1 << 18);
+            } else {
+              x0 = x1;
+            }
+          }
+        } else {
+          x0 = (m_p0->x << 18) + m_x_slope * (y - m_p0->y);
+          x1 = x0;
+        }
+      }
+
+    private:
       const Point* m_p0;
       const Point* m_p1;
       i32 m_x_slope{};
