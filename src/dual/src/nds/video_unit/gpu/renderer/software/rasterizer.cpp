@@ -27,7 +27,7 @@ namespace dual::nds::gpu {
     const int viewport_height = 1 + viewport.y1 - viewport_y0;
 
     if(viewport.x0 > viewport.x1 || viewport.y0 > viewport.y1) {
-      ATOM_PANIC("gpu: Failed viewport validation: {} <= {}, {} <= {}\n", viewport.x0, viewport.x1, viewport.y0, viewport.y1);
+      ATOM_PANIC("gpu: SW: failed viewport validation: {} <= {}, {} <= {}\n", viewport.x0, viewport.x1, viewport.y0, viewport.y1);
     }
 
     Span span{};
@@ -78,15 +78,21 @@ namespace dual::nds::gpu {
         continue;
       }
 
-      int start[2] { initial_vertex, initial_vertex };
-      int end[2] { initial_vertex - 1, initial_vertex + 1 };
+      const int a = polygon.windedness <= 0 ? 0 : 1;
+      const int b = a ^ 1;
 
-      if(end[0] == -1) {
-        end[0] = vertex_count - 1;
+      int start[2] { initial_vertex, initial_vertex };
+      int end[2];
+
+      end[a] = initial_vertex + 1;
+      end[b] = initial_vertex - 1;
+
+      if(end[a] == vertex_count) {
+        end[a] = 0;
       }
 
-      if(end[1] == vertex_count) {
-        end[1] = 0;
+      if(end[b] == -1) {
+        end[b] = vertex_count - 1;
       }
 
       Edge edge[2] {
@@ -100,6 +106,7 @@ namespace dual::nds::gpu {
 
           const int x0 = span.x0[i] >> 18;
           const int x1 = span.x1[i] >> 18;
+
           for(int x = x0; x <= x1; x++) {
             if(x >= 0 && x < 256 && y >= 0 && y < 192) {
               m_frame_buffer[y][x] = i == 0 ? Color4{63, 0, 0} : Color4{0, 63, 0};//points[start[0]].vertex->color;
@@ -107,20 +114,25 @@ namespace dual::nds::gpu {
           }
         }
 
-        while(y >= points[end[0]].y - 1 && end[0] != final_vertex) {
-          start[0] = end[0];
-          if(--end[0] == -1) {
-            end[0] = vertex_count - 1;
-          }
-          edge[0] = Edge{points[start[0]], points[end[0]]};
+        if(span.x0[0]-(1<<18) > span.x1[1]) {
+          // this is probably related to inclusive vs exclusive ranges?
+          //ATOM_PANIC("gpu: SW: detected swapped left and right edges in span: {} {}", span.x0[0]>>18, span.x1[1]>>18);
         }
 
-        while(y >= points[end[1]].y - 1 && end[1] != final_vertex) {
-          start[1] = end[1];
-          if(++end[1] == vertex_count) {
-            end[1] = 0;
+        while(y >= points[end[a]].y - 1 && end[a] != final_vertex) {
+          start[a] = end[a];
+          if(++end[a] == vertex_count) {
+            end[a] = 0;
           }
-          edge[1] = Edge{points[start[1]], points[end[1]]};
+          edge[a] = Edge{points[start[a]], points[end[a]]};
+        }
+
+        while(y >= points[end[b]].y - 1 && end[b] != final_vertex) {
+          start[b] = end[b];
+          if(--end[b] == -1) {
+            end[b] = vertex_count - 1;
+          }
+          edge[b] = Edge{points[start[b]], points[end[b]]};
         }
       }
     }

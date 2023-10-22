@@ -38,6 +38,8 @@ namespace dual::nds::gpu {
       u32 word = 0u;
     } attributes;
 
+    int windedness = 0;
+
     atom::Vector_N<Vertex*, 10> vertices;
   };
 

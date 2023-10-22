@@ -230,6 +230,7 @@ namespace dual::nds::gpu {
     if(!poly.vertices.Empty()) {
       // @todo: copy texture params and calculate sorting key
       poly.attributes = m_polygon_attributes;
+      poly.windedness = windedness;
 
       // @todo: this is not ideal in terms of performance
       if(!poly_ram.Full()) [[likely]] {
