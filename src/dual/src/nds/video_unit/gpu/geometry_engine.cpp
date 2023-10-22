@@ -6,6 +6,35 @@
 
 namespace dual::nds::gpu {
 
+  static bool IsFrontFacing(const Vector4<Fixed20x12>& v0, const Vector4<Fixed20x12>& v1, const Vector4<Fixed20x12>& v2, bool invert_winding) {
+    const float a[3] {
+      (float)(v1.X() - v0.X()).Raw() / (float)(1 << 12),
+      (float)(v1.Y() - v0.Y()).Raw() / (float)(1 << 12),
+      (float)(v1.W() - v0.W()).Raw() / (float)(1 << 12)
+    };
+
+    const float b[3] {
+      (float)(v2.X() - v0.X()).Raw() / (float)(1 << 12),
+      (float)(v2.Y() - v0.Y()).Raw() / (float)(1 << 12),
+      (float)(v2.W() - v0.W()).Raw() / (float)(1 << 12)
+    };
+
+    const float normal[3] {
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0]
+    };
+
+    const float dot = ((float)v0.X().Raw() / (float)(1 << 12)) * normal[0] +
+                      ((float)v0.Y().Raw() / (float)(1 << 12)) * normal[1] +
+                      ((float)v0.W().Raw() / (float)(1 << 12)) * normal[2];
+
+    if(invert_winding) {
+      return dot >= 0;
+    }
+    return dot < 0;
+  }
+
   GeometryEngine::GeometryEngine(gpu::IO& io) : m_io{io} {
   }
 
@@ -106,11 +135,64 @@ namespace dual::nds::gpu {
       }
     }
 
-    // @todo: face culling
-    const bool cull = false;
+    bool front_facing;
+
+    if(poly.vertices.Size() == 2) {
+      const Vector4<Fixed20x12>& v0 = poly.vertices[0]->position;
+      const Vector4<Fixed20x12>& v1 = m_current_vertex_list.Back().position;
+      const Vector4<Fixed20x12>& v2 = poly.vertices[1]->position;
+
+      front_facing = IsFrontFacing(v0, v1, v2, invert_winding);
+    } else {
+      const Vector4<Fixed20x12>& v0 = m_current_vertex_list[0].position;
+      const Vector4<Fixed20x12>& v1 = m_current_vertex_list.Back().position;
+      const Vector4<Fixed20x12>& v2 = m_current_vertex_list[1].position;
+
+      front_facing = IsFrontFacing(v0, v1, v2, invert_winding);
+    }
+
+    // @todo: do not hardcode this
+    const bool render_front_side = true;
+    const bool render_back_side = false;
+
+    const bool cull = !(
+      (render_front_side &&  front_facing) ||
+      (render_back_side  && !front_facing)
+    );
 
     if(cull) {
-      // ...
+      if(m_primitive_is_strip) {
+        m_polygon_strip_length++;
+      }
+
+      if(needs_clipping && m_primitive_is_strip) {
+        m_current_vertex_list.Erase(m_current_vertex_list.begin());
+        if(m_primitive_is_quad) {
+          m_current_vertex_list.Erase(m_current_vertex_list.begin());
+        }
+
+        m_first_vertex = true;
+      } else {
+        if(m_primitive_is_strip) {
+          const int size = (int)m_current_vertex_list.Size();
+
+          for(int i = std::max(0, size - 2); i < size; i++) {
+            // @todo: how does this behave in real hardware?
+            if(vert_ram.Full()) {
+              ATOM_ERROR("gpu: Submitted more vertices than fit into Vertex RAM.");
+              m_io.disp3dcnt.poly_or_vert_ram_overflow = true;
+              return;
+            }
+
+            vert_ram.PushBack(m_current_vertex_list[i]);
+          }
+
+          m_first_vertex = false;
+        }
+
+        m_current_vertex_list.Clear();
+      }
+
       return;
     }
 
@@ -126,9 +208,8 @@ namespace dual::nds::gpu {
 
     for(const Vertex& v : m_current_vertex_list) {
       // @todo: how does this behave in real hardware?
-      if(vert_ram.Size() == 6144) {
+      if(vert_ram.Full()) {
         ATOM_ERROR("gpu: Submitted more vertices than fit into Vertex RAM.");
-
         m_io.disp3dcnt.poly_or_vert_ram_overflow = true;
         return;
       }

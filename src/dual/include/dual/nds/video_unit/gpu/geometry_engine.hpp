@@ -24,8 +24,14 @@ namespace dual::nds::gpu {
 
       void Reset();
       void SwapBuffers();
+
       void Begin(u32 parameter);
       void End();
+
+      void SetVertexColor(const Color4& color) {
+        m_vertex_color = color;
+      }
+
       void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
 
       [[nodiscard]] std::span<const Polygon> GetPolygonsToRender() const {
@@ -52,6 +58,7 @@ namespace dual::nds::gpu {
       bool m_first_vertex{};
       int m_polygon_strip_length{};
       int m_current_buffer{};
+      Color4 m_vertex_color{};
   };
 
 } // namespace dual::nds::gpu
