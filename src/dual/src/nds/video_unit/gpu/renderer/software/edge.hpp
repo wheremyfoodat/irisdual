@@ -17,20 +17,18 @@ namespace dual::nds::gpu {
         const Vertex* vertex;
       };
 
-      Edge(const Point& p0, const Point& p1) : m_y_start{p0.y}, m_y_end{p1.y} {
+      Edge(const Point& p0, const Point& p1) : m_y_start{p0.y} {
         const i32 x_diff = p1.x - p0.x;
         const i32 y_diff = p1.y - p0.y;
 
         if(y_diff == 0) {
           m_x_slope = x_diff << 18;
           m_x_major = std::abs(x_diff) > 1;
-          m_flat_horizontal = true;
         } else {
           const i32 y_reciprocal = (1 << 18) / y_diff;
 
           m_x_slope = x_diff * y_reciprocal;
           m_x_major = std::abs(x_diff) > std::abs(y_diff);
-          m_flat_horizontal = false;
         }
 
         m_x_start = p0.x << 18;
@@ -54,20 +52,10 @@ namespace dual::nds::gpu {
         if(m_x_major) {
           if(m_x_slope > 0) {
             x0 = m_x_start + m_x_slope * (y - m_y_start);
-
-            if(y != m_y_end || m_flat_horizontal) {
-              x1 = (x0 & ~0x1FF) + m_x_slope - (1 << 18);
-            } else {
-              x1 = x0;
-            }
+            x1 = (x0 & ~0x1FF) + m_x_slope - (1 << 18);
           } else {
             x1 = m_x_start + m_x_slope * (y - m_y_start);
-
-            if(y != m_y_end || m_flat_horizontal) {
-              x0 = (x1 |  0x1FF) + m_x_slope + (1 << 18);
-            } else {
-              x0 = x1;
-            }
+            x0 = (x1 |  0x1FF) + m_x_slope + (1 << 18);
           }
         } else {
           x0 = m_x_start + m_x_slope * (y - m_y_start);
@@ -77,11 +65,9 @@ namespace dual::nds::gpu {
 
     private:
       i32 m_y_start;
-      i32 m_y_end;
       i32 m_x_start{};
       i32 m_x_slope{};
       bool m_x_major{};
-      bool m_flat_horizontal{};
   };
 
 } // namespace dual::nds::gpu
