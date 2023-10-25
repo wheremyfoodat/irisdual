@@ -12,6 +12,7 @@ namespace dual::nds::gpu {
     i32 x0[2];
     i32 x1[2];
     Color4 color[2];
+    u16 w_16[2];
   };
 
   void SoftwareRenderer::RenderRearPlane() {
@@ -115,6 +116,8 @@ namespace dual::nds::gpu {
         continue;
       }
 
+      const bool wireframe = polygon.attributes.alpha == 0;
+
       const int a = polygon.windedness <= 0 ? 0 : 1;
       const int b = a ^ 1;
 
@@ -139,6 +142,9 @@ namespace dual::nds::gpu {
 
       // Allow horizontal line polygons to render.
       if(y_min == y_max) y_max++;
+
+      int l = 0;
+      int r = 1;
 
       for(i32 y = y_min; y < y_max; y++) {
         if(y >= points[end[a]].y && end[a] != final_vertex) {
@@ -167,6 +173,12 @@ namespace dual::nds::gpu {
           edge[i].Interpolate(y, span.x0[i], span.x1[i]);
         }
 
+        // Detect when the left and right edges become swapped
+        if(span.x0[l] >> 18 > span.x1[r] >> 18) {
+          l ^= 1;
+          r ^= 1;
+        }
+
         for(int i = 0; i < 2; i++) {
           const u16 w0 = polygon.w_16[start[i]];
           const u16 w1 = polygon.w_16[end[i]];
@@ -174,8 +186,7 @@ namespace dual::nds::gpu {
           if(edge[i].IsXMajor()) {
             const i32 x_min = points[start[i]].x;
             const i32 x_max = points[end[i]].x;
-            // @todo: account for swapped left and right edges.
-            const i32 x = (i == 0 ? span.x0[0] : span.x1[1]) >> 18;
+            const i32 x = (i == l ? span.x0[l] : span.x1[r]) >> 18;
 
             if(x_min <= x_max) {
               edge_interp.Setup(w0, w1, x, x_min, x_max);
@@ -183,38 +194,45 @@ namespace dual::nds::gpu {
               edge_interp.Setup(w0, w1, (x_min - (x - x_max)), x_max, x_min);
             }
           } else {
-            edge_interp.Setup(w0, w1, y, y_min, y_max);
+            edge_interp.Setup(w0, w1, y, points[start[i]].y, points[end[i]].y);
           }
 
           edge_interp.Perp(points[start[i]].vertex->color, points[end[i]].vertex->color, span.color[i]);
+          span.w_16[i] = edge_interp.Perp(w0, w1);
         }
 
         if(y >= 0 && y < 192) {
           const bool force_render_inner_span = y == y_min || y == y_max - 1;
 
-          const int xl0 = span.x0[0] >> 18;
-          const int xl1 = span.x1[0] >> 18;
-          const int xr0 = span.x0[1] >> 18;
-          const int xr1 = span.x1[1] >> 18;
+          const int x_min = span.x0[l] >> 18;
+          const int x_max = span.x1[r] >> 18;
 
-          for(int x = xl0; x <= xl1; x++) {
-            if(x >= 0 && x < 256) {
-              m_frame_buffer[y][x] = span.color[0];
-            }
+          // @todo: clean rendering logic up.
+
+          const int xl0 = std::max(x_min, 0);
+          const int xl1 = std::min(span.x1[l] >> 18, 255);
+          const int xr0 = std::min(span.x0[r] >> 18, 255);
+          const int xr1 = std::min(x_max, 255);
+
+          int x = xl0;
+
+          for(; x <= xl1; x++) {
+            line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
+            line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
           }
 
-          if(force_render_inner_span) {
-            for(int x = xl1 + 1; x <= xr0 - 1; x++) {
-              if(x >= 0 && x < 256) {
-                m_frame_buffer[y][x] = Color4{0, 63, 0};
-              }
+          if(!wireframe || force_render_inner_span) {
+            for(; x <= xr0 - 1; x++) {
+              line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
+              line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
             }
+          } else {
+            x = xr0;
           }
 
-          for(int x = xr0; x <= xr1; x++) {
-            if(x >= 0 && x < 256) {
-              m_frame_buffer[y][x] = span.color[1];
-            }
+          for(; x <= xr1; x++) {
+            line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
+            line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
           }
         }
       }
