@@ -3,8 +3,9 @@
 #include <atom/logger/logger.hpp>
 #include <atom/float.hpp>
 #include <atom/panic.hpp>
-#include <dual/nds/video_unit/gpu/geometry_engine.hpp>
+#include <bit>
 #include <cmath>
+#include <dual/nds/video_unit/gpu/geometry_engine.hpp>
 #include <limits>
 
 namespace dual::nds::gpu {
@@ -251,9 +252,9 @@ namespace dual::nds::gpu {
       const i32 w = vertex->position.W().Raw();
 
       if(w < 0) {
-        min_leading = std::min(min_leading, __builtin_clz(~w));
+        min_leading = std::min(min_leading, std::countl_one((u32)w));
       } else {
-        min_leading = std::min(min_leading, __builtin_clz( w));
+        min_leading = std::min(min_leading, std::countl_zero((u32)w));
       }
     }
 
