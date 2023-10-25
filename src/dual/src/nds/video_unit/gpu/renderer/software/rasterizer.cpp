@@ -3,6 +3,7 @@
 #include <limits>
 
 #include "edge.hpp"
+#include "interpolator.hpp"
 
 namespace dual::nds::gpu {
 
@@ -63,6 +64,8 @@ namespace dual::nds::gpu {
 
     Span span{};
     Edge::Point points[10];
+    Interpolator<9> y_interp{};
+    Interpolator<8> x_interp{};
 
     for(const Polygon& polygon : polygons) {
       const int vertex_count = (int)polygon.vertices.Size();
