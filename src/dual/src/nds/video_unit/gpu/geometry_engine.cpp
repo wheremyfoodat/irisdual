@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <atom/logger/logger.hpp>
 #include <atom/float.hpp>
 #include <atom/panic.hpp>
@@ -232,12 +233,52 @@ namespace dual::nds::gpu {
       poly.attributes = m_polygon_attributes;
       poly.windedness = windedness;
 
+      NormalizeW(poly);
+
       // @todo: this is not ideal in terms of performance
       if(!poly_ram.Full()) [[likely]] {
         poly_ram.PushBack(poly);
       } else {
         m_io.disp3dcnt.poly_or_vert_ram_overflow = true;
       }
+    }
+  }
+
+  void GeometryEngine::NormalizeW(Polygon& poly) {
+    int min_leading = 32;
+
+    for(const Vertex* vertex : poly.vertices) {
+      const i32 w = vertex->position.W().Raw();
+
+      if(w < 0) {
+        min_leading = std::min(min_leading, __builtin_clz(~w));
+      } else {
+        min_leading = std::min(min_leading, __builtin_clz( w));
+      }
+    }
+
+    if(min_leading < 16) {
+      int w_shift = 16 - min_leading;
+
+      if(w_shift & 3) {
+        w_shift = (w_shift | 3) + 1;
+      }
+
+      for(const Vertex* vertex : poly.vertices) {
+        poly.w_16.PushBack(vertex->position.W().Raw() >> w_shift);
+      }
+
+      poly.w_l_shift = 0;
+      poly.w_r_shift = w_shift;
+    } else {
+      const int w_shift = (min_leading & ~3) - 16;
+
+      for(const Vertex* vertex : poly.vertices) {
+        poly.w_16.PushBack(vertex->position.W().Raw() << w_shift);
+      }
+
+      poly.w_l_shift = w_shift;
+      poly.w_r_shift = 0;
     }
   }
 

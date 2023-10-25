@@ -41,6 +41,9 @@ namespace dual::nds::gpu {
     int windedness = 0;
 
     atom::Vector_N<Vertex*, 10> vertices;
+    atom::Vector_N<u16, 10> w_16;
+    int w_l_shift;
+    int w_r_shift;
   };
 
   class GeometryEngine {
@@ -68,6 +71,8 @@ namespace dual::nds::gpu {
       }
 
     private:
+      static void NormalizeW(Polygon& poly);
+
       static atom::Vector_N<Vertex, 10> ClipPolygon(
         const atom::Vector_N<Vertex, 10>& vertex_list,
         bool quad_strip,

@@ -42,6 +42,14 @@ namespace dual::nds::gpu {
         }
       }
 
+      [[nodiscard]] bool IsXMajor() const {
+        return m_x_major;
+      }
+
+      [[nodiscard]] i32 GetXSlope() const {
+        return m_x_slope;
+      }
+
       void Interpolate(i32 y, i32& x0, i32& x1) const {
         if(m_x_major) {
           if(m_x_slope > 0) {

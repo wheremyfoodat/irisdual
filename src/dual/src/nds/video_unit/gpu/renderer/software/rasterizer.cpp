@@ -11,6 +11,7 @@ namespace dual::nds::gpu {
   struct Span {
     i32 x0[2];
     i32 x1[2];
+    Color4 color[2];
   };
 
   void SoftwareRenderer::RenderRearPlane() {
@@ -64,8 +65,8 @@ namespace dual::nds::gpu {
 
     Span span{};
     Edge::Point points[10];
-    Interpolator<9> y_interp{};
-    Interpolator<8> x_interp{};
+    Interpolator<9> edge_interp{};
+    Interpolator<8> line_interp{};
 
     for(const Polygon& polygon : polygons) {
       const int vertex_count = (int)polygon.vertices.Size();
@@ -76,6 +77,8 @@ namespace dual::nds::gpu {
       int final_vertex;
       i32 y_min = std::numeric_limits<i32>::max();
       i32 y_max = std::numeric_limits<i32>::min();
+
+      // @todo: move this part out of the renderer into the geometry engine.
 
       for(int i = 0; i < vertex_count; i++) {
         const Vertex* vertex = polygon.vertices[i];
@@ -164,6 +167,28 @@ namespace dual::nds::gpu {
           edge[i].Interpolate(y, span.x0[i], span.x1[i]);
         }
 
+        for(int i = 0; i < 2; i++) {
+          const u16 w0 = polygon.w_16[start[i]];
+          const u16 w1 = polygon.w_16[end[i]];
+
+          if(edge[i].IsXMajor()) {
+            const i32 x_min = points[start[i]].x;
+            const i32 x_max = points[end[i]].x;
+            // @todo: account for swapped left and right edges.
+            const i32 x = (i == 0 ? span.x0[0] : span.x1[1]) >> 18;
+
+            if(x_min <= x_max) {
+              edge_interp.Setup(w0, w1, x, x_min, x_max);
+            } else {
+              edge_interp.Setup(w0, w1, (x_min - (x - x_max)), x_max, x_min);
+            }
+          } else {
+            edge_interp.Setup(w0, w1, y, y_min, y_max);
+          }
+
+          edge_interp.Perp(points[start[i]].vertex->color, points[end[i]].vertex->color, span.color[i]);
+        }
+
         if(y >= 0 && y < 192) {
           const bool force_render_inner_span = y == y_min || y == y_max - 1;
 
@@ -174,7 +199,7 @@ namespace dual::nds::gpu {
 
           for(int x = xl0; x <= xl1; x++) {
             if(x >= 0 && x < 256) {
-              m_frame_buffer[y][x] = Color4{63, 0, 0};
+              m_frame_buffer[y][x] = span.color[0];
             }
           }
 
@@ -188,7 +213,7 @@ namespace dual::nds::gpu {
 
           for(int x = xr0; x <= xr1; x++) {
             if(x >= 0 && x < 256) {
-              m_frame_buffer[y][x] = Color4{63, 0, 0};
+              m_frame_buffer[y][x] = span.color[1];
             }
           }
         }
