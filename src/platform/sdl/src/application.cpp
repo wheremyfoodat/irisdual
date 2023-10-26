@@ -26,7 +26,7 @@ int Application::Run(int argc, char **argv) {
   LoadBootROM("boot9.bin", true);
   LoadBootROM("boot7.bin", false);
   if(argc < 2) {
-    LoadROM("Simple_Tri.nds");
+    LoadROM("pokeplatin.nds");
   } else {
     LoadROM(argv[1]);
   }
@@ -44,7 +44,7 @@ void Application::CreateWindow() {
     SDL_WINDOW_ALLOW_HIGHDPI
   );
 
-  m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 
   for(auto& texture : m_textures) {
     texture = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 256, 192);
@@ -138,6 +138,8 @@ void Application::MainLoop() {
       SDL_RenderPresent(m_renderer);
 
       m_emu_thread.ReleaseFrame();
+
+      UpdateFPS();
     }
 
     m_emu_thread.SetFastForward(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
@@ -153,5 +155,20 @@ void Application::MainLoop() {
       m_nds->DirectBoot();
       m_emu_thread.Start(std::move(m_nds));
     }
+  }
+}
+
+void Application::UpdateFPS() {
+  const auto now = std::chrono::system_clock::now();
+  const auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+    now - m_last_fps_update).count();
+
+  m_fps_counter++;
+
+  if(elapsed_time >= 1000) {
+    const f32 fps = (f32)m_fps_counter / (f32)elapsed_time * 1000.0f;
+    SDL_SetWindowTitle(m_window, fmt::format("irisdual [{:.2f} fps]", fps).c_str());
+    m_fps_counter = 0;
+    m_last_fps_update = std::chrono::system_clock::now();
   }
 }

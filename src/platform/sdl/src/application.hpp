@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <dual/nds/nds.hpp>
 #include <memory>
 
@@ -20,6 +21,7 @@ class Application {
     void LoadROM(const char* path);
     void LoadBootROM(const char* path, bool arm9);
     void MainLoop();
+    void UpdateFPS();
 
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
@@ -27,4 +29,6 @@ class Application {
 
     std::unique_ptr<dual::nds::NDS> m_nds{};
     EmulatorThread m_emu_thread{};
+    int m_fps_counter{};
+    std::chrono::time_point<std::chrono::system_clock> m_last_fps_update{};
 };
