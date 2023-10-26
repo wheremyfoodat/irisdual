@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <dual/nds/video_unit/gpu/renderer/software_renderer.hpp>
 #include <limits>
 
@@ -168,30 +169,24 @@ namespace dual::nds::gpu {
       const int x_min = span.x0[l] >> 18;
       const int x_max = span.x1[r] >> 18;
 
-      // @todo: clean rendering logic up.
-
       const int xl0 = std::max(x_min, 0);
-      const int xl1 = std::min(span.x1[l] >> 18, 255);
-      const int xr0 = std::min(span.x0[r] >> 18, 255);
+      const int xl1 = std::clamp(span.x1[l] >> 18, xl0, 255);
+      const int xr0 = std::clamp(span.x0[r] >> 18, xl1, 255);
       const int xr1 = std::min(x_max, 255);
 
-      int x = xl0;
-
-      for(; x <= xl1; x++) {
+      for(int x = xl0; x <= xl1; x++) {
         line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
         line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
       }
 
       if(!wireframe || force_render_inner_span) {
-        for(; x <= xr0 - 1; x++) {
+        for(int x = xl1 + 1; x < xr0; x++) {
           line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
           line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
         }
-      } else {
-        x = xr0;
       }
 
-      for(; x <= xr1; x++) {
+      for(int x = xr0; x <= xr1; x++) {
         line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
         line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
       }
