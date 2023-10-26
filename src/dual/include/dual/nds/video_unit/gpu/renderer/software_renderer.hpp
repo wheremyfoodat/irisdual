@@ -20,6 +20,7 @@ namespace dual::nds::gpu {
     private:
       void RenderRearPlane();
       void RenderPolygons(const Viewport& viewport, std::span<const Polygon> polygons);
+      void RenderPolygon(const Viewport& viewport, const Polygon& polygon);
 
       IO& m_io;
       Color4 m_frame_buffer[192][256];
