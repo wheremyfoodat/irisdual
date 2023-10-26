@@ -258,10 +258,19 @@ namespace dual::nds::gpu {
   void CommandProcessor::cmdViewport() {
     const u32 parameter = DequeueFIFO();
 
-    m_viewport.x0 = (int)(u8)(parameter >>  0);
-    m_viewport.y0 = (int)(u8)(parameter >>  8);
-    m_viewport.x1 = (int)(u8)(parameter >> 16);
-    m_viewport.y1 = (int)(u8)(parameter >> 24);
+    const int x0 = (int)(u8)(parameter >>  0);
+    const int y0 = (int)(u8)(parameter >>  8);
+    const int x1 = (int)(u8)(parameter >> 16);
+    const int y1 = (int)(u8)(parameter >> 24);
+
+    if(x0 > x1 || y0 > y1) {
+      ATOM_PANIC("gpu: failed viewport validation: {} <= {}, {} <= {}\n", x0, x1, y0, y1);
+    }
+
+    m_viewport.x0 = x0;
+    m_viewport.y0 = y0;
+    m_viewport.width  = 1 + x1 - x0;
+    m_viewport.height = 1 + y1 - y0;
   }
 
 } // namespace dual::nds::gpu

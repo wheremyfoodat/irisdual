@@ -10,9 +10,9 @@ namespace dual::nds::gpu {
 
   struct Viewport {
     int x0;
-    int x1;
     int y0;
-    int y1;
+    int width;
+    int height;
   };
 
   class RendererBase {

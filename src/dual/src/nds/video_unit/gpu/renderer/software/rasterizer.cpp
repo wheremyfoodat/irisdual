@@ -55,15 +55,6 @@ namespace dual::nds::gpu {
     return;
   #endif
 
-    const int viewport_x0 = viewport.x0;
-    const int viewport_y0 = viewport.y0;
-    const int viewport_width = 1 + viewport.x1 - viewport_x0;
-    const int viewport_height = 1 + viewport.y1 - viewport_y0;
-
-    if(viewport.x0 > viewport.x1 || viewport.y0 > viewport.y1) {
-      ATOM_PANIC("gpu: SW: failed viewport validation: {} <= {}, {} <= {}\n", viewport.x0, viewport.x1, viewport.y0, viewport.y1);
-    }
-
     Span span{};
     Edge::Point points[10];
     Interpolator<9> edge_interp{};
@@ -95,8 +86,8 @@ namespace dual::nds::gpu {
           break;
         }
 
-        const i32 x = (i32)(((( (i64)position.X().Raw() + w) * viewport_width  + 0x800) / two_w) + viewport_x0);
-        const i32 y = (i32)((((-(i64)position.Y().Raw() + w) * viewport_height + 0x800) / two_w) + viewport_y0);
+        const i32 x = (i32)(((( (i64)position.X().Raw() + w) * viewport.width  + 0x800) / two_w) + viewport.x0);
+        const i32 y = (i32)((((-(i64)position.Y().Raw() + w) * viewport.height + 0x800) / two_w) + viewport.y0);
         const u32 depth = (u32)((((i64)position.Z().Raw() << 14) / w + 0x3FFF) << 9);
 
         points[i] = Edge::Point{x, y, depth, (i32)w, vertex};
@@ -116,7 +107,7 @@ namespace dual::nds::gpu {
         continue;
       }
 
-      const bool wireframe = polygon.attributes.alpha == 0;
+      const bool wireframe = true;//polygon.attributes.alpha == 0;
 
       const int a = polygon.windedness <= 0 ? 0 : 1;
       const int b = a ^ 1;
