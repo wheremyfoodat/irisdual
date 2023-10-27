@@ -26,6 +26,8 @@ namespace dual::nds::gpu {
     m_pending_polygon_attributes = 0u;
     m_polygon_attributes = {};
     m_vertex_color = {};
+    m_vertex_uv = {};
+    m_texture_parameters = {};
   }
 
   void GeometryEngine::SwapBuffers() {
@@ -64,8 +66,7 @@ namespace dual::nds::gpu {
       return; // @todo: better handle this
     }
 
-    // @todo: use the correct UV coordinate:
-    m_current_vertex_list.PushBack({clip_position, {}, m_vertex_color});
+    m_current_vertex_list.PushBack({clip_position, m_vertex_uv, m_vertex_color});
 
     int required_vertex_count = m_primitive_is_quad ? 4 : 3;
 
@@ -230,8 +231,11 @@ namespace dual::nds::gpu {
     }
 
     if(!poly.vertices.Empty()) {
-      // @todo: copy texture params and calculate sorting key
+      // @todo: calculate sorting key
+      // @todo: supposedly texture parameters cannot be changed within polygon strips.
       poly.attributes = m_polygon_attributes;
+      poly.texture_params.word = m_texture_parameters;
+      poly.palette_base = m_texture_palette_base;
       poly.windedness = windedness;
 
       NormalizeW(poly);

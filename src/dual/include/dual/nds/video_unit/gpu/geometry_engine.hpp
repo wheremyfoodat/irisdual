@@ -9,6 +9,39 @@
 
 namespace dual::nds::gpu {
 
+  union TextureParams {
+    enum class Format {
+      Disabled = 0,
+      A3I5 = 1,
+      Palette2BPP = 2,
+      Palette4BPP = 3,
+      Palette8BPP = 4,
+      Compressed4x4 = 5,
+      A5I3 = 6,
+      Raw16BPP = 7
+    };
+
+    enum class Transform {
+      None = 0,
+      TexCoord = 1,
+      Normal = 2,
+      Position = 3
+    };
+
+    atom::Bits< 0, 16, u32> vram_offset_div_8;
+    atom::Bits<16,  1, u32> repeat_s;
+    atom::Bits<17,  1, u32> repeat_t;
+    atom::Bits<18,  1, u32> flip_s;
+    atom::Bits<19,  1, u32> flip_t;
+    atom::Bits<20,  3, u32> log2_s_size;
+    atom::Bits<23,  3, u32> log2_t_size;
+    atom::Bits<26,  3, u32> format;
+    atom::Bits<29,  1, u32> color0_transparent;
+    atom::Bits<30,  2, u32> st_transform;
+
+    u32 word = 0u;
+  };
+
   struct Vertex {
     Vector4<Fixed20x12> position;
     Vector2<Fixed12x4> uv;
@@ -38,6 +71,9 @@ namespace dual::nds::gpu {
       u32 word = 0u;
     } attributes;
 
+    TextureParams texture_params;
+    u32 palette_base = 0u;
+
     int windedness = 0;
 
     atom::Vector_N<Vertex*, 10> vertices;
@@ -60,8 +96,20 @@ namespace dual::nds::gpu {
         m_pending_polygon_attributes = attributes;
       }
 
+      void SetTextureParameters(u32 parameters) {
+        m_texture_parameters = parameters;
+      }
+
+      void SetPaletteBase(u32 palette_base) {
+        m_texture_palette_base = palette_base;
+      }
+
       void SetVertexColor(const Color4& color) {
         m_vertex_color = color;
+      }
+
+      void SetVertexUV(const Vector2<Fixed12x4> uv) {
+        m_vertex_uv = uv;
       }
 
       void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
@@ -104,7 +152,10 @@ namespace dual::nds::gpu {
       int m_current_buffer{};
       u32 m_pending_polygon_attributes{};
       Polygon::Attributes m_polygon_attributes{};
+      u32 m_texture_parameters{};
+      u32 m_texture_palette_base{};
       Color4 m_vertex_color{};
+      Vector2<Fixed12x4> m_vertex_uv{};
   };
 
 } // namespace dual::nds::gpu

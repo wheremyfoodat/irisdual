@@ -13,6 +13,7 @@ namespace dual::nds::gpu {
     i32 x0[2];
     i32 x1[2];
     Color4 color[2];
+    Vector2<Fixed12x4> uv[2];
     u16 w_16[2];
   };
 
@@ -153,6 +154,7 @@ namespace dual::nds::gpu {
         }
 
         edge_interp.Perp(points[start[i]].vertex->color, points[end[i]].vertex->color, span.color[i]);
+        edge_interp.Perp(points[start[i]].vertex->uv, points[end[i]].vertex->uv, span.uv[i]);
         span.w_16[i] = edge_interp.Perp(w0, w1);
       }
 
@@ -174,22 +176,23 @@ namespace dual::nds::gpu {
       const int xr0 = std::clamp(span.x0[r] >> 18, xl1, 255);
       const int xr1 = std::min(x_max, 255);
 
-      for(int x = xl0; x <= xl1; x++) {
-        line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
-        line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
-      }
+      const auto RenderSpan = [&](int x0, int x1) {
+        Vector2<Fixed12x4> uv;
 
-      if(!wireframe || force_render_inner_span) {
-        for(int x = xl1 + 1; x < xr0; x++) {
+        for(int x = x0; x <= x1; x++) {
           line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
           line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
+          line_interp.Perp(span.uv[l], span.uv[r], uv);
         }
+      };
+
+      RenderSpan(xl0, xl1);
+
+      if(!wireframe || force_render_inner_span) {
+        RenderSpan(xl1 + 1, xr0 - 1);
       }
 
-      for(int x = xr0; x <= xr1; x++) {
-        line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
-        line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
-      }
+      RenderSpan(xr0, xr1);
     }
   }
 

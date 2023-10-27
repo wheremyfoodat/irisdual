@@ -13,7 +13,11 @@ namespace dual::nds::gpu {
   }
 
   void CommandProcessor::cmdSetUV() {
-    DequeueFIFO();
+    const u32 st = (u32)DequeueFIFO();
+    const Fixed12x4 s = (i16)(u16)st;
+    const Fixed12x4 t = (i16)(st >> 16);
+
+    m_geometry_engine.SetVertexUV({s, t});
   }
 
   void CommandProcessor::cmdSubmitVertex16() {
@@ -61,12 +65,12 @@ namespace dual::nds::gpu {
     m_geometry_engine.SetPolygonAttributes((u32)DequeueFIFO());
   }
 
-  void CommandProcessor::cmdSetTextureAttrs() {
-    DequeueFIFO();
+  void CommandProcessor::cmdSetTextureParameters() {
+    m_geometry_engine.SetTextureParameters(DequeueFIFO());
   }
 
   void CommandProcessor::cmdSetPaletteBase() {
-    DequeueFIFO();
+    m_geometry_engine.SetPaletteBase(DequeueFIFO() & 0x1FFFu);
   }
 
 } // namespace dual::nds::gpu

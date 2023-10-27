@@ -101,7 +101,7 @@ namespace dual::nds::gpu {
       void cmdSubmitVertexYZ();
       void cmdSubmitVertexDelta();
       void cmdSetPolygonAttributes();
-      void cmdSetTextureAttrs();
+      void cmdSetTextureParameters();
       void cmdSetPaletteBase();
       void cmdBeginVertices();
       void cmdEndVertices();
