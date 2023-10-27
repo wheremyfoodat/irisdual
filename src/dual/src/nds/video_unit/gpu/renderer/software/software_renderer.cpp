@@ -3,10 +3,17 @@
 
 namespace dual::nds::gpu {
 
-  SoftwareRenderer::SoftwareRenderer(IO& io) : m_io{io} {
+  SoftwareRenderer::SoftwareRenderer(
+    IO& io,
+    const Region<4, 131072>& vram_texture,
+    const Region<8>& vram_palette
+  )   : m_io{io}
+      , m_vram_texture{vram_texture}
+      , m_vram_palette{vram_palette} {
   }
 
   void SoftwareRenderer::Render(const Viewport& viewport, std::span<const Polygon> polygons) {
+    CopyVRAM();
     RenderRearPlane();
     RenderPolygons(viewport, polygons);
   }
@@ -28,6 +35,16 @@ namespace dual::nds::gpu {
   void SoftwareRenderer::CaptureAlpha(int scanline, std::span<int, 256> dst_buffer) {
     for(int x = 0; x < 256; x++) {
       dst_buffer[x] = m_frame_buffer[scanline][x].A().Raw() >> 2;
+    }
+  }
+
+  void SoftwareRenderer::CopyVRAM() {
+    for(u32 address = 0; address < 0x80000u; address += 8u) {
+      *(u64*)&m_vram_texture_copy[address] = m_vram_texture.Read<u64>(address);
+    }
+
+    for(u32 address = 0; address < 0x20000u; address += 8u) {
+      *(u64*)&m_vram_palette_copy[address] = m_vram_palette.Read<u64>(address);
     }
   }
 

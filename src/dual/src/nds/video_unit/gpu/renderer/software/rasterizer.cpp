@@ -183,6 +183,9 @@ namespace dual::nds::gpu {
           line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
           line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
           line_interp.Perp(span.uv[l], span.uv[r], uv);
+
+          // @todo: check if textures are enabled and all
+          m_frame_buffer[y][x] = SampleTexture(polygon.texture_params, polygon.palette_base, uv);
         }
       };
 
@@ -194,6 +197,169 @@ namespace dual::nds::gpu {
 
       RenderSpan(xr0, xr1);
     }
+  }
+
+  Color4 SoftwareRenderer::SampleTexture(TextureParams params, u32 palette_base, Vector2<Fixed12x4> uv) {
+    const int log2_size[2] {
+      (int)params.log2_s_size,
+      (int)params.log2_t_size
+    };
+
+    const int size[2] {
+      8 << params.log2_s_size,
+      8 << params.log2_t_size
+    };
+
+    int coord[2] { uv.X().Int(), uv.Y().Int() };
+
+    for (int i = 0; i < 2; i++) {
+      if (coord[i] < 0 || coord[i] >= size[i]) {
+        int mask = size[i] - 1;
+        if (params.repeat[i]) {
+          bool odd = (coord[i] >> (3 + log2_size[i])) & 1;
+          coord[i] &= mask;
+          if (params.flip[i] && odd) {
+            coord[i] ^= mask;
+          }
+        } else {
+          coord[i] = std::clamp(coord[i], 0, mask);
+        }
+      }
+    }
+
+    auto offset = coord[1] * size[0] + coord[0];
+    auto palette_addr = palette_base << 4;
+    auto texture_addr = params.vram_offset_div_8 << 3;
+
+    switch ((TextureParams::Format)params.format) {
+      case TextureParams::Format::Disabled: {
+        return Color4{};
+      }
+      case TextureParams::Format::A3I5: {
+        u8  value = ReadTextureVRAM<u8>(texture_addr + offset);
+        int index = value & 0x1F;
+        int alpha = value >> 5;
+
+        auto rgb555 = ReadPaletteVRAM<u16>(palette_addr + index * sizeof(u16)) & 0x7FFF;
+        auto rgb6666 = Color4::FromRGB555(rgb555);
+
+        rgb6666.A() = (alpha << 3) | alpha; // 3-bit alpha to 6-bit alpha
+        return rgb6666;
+      }
+      case TextureParams::Format::Palette2BPP: {
+        auto index = (ReadTextureVRAM<u8>(texture_addr + (offset >> 2)) >> (2 * (offset & 3))) & 3;
+
+        if (params.color0_transparent && index == 0) {
+          return Color4{0, 0, 0, 0};
+        }
+
+        return Color4::FromRGB555(ReadPaletteVRAM<u16>((palette_addr >> 1) + index * sizeof(u16)) & 0x7FFF);
+      }
+      case TextureParams::Format::Palette4BPP: {
+        auto index = (ReadTextureVRAM<u8>(texture_addr + (offset >> 1)) >> (4 * (offset & 1))) & 15;
+
+        if (params.color0_transparent && index == 0) {
+          return Color4{0, 0, 0, 0};
+        }
+
+        return Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + index * sizeof(u16)) & 0x7FFF);
+      }
+      case TextureParams::Format::Palette8BPP: {
+        auto index = ReadTextureVRAM<u8>(texture_addr + offset);
+
+        if (params.color0_transparent && index == 0) {
+          return Color4{0, 0, 0, 0};
+        }
+
+        return Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + index * sizeof(u16)) & 0x7FFF);
+      }
+      case TextureParams::Format::Compressed4x4: {
+        auto row_x = coord[0] >> 2;
+        auto row_y = coord[1] >> 2;
+        auto tile_x = coord[0] & 3;
+        auto tile_y = coord[1] & 3;
+        auto row_size = size[0] >> 2;
+
+        auto data_address = texture_addr + (row_y * row_size + row_x) * sizeof(u32) + tile_y;
+
+        auto data_slot_index  = data_address >> 18;
+        auto data_slot_offset = data_address & 0x1FFFF;
+        auto info_address = 0x20000 + (data_slot_offset >> 1) + (data_slot_index * 0x10000);
+
+        auto data = ReadTextureVRAM<u8>(data_address);
+        auto info = ReadTextureVRAM<u16>(info_address);
+
+        auto index = (data >> (tile_x * 2)) & 3;
+        auto palette_offset = info & 0x3FFF;
+        auto mode = info >> 14;
+
+        palette_addr += palette_offset << 2;
+
+        switch (mode) {
+          case 0: {
+            if (index == 3) {
+              return Color4{0, 0, 0, 0};
+            }
+            return Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + index * sizeof(u16)) & 0x7FFF);
+          }
+          case 1: {
+            if (index == 2) {
+              auto color_0 = Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + 0) & 0x7FFF);
+              auto color_1 = Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + 2) & 0x7FFF);
+
+              for (uint i = 0; i < 3; i++) {
+                color_0[i] = Fixed6{s8((color_0[i].Raw() >> 1) + (color_1[i].Raw() >> 1))};
+              }
+
+              return color_0;
+            }
+            if (index == 3) {
+              return Color4{0, 0, 0, 0};
+            }
+            return Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + index * sizeof(u16)) & 0x7FFF);
+          }
+          case 2: {
+            return Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + index * sizeof(u16)) & 0x7FFF);
+          }
+          default: {
+            if (index == 2 || index == 3) {
+              int coeff_0 = index == 2 ? 5 : 3;
+              int coeff_1 = index == 2 ? 3 : 5;
+
+              auto color_0 = Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + 0) & 0x7FFF);
+              auto color_1 = Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + 2) & 0x7FFF);
+
+              for (uint i = 0; i < 3; i++) {
+                color_0[i] = Fixed6{s8(((color_0[i].Raw() * coeff_0) + (color_1[i].Raw() * coeff_1)) >> 3)};
+              }
+
+              return color_0;
+            }
+            return Color4::FromRGB555(ReadPaletteVRAM<u16>(palette_addr + index * sizeof(u16)) & 0x7FFF);
+          }
+        }
+      }
+      case TextureParams::Format::A5I3: {
+        u8  value = ReadTextureVRAM<u8>(texture_addr + offset);
+        int index = value & 7;
+        int alpha = value >> 3;
+
+        auto rgb555 = ReadPaletteVRAM<u16>((palette_base << 4) + index * sizeof(u16)) & 0x7FFF;
+        auto rgb6666 = Color4::FromRGB555(rgb555);
+
+        rgb6666.A() = (alpha << 1) | (alpha >> 4); // 5-bit alpha to 6-bit alpha
+        return rgb6666;
+      }
+      case TextureParams::Format::Raw16BPP: {
+        auto rgb1555 = ReadTextureVRAM<u16>(texture_addr + offset * sizeof(u16));
+        auto rgb6666 = Color4::FromRGB555(rgb1555);
+
+        rgb6666.A() = rgb6666.A().Raw() * (rgb1555 >> 15);
+        return rgb6666;
+      }
+    };
+
+    return {};
   }
 
 } // namespace dual::nds::gpu

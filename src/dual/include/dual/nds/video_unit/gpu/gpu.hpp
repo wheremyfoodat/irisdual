@@ -90,11 +90,6 @@ namespace dual::nds {
 
     private:
       gpu::IO m_io;
-
-      arm9::DMA& m_arm9_dma;
-      const Region<4, 131072>& m_vram_texture;
-      const Region<8>& m_vram_palette;
-
       gpu::CommandProcessor m_cmd_processor;
       gpu::GeometryEngine m_geometry_engine;
 

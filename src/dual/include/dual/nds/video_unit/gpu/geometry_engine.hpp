@@ -29,10 +29,8 @@ namespace dual::nds::gpu {
     };
 
     atom::Bits< 0, 16, u32> vram_offset_div_8;
-    atom::Bits<16,  1, u32> repeat_s;
-    atom::Bits<17,  1, u32> repeat_t;
-    atom::Bits<18,  1, u32> flip_s;
-    atom::Bits<19,  1, u32> flip_t;
+    atom::Bits<16,  2, u32> repeat;
+    atom::Bits<18,  2, u32> flip;
     atom::Bits<20,  3, u32> log2_s_size;
     atom::Bits<23,  3, u32> log2_t_size;
     atom::Bits<26,  3, u32> format;
