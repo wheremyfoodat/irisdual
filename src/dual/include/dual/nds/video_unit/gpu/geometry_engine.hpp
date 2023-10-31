@@ -50,7 +50,7 @@ namespace dual::nds::gpu {
     enum class Mode {
       Modulation = 0,
       Decal = 1,
-      Toon = 2,
+      Shaded = 2,
       Shadow = 3
     };
 
