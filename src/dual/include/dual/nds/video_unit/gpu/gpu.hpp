@@ -68,8 +68,20 @@ namespace dual::nds {
         m_cmd_processor.Write_GXSTAT(value, mask);
       }
 
+      void Write_CLEAR_COLOR(u32 value, u32 mask) {
+        const u32 write_mask = 0x3F1FFFFFu & mask;
+
+        m_io.clear_color.word = (value & write_mask) | (m_io.clear_color.word & ~write_mask);
+      }
+
+      void Write_CLEAR_DEPTH(u16 value, u16 mask) {
+        const u16 write_mask = 0x7FFFu & mask;
+
+        m_io.clear_depth = (value & write_mask) | (m_io.clear_depth & ~write_mask);
+      }
+
       void SwapBuffers() {
-        m_cmd_processor.SwapBuffers();
+        m_cmd_processor.SwapBuffers(m_renderer.get());
       }
 
       [[nodiscard]] bool GetRenderEnginePowerOn() const {

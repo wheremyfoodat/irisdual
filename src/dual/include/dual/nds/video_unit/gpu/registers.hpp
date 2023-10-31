@@ -45,9 +45,22 @@ namespace dual::nds::gpu {
     u32 word = 0u;
   };
 
+  union CLEAR_COLOR {
+    atom::Bits< 0, 5, u32> color_r;
+    atom::Bits< 5, 5, u32> color_g;
+    atom::Bits<10, 5, u32> color_b;
+    atom::Bits<15, 1, u32> enable_rear_plane_fog;
+    atom::Bits<16, 5, u32> color_a;
+    atom::Bits<24, 6, u32> polygon_id;
+
+    u32 word = 0u;
+  };
+
   struct IO {
     DISP3DCNT disp3dcnt;
     GXSTAT gxstat;
+    CLEAR_COLOR clear_color;
+    u16 clear_depth{};
   };
 
 } // namespace dual::nds::gpu

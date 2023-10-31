@@ -15,12 +15,27 @@ namespace dual::nds::gpu {
     Color4 color[2];
     Vector2<Fixed12x4> uv[2];
     u16 w_16[2];
+    u32 depth[2];
   };
 
   void SoftwareRenderer::RenderRearPlane() {
+    if(m_io.disp3dcnt.enable_rear_plane_bitmap) {
+      ATOM_PANIC("gpu: sw: Unimplemented rear plane bitmap");
+    }
+
+    const Color4 clear_color = Color4{
+      (i8)((m_io.clear_color.color_r << 1) | (m_io.clear_color.color_r >> 4)),
+      (i8)((m_io.clear_color.color_g << 1) | (m_io.clear_color.color_g >> 4)),
+      (i8)((m_io.clear_color.color_b << 1) | (m_io.clear_color.color_b >> 4)),
+      (i8)((m_io.clear_color.color_a << 1) | (m_io.clear_color.color_a >> 4)),
+    };
+
+    const u32 clear_depth = (((u32)m_io.clear_depth << 9) + (((u32)m_io.clear_depth + 1u) >> 15)) * 0x1FFu;
+
     for(int y = 0; y < 192; y++) {
       for(int x = 0; x < 256; x++) {
-        m_frame_buffer[y][x] = Color4{4, 4, 4};
+        m_frame_buffer[y][x] = clear_color;
+        m_depth_buffer[y][x] = clear_depth;
       }
     }
   }
@@ -33,6 +48,9 @@ namespace dual::nds::gpu {
 
   void SoftwareRenderer::RenderPolygon(const Viewport& viewport, const Polygon& polygon) {
     const int vertex_count = (int)polygon.vertices.Size();
+
+    // @todo: use different threshold for w-buffer
+    const i32 depth_test_threshold = m_enable_w_buffer ? 0xFF : 0x200;
 
     Span span{};
     Edge::Point points[10];
@@ -156,6 +174,12 @@ namespace dual::nds::gpu {
         edge_interp.Perp(points[start[i]].vertex->color, points[end[i]].vertex->color, span.color[i]);
         edge_interp.Perp(points[start[i]].vertex->uv, points[end[i]].vertex->uv, span.uv[i]);
         span.w_16[i] = edge_interp.Perp(w0, w1);
+
+        if(m_enable_w_buffer) {
+          span.depth[i] = (u32)((i32)(i16)span.w_16[i] << polygon.w_l_shift >> polygon.w_r_shift);
+        } else {
+          span.depth[i] = edge_interp.Lerp(points[start[i]].depth, points[end[i]].depth);
+        }
       }
 
       if(y < 0) {
@@ -181,11 +205,29 @@ namespace dual::nds::gpu {
 
         for(int x = x0; x <= x1; x++) {
           line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
+          
+          const u32 depth_old = m_depth_buffer[y][x];
+          const u32 depth_new = m_enable_w_buffer ?
+            line_interp.Perp(span.depth[l], span.depth[r]) : line_interp.Lerp(span.depth[l], span.depth[r]);
+
+          bool depth_test_passed;
+
+          if(polygon.attributes.use_equal_depth_test) {
+            depth_test_passed = std::abs((i32)depth_new - (i32)depth_old) <= depth_test_threshold;
+          } else {
+            depth_test_passed = depth_new < depth_old;
+          }
+
+          if(!depth_test_passed) {
+            continue;
+          }
+
           line_interp.Perp(span.color[l], span.color[r], m_frame_buffer[y][x]);
           line_interp.Perp(span.uv[l], span.uv[r], uv);
 
           // @todo: check if textures are enabled and all
           m_frame_buffer[y][x] = SampleTexture(polygon.texture_params, polygon.palette_base, uv);
+          m_depth_buffer[y][x] = depth_new;
         }
       };
 

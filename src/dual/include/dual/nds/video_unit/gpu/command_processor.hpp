@@ -58,7 +58,7 @@ namespace dual::nds::gpu {
         RequestOrClearIRQ();
       }
 
-      void SwapBuffers();
+      void SwapBuffers(gpu::RendererBase* renderer);
 
       [[nodiscard]] const Viewport& GetViewport() const {
         return m_viewport;

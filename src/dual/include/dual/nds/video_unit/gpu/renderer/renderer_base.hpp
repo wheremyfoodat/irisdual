@@ -19,6 +19,8 @@ namespace dual::nds::gpu {
     public:
       virtual ~RendererBase() = default;
 
+      virtual void SetWBufferEnable(bool enable_w_buffer) = 0;
+
       virtual void Render(const Viewport& viewport, std::span<const Polygon> polygons) = 0;
 
       virtual void CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) = 0;

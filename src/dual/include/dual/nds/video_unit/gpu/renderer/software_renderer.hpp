@@ -18,6 +18,10 @@ namespace dual::nds::gpu {
         const Region<8>& vram_palette
       );
 
+      void SetWBufferEnable(bool enable_w_buffer) {
+        m_enable_w_buffer = enable_w_buffer;
+      }
+
       void Render(const Viewport& viewport, std::span<const Polygon> polygons) override;
 
       void CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) override;
@@ -43,9 +47,11 @@ namespace dual::nds::gpu {
       IO& m_io;
       const Region<4, 131072>& m_vram_texture;
       const Region<8>& m_vram_palette;
+      bool m_enable_w_buffer{};
       u8 m_vram_texture_copy[524288]{};
       u8 m_vram_palette_copy[131072]{};
       Color4 m_frame_buffer[192][256];
+      u32 m_depth_buffer[192][256];
   };
 
 } // namespace dual::nds::gpu

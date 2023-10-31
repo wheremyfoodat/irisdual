@@ -15,6 +15,7 @@ namespace dual::nds {
   }
 
   void GPU::Reset() {
+    m_io = {};
     m_cmd_processor.Reset();
     m_geometry_engine.Reset();
 

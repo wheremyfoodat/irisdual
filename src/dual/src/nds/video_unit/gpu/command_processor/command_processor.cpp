@@ -41,10 +41,10 @@ namespace dual::nds::gpu {
     m_use_w_buffer_pending = false;
   }
 
-  void CommandProcessor::SwapBuffers() {
+  void CommandProcessor::SwapBuffers(gpu::RendererBase* renderer) {
     if(m_swap_buffers_pending) {
       m_swap_buffers_pending = false;
-
+      renderer->SetWBufferEnable(m_use_w_buffer_pending);
       m_geometry_engine.SwapBuffers();
       ProcessCommands();
     }

@@ -273,8 +273,8 @@ namespace dual::nds::gpu {
         poly.w_16.PushBack(vertex->position.W().Raw() >> w_shift);
       }
 
-      poly.w_l_shift = 0;
-      poly.w_r_shift = w_shift;
+      poly.w_l_shift = w_shift;
+      poly.w_r_shift = 0;
     } else {
       const int w_shift = (min_leading & ~3) - 16;
 
@@ -282,8 +282,8 @@ namespace dual::nds::gpu {
         poly.w_16.PushBack(vertex->position.W().Raw() << w_shift);
       }
 
-      poly.w_l_shift = w_shift;
-      poly.w_r_shift = 0;
+      poly.w_l_shift = 0;
+      poly.w_r_shift = w_shift;
     }
   }
 
