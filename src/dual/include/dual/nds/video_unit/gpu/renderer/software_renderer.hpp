@@ -10,6 +10,8 @@
 
 namespace dual::nds::gpu {
 
+  struct Span;
+
   class SoftwareRenderer final : public RendererBase {
     public:
       SoftwareRenderer(
@@ -32,6 +34,7 @@ namespace dual::nds::gpu {
       void RenderRearPlane();
       void RenderPolygons(const Viewport& viewport, std::span<const Polygon> polygons);
       void RenderPolygon(const Viewport& viewport, const Polygon& polygon);
+      void RenderPolygonSpan(const Polygon& polygon, const Span& span, i32 y, int x0, int x1, int x_min, int x_max, int l, int r);
       Color4 SampleTexture(TextureParams params, u32 palette_base, Vector2<Fixed12x4> uv);
 
       template<typename T>
