@@ -136,6 +136,14 @@ namespace dual::nds::gpu {
         m_light_color[light_index] = color;
       }
 
+      void SetShininessTableEnable(bool enabled) {
+        m_enable_shininess_table = enabled;
+      }
+
+      std::array<u8, 128>& GetShininessTable() {
+        return m_shininess_table;
+      }
+
       void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
 
       [[nodiscard]] std::span<const Polygon> GetPolygonsToRender() const {
@@ -186,6 +194,8 @@ namespace dual::nds::gpu {
       Color4 m_material_ambient_color{};
       Color4 m_material_specular_color{};
       Color4 m_material_emissive_color{};
+      std::array<u8, 128> m_shininess_table{};
+      bool m_enable_shininess_table{};
   };
 
 } // namespace dual::nds::gpu

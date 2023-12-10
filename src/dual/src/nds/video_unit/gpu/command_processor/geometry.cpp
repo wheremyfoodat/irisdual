@@ -97,9 +97,9 @@ namespace dual::nds::gpu {
     const Color4 specular = Color4::FromRGB555((u16)(param >>  0));
     const Color4 emissive = Color4::FromRGB555((u16)(param >> 16));
 
-    // @todo: handle shininess table enable
     m_geometry_engine.SetMaterialSpecularColor(specular);
     m_geometry_engine.SetMaterialEmissiveColor(emissive);
+    m_geometry_engine.SetShininessTableEnable(param & 0x8000u);
   }
 
   void CommandProcessor::cmdSetLightVector() {
@@ -120,7 +120,20 @@ namespace dual::nds::gpu {
   void CommandProcessor::cmdSetLightColor() {
     const u32 i_rgb555 = DequeueFIFO();
 
-    m_geometry_engine.SetLightColor(i_rgb555 >> 30, Color4::FromRGB555((u16)i_rgb555));
+    m_geometry_engine.SetLightColor((int)(i_rgb555 >> 30), Color4::FromRGB555((u16)i_rgb555));
+  }
+
+  void CommandProcessor::cmdSetShininessTable() {
+    std::array<u8, 128> shininess_table = m_geometry_engine.GetShininessTable();
+
+    for(int a = 0; a < 128; a += 4) {
+      u32 word = (u32)DequeueFIFO();
+
+      for(int b = 0; b < 4; b++) {
+        shininess_table[a | b] = (u8)word;
+        word >>= 8;
+      }
+    }
   }
 
 } // namespace dual::nds::gpu

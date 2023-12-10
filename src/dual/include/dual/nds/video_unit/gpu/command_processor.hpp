@@ -107,6 +107,7 @@ namespace dual::nds::gpu {
       void cmdSetSpecularAndEmissiveMaterialColors();
       void cmdSetLightVector();
       void cmdSetLightColor();
+      void cmdSetShininessTable();
       void cmdBeginVertices();
       void cmdEndVertices();
       void cmdSwapBuffers();

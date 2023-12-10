@@ -210,6 +210,7 @@ namespace dual::nds::gpu {
       case 0x31: cmdSetSpecularAndEmissiveMaterialColors(); break;
       case 0x32: cmdSetLightVector(); break;
       case 0x33: cmdSetLightColor(); break;
+      case 0x34: cmdSetShininessTable(); break;
       case 0x40: cmdBeginVertices(); break;
       case 0x41: cmdEndVertices(); break;
       case 0x50: cmdSwapBuffers(); break;
