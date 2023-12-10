@@ -27,6 +27,7 @@ namespace dual::nds::gpu {
     m_polygon_attributes = {};
     m_vertex_color = {};
     m_vertex_uv = {};
+    m_vertex_uv_src = {};
     m_texture_parameters = {};
     m_lights = {};
     m_material = {};
@@ -60,7 +61,9 @@ namespace dual::nds::gpu {
       ATOM_PANIC("gpu: Submitted a vertex outside of a vertex list.");
     }
 
-    // @todo: texture mapping
+    if(m_texture_parameters.st_transform == TextureParams::Transform::Position) {
+      ATOM_PANIC("position ST transform");
+    }
 
     const Vector4<Fixed20x12> clip_position = clip_matrix * Vector4<Fixed20x12>{position};
 
@@ -236,7 +239,7 @@ namespace dual::nds::gpu {
       // @todo: calculate sorting key
       // @todo: supposedly texture parameters cannot be changed within polygon strips.
       poly.attributes = m_polygon_attributes;
-      poly.texture_params.word = m_texture_parameters;
+      poly.texture_params = m_texture_parameters;
       poly.palette_base = m_texture_palette_base;
       poly.windedness = windedness;
 
@@ -420,8 +423,29 @@ namespace dual::nds::gpu {
     return dot > 0 ? +1 : -1;
   }
 
+  void GeometryEngine::SetVertexUV(Vector2<Fixed12x4> uv, const Matrix4<Fixed20x12>& texture_matrix) {
+    m_vertex_uv_src = uv;
+
+    if(m_texture_parameters.st_transform == TextureParams::Transform::TexCoord) {
+      const Fixed20x12 x = Fixed20x12{uv.X().Raw() << 8};
+      const Fixed20x12 y = Fixed20x12{uv.Y().Raw() << 8};
+
+      const Fixed20x12 t_x = texture_matrix[2].X() + texture_matrix[3].X() * Fixed20x12{256};
+      const Fixed20x12 t_y = texture_matrix[2].Y() + texture_matrix[3].Y() * Fixed20x12{256};
+
+      m_vertex_uv = Vector2<Fixed12x4>{
+        (i16)((x * texture_matrix[0].X() + y * texture_matrix[1].X() + t_x).Raw() >> 8),
+        (i16)((x * texture_matrix[0].Y() + y * texture_matrix[1].Y() + t_y).Raw() >> 8),
+      };
+    } else {
+      m_vertex_uv = uv;
+    }
+  }
+
   void GeometryEngine::SetNormal(Vector3<Fixed20x12> normal) {
-    // @todo: texture mapping
+    if(m_texture_parameters.st_transform == TextureParams::Transform::Normal) {
+      ATOM_PANIC("normal ST transform");
+    }
 
     i32 r = m_material.emissive_color.R().Raw() << 14;
     i32 g = m_material.emissive_color.G().Raw() << 14;

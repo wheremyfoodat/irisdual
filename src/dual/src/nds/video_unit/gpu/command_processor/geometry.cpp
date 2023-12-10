@@ -24,7 +24,7 @@ namespace dual::nds::gpu {
     const Fixed12x4 s = (i16)(u16)st;
     const Fixed12x4 t = (i16)(st >> 16);
 
-    m_geometry_engine.SetVertexUV({s, t});
+    m_geometry_engine.SetVertexUV({s, t}, m_texture_mtx);
   }
 
   void CommandProcessor::cmdSubmitVertex16() {

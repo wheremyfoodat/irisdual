@@ -95,7 +95,7 @@ namespace dual::nds::gpu {
       }
 
       void SetTextureParameters(u32 parameters) {
-        m_texture_parameters = parameters;
+        m_texture_parameters.word = parameters;
       }
 
       void SetPaletteBase(u32 palette_base) {
@@ -106,10 +106,7 @@ namespace dual::nds::gpu {
         m_vertex_color = color;
       }
 
-      void SetVertexUV(Vector2<Fixed12x4> uv) {
-        m_vertex_uv = uv;
-      }
-
+      void SetVertexUV(Vector2<Fixed12x4> uv, const Matrix4<Fixed20x12>& texture_matrix);
       void SetNormal(Vector3<Fixed20x12> normal);
 
       void SetMaterialDiffuseColor(const Color4& color) {
@@ -191,10 +188,11 @@ namespace dual::nds::gpu {
       int m_current_buffer{};
       u32 m_pending_polygon_attributes{};
       Polygon::Attributes m_polygon_attributes{};
-      u32 m_texture_parameters{};
+      TextureParams m_texture_parameters{};
       u32 m_texture_palette_base{};
       Color4 m_vertex_color{};
       Vector2<Fixed12x4> m_vertex_uv{};
+      Vector2<Fixed12x4> m_vertex_uv_src{};
 
       struct Light {
         Vector3<Fixed20x12> direction{};
