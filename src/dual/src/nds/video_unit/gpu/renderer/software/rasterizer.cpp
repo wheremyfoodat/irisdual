@@ -165,7 +165,7 @@ namespace dual::nds::gpu {
         line.w_16[j] = edge_interp.Perp(w0, w1);
 
         if(m_enable_w_buffer) {
-          line.depth[j] = (u32)((i32)(i16)line.w_16[j] << polygon.w_l_shift >> polygon.w_r_shift);
+          line.depth[j] = (u32)line.w_16[j] << polygon.w_l_shift >> polygon.w_r_shift;
         } else {
           line.depth[j] = edge_interp.Lerp(points[start[i]].depth, points[end[i]].depth);
         }
