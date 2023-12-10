@@ -106,8 +106,34 @@ namespace dual::nds::gpu {
         m_vertex_color = color;
       }
 
-      void SetVertexUV(const Vector2<Fixed12x4> uv) {
+      void SetVertexUV(Vector2<Fixed12x4> uv) {
         m_vertex_uv = uv;
+      }
+
+      void SetNormal(Vector3<Fixed20x12> normal);
+
+      void SetMaterialDiffuseColor(const Color4& color) {
+        m_material_diffuse_color = color;
+      }
+
+      void SetMaterialAmbientColor(const Color4& color) {
+        m_material_ambient_color = color;
+      }
+
+      void SetMaterialSpecularColor(const Color4& color) {
+        m_material_specular_color = color;
+      }
+
+      void SetMaterialEmissiveColor(const Color4& color) {
+        m_material_emissive_color = color;
+      }
+
+      void SetLightDirection(int light_index, Vector3<Fixed20x12> direction) {
+        m_light_direction[light_index] = direction;
+      }
+
+      void SetLightColor(int light_index, const Color4& color) {
+        m_light_color[light_index] = color;
       }
 
       void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
@@ -154,6 +180,12 @@ namespace dual::nds::gpu {
       u32 m_texture_palette_base{};
       Color4 m_vertex_color{};
       Vector2<Fixed12x4> m_vertex_uv{};
+      std::array<Vector3<Fixed20x12>, 4> m_light_direction{};
+      std::array<Color4, 4> m_light_color{};
+      Color4 m_material_diffuse_color{};
+      Color4 m_material_ambient_color{};
+      Color4 m_material_specular_color{};
+      Color4 m_material_emissive_color{};
   };
 
 } // namespace dual::nds::gpu

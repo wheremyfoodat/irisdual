@@ -9,7 +9,14 @@ namespace dual::nds::gpu {
   }
 
   void CommandProcessor::cmdSetNormal() {
-    DequeueFIFO();
+    const u32 xyz = DequeueFIFO();
+
+    m_geometry_engine.SetNormal((m_direction_mtx * Vector4<Fixed20x12>{
+      (i32)(xyz & (0x3FFu <<  0)) << 22 >> 19,
+      (i32)(xyz & (0x3FFu << 10)) << 12 >> 19,
+      (i32)(xyz & (0x3FFu << 20)) <<  2 >> 19,
+      0
+    }).XYZ());
   }
 
   void CommandProcessor::cmdSetUV() {
@@ -71,6 +78,49 @@ namespace dual::nds::gpu {
 
   void CommandProcessor::cmdSetPaletteBase() {
     m_geometry_engine.SetPaletteBase(DequeueFIFO() & 0x1FFFu);
+  }
+
+  void CommandProcessor::cmdSetDiffuseAndAmbientMaterialColors() {
+    const u32 param = DequeueFIFO();
+    const Color4 diffuse = Color4::FromRGB555((u16)(param >>  0));
+    const Color4 ambient = Color4::FromRGB555((u16)(param >> 16));
+
+    m_geometry_engine.SetMaterialAmbientColor(ambient);
+    m_geometry_engine.SetMaterialDiffuseColor(diffuse);
+    if(param & 0x8000u) {
+      m_geometry_engine.SetVertexColor(diffuse);
+    }
+  }
+
+  void CommandProcessor::cmdSetSpecularAndEmissiveMaterialColors() {
+    const u32 param = DequeueFIFO();
+    const Color4 specular = Color4::FromRGB555((u16)(param >>  0));
+    const Color4 emissive = Color4::FromRGB555((u16)(param >> 16));
+
+    // @todo: handle shininess table enable
+    m_geometry_engine.SetMaterialSpecularColor(specular);
+    m_geometry_engine.SetMaterialEmissiveColor(emissive);
+  }
+
+  void CommandProcessor::cmdSetLightVector() {
+    const u32 i_xyz = DequeueFIFO();
+
+    const int light_index = i_xyz >> 30;
+
+    const Vector4<Fixed20x12> light_direction = m_direction_mtx * Vector4<Fixed20x12>{
+      (i32)(i_xyz & (0x3FFu <<  0)) << 22 >> 19,
+      (i32)(i_xyz & (0x3FFu << 10)) << 12 >> 19,
+      (i32)(i_xyz & (0x3FFu << 20)) <<  2 >> 19,
+      0
+    };
+
+    m_geometry_engine.SetLightDirection(light_index, light_direction.XYZ());
+  }
+
+  void CommandProcessor::cmdSetLightColor() {
+    const u32 i_rgb555 = DequeueFIFO();
+
+    m_geometry_engine.SetLightColor(i_rgb555 >> 30, Color4::FromRGB555((u16)i_rgb555));
   }
 
 } // namespace dual::nds::gpu

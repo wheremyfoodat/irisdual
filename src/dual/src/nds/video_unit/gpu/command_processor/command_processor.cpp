@@ -206,6 +206,10 @@ namespace dual::nds::gpu {
       case 0x29: cmdSetPolygonAttributes(); break;
       case 0x2A: cmdSetTextureParameters(); break;
       case 0x2B: cmdSetPaletteBase(); break;
+      case 0x30: cmdSetDiffuseAndAmbientMaterialColors(); break;
+      case 0x31: cmdSetSpecularAndEmissiveMaterialColors(); break;
+      case 0x32: cmdSetLightVector(); break;
+      case 0x33: cmdSetLightColor(); break;
       case 0x40: cmdBeginVertices(); break;
       case 0x41: cmdEndVertices(); break;
       case 0x50: cmdSwapBuffers(); break;
@@ -220,10 +224,6 @@ namespace dual::nds::gpu {
         }
 
         if(
-          command != 0x30 && // DIF_AMB
-          command != 0x31 && // SPE_EMI
-          command != 0x32 && // LIGHT_VECTOR
-          command != 0x33 && // LIGHT_COLOR
           command != 0x34 && // SHININESS
           command != 0x70 && // BOX_TEST
           true

@@ -28,6 +28,12 @@ namespace dual::nds::gpu {
     m_vertex_color = {};
     m_vertex_uv = {};
     m_texture_parameters = {};
+    m_light_direction = {};
+    m_light_color = {};
+    m_material_diffuse_color = {};
+    m_material_ambient_color = {};
+    m_material_specular_color = {};
+    m_material_emissive_color = {};
   }
 
   void GeometryEngine::SwapBuffers() {
@@ -416,6 +422,45 @@ namespace dual::nds::gpu {
       return 0;
     }
     return dot > 0 ? +1 : -1;
+  }
+
+  void GeometryEngine::SetNormal(Vector3<Fixed20x12> normal) {
+    // @todo: texture mapping
+
+    i32 r = m_material_emissive_color.R().Raw() << 18;
+    i32 g = m_material_emissive_color.G().Raw() << 18;
+    i32 b = m_material_emissive_color.B().Raw() << 18;
+
+    const Color4 diffuse  = m_material_diffuse_color;
+    const Color4 ambient  = m_material_ambient_color;
+    const Color4 specular = m_material_specular_color;
+
+    for(int i = 0; i < 4; i++) {
+      if(!m_polygon_attributes.light_enable[i]) {
+        continue;
+      }
+
+      const Vector3<Fixed20x12> halfway{
+        m_light_direction[i].X().Raw() >> 1,
+        m_light_direction[i].Y().Raw() >> 1,
+       (m_light_direction[i].Z().Raw() - (1 << 12)) >> 1
+      };
+
+      const i32 n_dot_l = std::max<i32>(0, -normal.Dot(m_light_direction[i]).Raw());
+      const i32 n_dot_h = std::max<i32>(0, -normal.Dot(halfway).Raw());
+      const i32 n_dot_h_2 = (n_dot_h * n_dot_h) >> 12;
+
+      // @todo: implement shininess table
+
+      r += m_light_color[i].R().Raw() * (n_dot_l * diffuse.R().Raw() + n_dot_h_2 * specular.R().Raw() + ambient.R().Raw());
+      g += m_light_color[i].G().Raw() * (n_dot_l * diffuse.G().Raw() + n_dot_h_2 * specular.G().Raw() + ambient.G().Raw());
+      b += m_light_color[i].B().Raw() * (n_dot_l * diffuse.B().Raw() + n_dot_h_2 * specular.B().Raw() + ambient.B().Raw());
+    }
+
+    // @todo: getting some random colors which are off. figure out why this happens.
+    m_vertex_color.R() = std::min(r >> 18, 63);
+    m_vertex_color.G() = std::min(g >> 18, 63);
+    m_vertex_color.B() = std::min(b >> 18, 63);
   }
 
 } // namespace dual::nds::gpu

@@ -103,6 +103,10 @@ namespace dual::nds::gpu {
       void cmdSetPolygonAttributes();
       void cmdSetTextureParameters();
       void cmdSetPaletteBase();
+      void cmdSetDiffuseAndAmbientMaterialColors();
+      void cmdSetSpecularAndEmissiveMaterialColors();
+      void cmdSetLightVector();
+      void cmdSetLightColor();
       void cmdBeginVertices();
       void cmdEndVertices();
       void cmdSwapBuffers();
