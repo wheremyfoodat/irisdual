@@ -212,6 +212,12 @@ namespace dual::nds::gpu {
     const int x_min = line.x[0];
     const int x_max = line.x[1];
 
+    int alpha_test_threshold = 0u;
+
+    if(m_io.disp3dcnt.enable_alpha_test) {
+      alpha_test_threshold = m_io.alpha_test_ref << 1 | m_io.alpha_test_ref >> 4;
+    }
+
     for(int x = x0; x <= x1; x++) {
       line_interp.Setup(line.w_16[0], line.w_16[1], x, x_min, x_max);
 
@@ -237,7 +243,9 @@ namespace dual::nds::gpu {
       if(m_io.disp3dcnt.enable_texture_mapping && polygon.texture_params.format != TextureParams::Format::Disabled) {
         const Color4 texel = SampleTexture(polygon.texture_params, polygon.palette_base, uv);
 
-        // @todo: alpha test
+        if(texel.A().Raw() <= alpha_test_threshold) {
+          continue;
+        }
 
         switch((Polygon::Mode)polygon.attributes.polygon_mode) {
           case Polygon::Mode::Modulation: {

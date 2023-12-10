@@ -59,8 +59,9 @@ namespace dual::nds::gpu {
   struct IO {
     DISP3DCNT disp3dcnt;
     GXSTAT gxstat;
+    u32 alpha_test_ref{};
     CLEAR_COLOR clear_color;
-    u16 clear_depth{};
+    u32 clear_depth{};
   };
 
 } // namespace dual::nds::gpu
