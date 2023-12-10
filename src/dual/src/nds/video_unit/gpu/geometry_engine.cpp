@@ -28,14 +28,8 @@ namespace dual::nds::gpu {
     m_vertex_color = {};
     m_vertex_uv = {};
     m_texture_parameters = {};
-    m_light_direction = {};
-    m_light_color = {};
-    m_material_diffuse_color = {};
-    m_material_ambient_color = {};
-    m_material_specular_color = {};
-    m_material_emissive_color = {};
-    m_shininess_table.fill(0u);
-    m_enable_shininess_table = false;
+    m_lights = {};
+    m_material = {};
   }
 
   void GeometryEngine::SwapBuffers() {
@@ -429,37 +423,33 @@ namespace dual::nds::gpu {
   void GeometryEngine::SetNormal(Vector3<Fixed20x12> normal) {
     // @todo: texture mapping
 
-    i32 r = m_material_emissive_color.R().Raw() << 14;
-    i32 g = m_material_emissive_color.G().Raw() << 14;
-    i32 b = m_material_emissive_color.B().Raw() << 14;
+    i32 r = m_material.emissive_color.R().Raw() << 14;
+    i32 g = m_material.emissive_color.G().Raw() << 14;
+    i32 b = m_material.emissive_color.B().Raw() << 14;
 
-    const Color4 diffuse  = m_material_diffuse_color;
-    const Color4 ambient  = m_material_ambient_color;
-    const Color4 specular = m_material_specular_color;
+    const Color4 diffuse  = m_material.diffuse_color;
+    const Color4 ambient  = m_material.ambient_color;
+    const Color4 specular = m_material.specular_color;
 
     for(int i = 0; i < 4; i++) {
       if(!m_polygon_attributes.light_enable[i]) {
         continue;
       }
 
-      const Vector3<Fixed20x12> halfway{
-        m_light_direction[i].X().Raw() >> 1,
-        m_light_direction[i].Y().Raw() >> 1,
-       (m_light_direction[i].Z().Raw() - (1 << 12)) >> 1
-      };
+      const Light& light = m_lights[i];
 
-      const u8 n_dot_l = (u8)std::clamp<i32>(-normal.Dot(m_light_direction[i]).Raw() >> 4, 0, 255);
-      const u8 n_dot_h = (u8)std::clamp<i32>(-normal.Dot(halfway).Raw() >> 4, 0, 255);
+      const u8 n_dot_l = (u8)std::clamp<i32>(-normal.Dot(light.direction).Raw() >> 4, 0, 255);
+      const u8 n_dot_h = (u8)std::clamp<i32>(-normal.Dot(light.halfway).Raw() >> 4, 0, 255);
 
       i32 n_dot_h_2 = (n_dot_h * n_dot_h) >> 8;
 
-      if(m_enable_shininess_table) {
-        n_dot_h_2 = m_shininess_table[n_dot_h_2 >> 1];
+      if(m_material.enable_shininess_table) {
+        n_dot_h_2 = m_material.shininess_table[n_dot_h_2 >> 1];
       }
 
-      r += m_light_color[i].R().Raw() * (n_dot_l * diffuse.R().Raw() + n_dot_h_2 * specular.R().Raw() + (ambient.R().Raw() << 8));
-      g += m_light_color[i].G().Raw() * (n_dot_l * diffuse.G().Raw() + n_dot_h_2 * specular.G().Raw() + (ambient.G().Raw() << 8));
-      b += m_light_color[i].B().Raw() * (n_dot_l * diffuse.B().Raw() + n_dot_h_2 * specular.B().Raw() + (ambient.B().Raw() << 8));
+      r += light.color.R().Raw() * (n_dot_l * diffuse.R().Raw() + n_dot_h_2 * specular.R().Raw() + (ambient.R().Raw() << 8));
+      g += light.color.G().Raw() * (n_dot_l * diffuse.G().Raw() + n_dot_h_2 * specular.G().Raw() + (ambient.G().Raw() << 8));
+      b += light.color.B().Raw() * (n_dot_l * diffuse.B().Raw() + n_dot_h_2 * specular.B().Raw() + (ambient.B().Raw() << 8));
     }
 
     // @todo: getting some random colors which are off. figure out why this happens.

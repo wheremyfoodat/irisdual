@@ -113,35 +113,42 @@ namespace dual::nds::gpu {
       void SetNormal(Vector3<Fixed20x12> normal);
 
       void SetMaterialDiffuseColor(const Color4& color) {
-        m_material_diffuse_color = color;
+        m_material.diffuse_color = color;
       }
 
       void SetMaterialAmbientColor(const Color4& color) {
-        m_material_ambient_color = color;
+        m_material.ambient_color = color;
       }
 
       void SetMaterialSpecularColor(const Color4& color) {
-        m_material_specular_color = color;
+        m_material.specular_color = color;
       }
 
       void SetMaterialEmissiveColor(const Color4& color) {
-        m_material_emissive_color = color;
+        m_material.emissive_color = color;
       }
 
-      void SetLightDirection(int light_index, Vector3<Fixed20x12> direction) {
-        m_light_direction[light_index] = direction;
+      void SetLightDirection(int index, Vector3<Fixed20x12> direction) {
+        Light& light = m_lights[index];
+
+        light.direction = direction;
+        light.halfway = Vector3<Fixed20x12>{
+          direction.X().Raw() >> 1,
+          direction.Y().Raw() >> 1,
+         (direction.Z().Raw() - (1 << 12)) >> 1
+        };
       }
 
-      void SetLightColor(int light_index, const Color4& color) {
-        m_light_color[light_index] = color;
+      void SetLightColor(int index, const Color4& color) {
+        m_lights[index].color = color;
       }
 
       void SetShininessTableEnable(bool enabled) {
-        m_enable_shininess_table = enabled;
+        m_material.enable_shininess_table = enabled;
       }
 
       std::array<u8, 128>& GetShininessTable() {
-        return m_shininess_table;
+        return m_material.shininess_table;
       }
 
       void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
@@ -188,14 +195,23 @@ namespace dual::nds::gpu {
       u32 m_texture_palette_base{};
       Color4 m_vertex_color{};
       Vector2<Fixed12x4> m_vertex_uv{};
-      std::array<Vector3<Fixed20x12>, 4> m_light_direction{};
-      std::array<Color4, 4> m_light_color{};
-      Color4 m_material_diffuse_color{};
-      Color4 m_material_ambient_color{};
-      Color4 m_material_specular_color{};
-      Color4 m_material_emissive_color{};
-      std::array<u8, 128> m_shininess_table{};
-      bool m_enable_shininess_table{};
+
+      struct Light {
+        Vector3<Fixed20x12> direction{};
+        Vector3<Fixed20x12> halfway{};
+        Color4 color{};
+      };
+
+      std::array<Light, 4> m_lights{};
+
+      struct Material {
+        Color4 diffuse_color{};
+        Color4 ambient_color{};
+        Color4 specular_color{};
+        Color4 emissive_color{};
+        std::array<u8, 128> shininess_table{};
+        bool enable_shininess_table{false};
+      } m_material{};
   };
 
 } // namespace dual::nds::gpu
