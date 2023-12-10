@@ -28,10 +28,19 @@ namespace dual::nds::gpu {
       void CaptureAlpha(int scanline, std::span<int, 256> dst_buffer) override;
 
     private:
+      struct Line {
+        int x[2];
+        Color4 color[2];
+        Vector2<Fixed12x4> uv[2];
+        u16 w_16[2];
+        u32 depth[2];
+      };
+
       void CopyVRAM();
       void RenderRearPlane();
       void RenderPolygons(const Viewport& viewport, std::span<const Polygon> polygons);
       void RenderPolygon(const Viewport& viewport, const Polygon& polygon);
+      void RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1);
       Color4 SampleTexture(TextureParams params, u32 palette_base, Vector2<Fixed12x4> uv);
 
       template<typename T>

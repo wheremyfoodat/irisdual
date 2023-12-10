@@ -8,16 +8,6 @@
 
 namespace dual::nds::gpu {
 
-  // @todo: move this into a header file.
-  struct Span {
-    i32 x0[2];
-    i32 x1[2];
-    Color4 color[2];
-    Vector2<Fixed12x4> uv[2];
-    u16 w_16[2];
-    u32 depth[2];
-  };
-
   void SoftwareRenderer::RenderRearPlane() {
     if(m_io.disp3dcnt.enable_rear_plane_bitmap) {
       ATOM_PANIC("gpu: sw: Unimplemented rear plane bitmap");
@@ -49,13 +39,11 @@ namespace dual::nds::gpu {
   void SoftwareRenderer::RenderPolygon(const Viewport& viewport, const Polygon& polygon) {
     const int vertex_count = (int)polygon.vertices.Size();
 
-    // @todo: use different threshold for w-buffer
-    const i32 depth_test_threshold = m_enable_w_buffer ? 0xFF : 0x200;
-
-    Span span{};
+    i32 x0[2];
+    i32 x1[2];
+    Line line{};
     Edge::Point points[10];
     Interpolator<9> edge_interp{};
-    Interpolator<8> line_interp{};
 
     int initial_vertex;
     int final_vertex;
@@ -144,23 +132,24 @@ namespace dual::nds::gpu {
       }
 
       for(int i = 0; i < 2; i++) {
-        edge[i].Interpolate(y, span.x0[i], span.x1[i]);
+        edge[i].Interpolate(y, x0[i], x1[i]);
       }
 
       // Detect when the left and right edges become swapped
-      if(span.x0[l] >> 18 > span.x1[r] >> 18) {
+      if(x0[l] >> 18 > x1[r] >> 18) {
         l ^= 1;
         r ^= 1;
       }
 
       for(int i = 0; i < 2; i++) {
+        const int j = i ^ l;
         const u16 w0 = polygon.w_16[start[i]];
         const u16 w1 = polygon.w_16[end[i]];
 
         if(edge[i].IsXMajor()) {
           const i32 x_min = points[start[i]].x;
           const i32 x_max = points[end[i]].x;
-          const i32 x = (i == l ? span.x0[l] : span.x1[r]) >> 18;
+          const i32 x = (i == l ? x0[l] : x1[r]) >> 18;
 
           if(x_min <= x_max) {
             edge_interp.Setup(w0, w1, x, x_min, x_max);
@@ -171,14 +160,14 @@ namespace dual::nds::gpu {
           edge_interp.Setup(w0, w1, y, points[start[i]].y, points[end[i]].y);
         }
 
-        edge_interp.Perp(points[start[i]].vertex->color, points[end[i]].vertex->color, span.color[i]);
-        edge_interp.Perp(points[start[i]].vertex->uv, points[end[i]].vertex->uv, span.uv[i]);
-        span.w_16[i] = edge_interp.Perp(w0, w1);
+        edge_interp.Perp(points[start[i]].vertex->color, points[end[i]].vertex->color, line.color[j]);
+        edge_interp.Perp(points[start[i]].vertex->uv, points[end[i]].vertex->uv, line.uv[j]);
+        line.w_16[j] = edge_interp.Perp(w0, w1);
 
         if(m_enable_w_buffer) {
-          span.depth[i] = (u32)((i32)(i16)span.w_16[i] << polygon.w_l_shift >> polygon.w_r_shift);
+          line.depth[j] = (u32)((i32)(i16)line.w_16[j] << polygon.w_l_shift >> polygon.w_r_shift);
         } else {
-          span.depth[i] = edge_interp.Lerp(points[start[i]].depth, points[end[i]].depth);
+          line.depth[j] = edge_interp.Lerp(points[start[i]].depth, points[end[i]].depth);
         }
       }
 
@@ -192,100 +181,109 @@ namespace dual::nds::gpu {
 
       const bool force_render_inner_span = y == y_min || y == y_max - 1;
 
-      const int x_min = span.x0[l] >> 18;
-      const int x_max = span.x1[r] >> 18;
+      const int x_min = x0[l] >> 18;
+      const int x_max = x1[r] >> 18;
 
       const int xl0 = std::max(x_min, 0);
-      const int xl1 = std::clamp(span.x1[l] >> 18, xl0, 255);
-      const int xr0 = std::clamp(span.x0[r] >> 18, xl1, 255);
+      const int xl1 = std::clamp(x1[l] >> 18, xl0, 255);
+      const int xr0 = std::clamp(x0[r] >> 18, xl1, 255);
       const int xr1 = std::min(x_max, 255);
 
-      const auto RenderSpan = [&](int x0, int x1) {
-        Color4 color;
-        Vector2<Fixed12x4> uv;
+      line.x[0] = x_min;
+      line.x[1] = x_max;
 
-        for(int x = x0; x <= x1; x++) {
-          line_interp.Setup(span.w_16[l], span.w_16[r], x, x_min, x_max);
-
-          const u32 depth_old = m_depth_buffer[y][x];
-          const u32 depth_new = m_enable_w_buffer ?
-            line_interp.Perp(span.depth[l], span.depth[r]) : line_interp.Lerp(span.depth[l], span.depth[r]);
-
-          bool depth_test_passed;
-
-          if(polygon.attributes.use_equal_depth_test) {
-            depth_test_passed = std::abs((i32)depth_new - (i32)depth_old) <= depth_test_threshold;
-          } else {
-            depth_test_passed = depth_new < depth_old;
-          }
-
-          if(!depth_test_passed) {
-            continue;
-          }
-
-          line_interp.Perp(span.color[l], span.color[r], color);
-          line_interp.Perp(span.uv[l], span.uv[r], uv);
-
-          if(m_io.disp3dcnt.enable_texture_mapping && polygon.texture_params.format != TextureParams::Format::Disabled) {
-            const Color4 texel = SampleTexture(polygon.texture_params, polygon.palette_base, uv);
-
-            // @todo: alpha test
-
-            switch((Polygon::Mode)polygon.attributes.polygon_mode) {
-              case Polygon::Mode::Modulation: {
-                for(const int i : {0, 1, 2, 3}) {
-                  const int a = texel[i].Raw();
-                  const int b = color[i].Raw();
-                  color[i] = (i8)(((a + 1) * (b + 1) - 1) >> 6);
-                }
-                break;
-              }
-              case Polygon::Mode::Shadow:
-              case Polygon::Mode::Decal: {
-                // @todo
-                break;
-              }
-              case Polygon::Mode::Shaded: {
-                // @todo
-                break;
-              }
-            }
-          } else if(polygon.attributes.polygon_mode == Polygon::Mode::Shaded) {
-            // @todo
-          }
-
-          // @todo: reject translucent pixel if the polygon ID is equal and the destination (old?) pixel isn't opaque.
-
-          const bool opaque_pixel = color.A() == 63;
-
-          if(!opaque_pixel && m_io.disp3dcnt.enable_alpha_blend && m_frame_buffer[y][x].A() != 0) {
-            const Fixed6 a0 = color.A();
-            const Fixed6 a1 = Fixed6{63} - a0;
-            for(const int i : {0, 1, 2}) {
-              color[i] = color[i] * a0 + m_frame_buffer[y][x][i] * a1;
-            }
-            color.A() = std::max(color.A(), m_frame_buffer[y][x].A());
-          }
-
-          m_frame_buffer[y][x] = color;
-
-          if(opaque_pixel) {
-            m_depth_buffer[y][x] = depth_new;
-          } else {
-            if(polygon.attributes.enable_translucent_depth_write) {
-              m_depth_buffer[y][x] = depth_new;
-            }
-          }
-        }
-      };
-
-      RenderSpan(xl0, xl1);
+      RenderPolygonSpan(polygon, line, y, xl0, xl1);
 
       if(!wireframe || force_render_inner_span) {
-        RenderSpan(xl1 + 1, xr0 - 1);
+        RenderPolygonSpan(polygon, line, y, xl1 + 1, xr0 - 1);
       }
 
-      RenderSpan(xr0, xr1);
+      RenderPolygonSpan(polygon, line, y, xr0, xr1);
+    }
+  }
+
+  void SoftwareRenderer::RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1) {
+    const i32 depth_test_threshold = m_enable_w_buffer ? 0xFF : 0x200;
+
+    Interpolator<8> line_interp{};
+    Color4 color;
+    Vector2<Fixed12x4> uv;
+
+    const int x_min = line.x[0];
+    const int x_max = line.x[1];
+
+    for(int x = x0; x <= x1; x++) {
+      line_interp.Setup(line.w_16[0], line.w_16[1], x, x_min, x_max);
+
+      const u32 depth_old = m_depth_buffer[y][x];
+      const u32 depth_new = m_enable_w_buffer ?
+        line_interp.Perp(line.depth[0], line.depth[1]) : line_interp.Lerp(line.depth[0], line.depth[1]);
+
+      bool depth_test_passed;
+
+      if(polygon.attributes.use_equal_depth_test) {
+        depth_test_passed = std::abs((i32)depth_new - (i32)depth_old) <= depth_test_threshold;
+      } else {
+        depth_test_passed = depth_new < depth_old;
+      }
+
+      if(!depth_test_passed) {
+        continue;
+      }
+
+      line_interp.Perp(line.color[0], line.color[1], color);
+      line_interp.Perp(line.uv[0], line.uv[1], uv);
+
+      if(m_io.disp3dcnt.enable_texture_mapping && polygon.texture_params.format != TextureParams::Format::Disabled) {
+        const Color4 texel = SampleTexture(polygon.texture_params, polygon.palette_base, uv);
+
+        // @todo: alpha test
+
+        switch((Polygon::Mode)polygon.attributes.polygon_mode) {
+          case Polygon::Mode::Modulation: {
+            for(const int i : {0, 1, 2, 3}) {
+              const int a = texel[i].Raw();
+              const int b = color[i].Raw();
+              color[i] = (i8)(((a + 1) * (b + 1) - 1) >> 6);
+            }
+            break;
+          }
+          case Polygon::Mode::Shadow:
+          case Polygon::Mode::Decal: {
+            // @todo
+            break;
+          }
+          case Polygon::Mode::Shaded: {
+            // @todo
+            break;
+          }
+        }
+      } else if(polygon.attributes.polygon_mode == Polygon::Mode::Shaded) {
+        // @todo
+      }
+
+      // @todo: reject translucent pixel if the polygon ID is equal and the destination (old?) pixel isn't opaque.
+
+      const bool opaque_pixel = color.A() == 63;
+
+      if(!opaque_pixel && m_io.disp3dcnt.enable_alpha_blend && m_frame_buffer[y][x].A() != 0) {
+        const Fixed6 a0 = color.A();
+        const Fixed6 a1 = Fixed6{63} - a0;
+        for(const int i : {0, 1, 2}) {
+          color[i] = color[i] * a0 + m_frame_buffer[y][x][i] * a1;
+        }
+        color.A() = std::max(color.A(), m_frame_buffer[y][x].A());
+      }
+
+      m_frame_buffer[y][x] = color;
+
+      if(opaque_pixel) {
+        m_depth_buffer[y][x] = depth_new;
+      } else {
+        if(polygon.attributes.enable_translucent_depth_write) {
+          m_depth_buffer[y][x] = depth_new;
+        }
+      }
     }
   }
 
