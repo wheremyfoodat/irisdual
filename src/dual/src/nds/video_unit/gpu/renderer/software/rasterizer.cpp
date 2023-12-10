@@ -185,9 +185,9 @@ namespace dual::nds::gpu {
       const int x_max = x1[r] >> 18;
 
       const int xl0 = std::max(x_min, 0);
-      const int xl1 = std::clamp(x1[l] >> 18, xl0, 255);
-      const int xr0 = std::clamp(x0[r] >> 18, xl1, 255);
       const int xr1 = std::min(x_max, 255);
+      const int xl1 = std::clamp(x1[l] >> 18, xl0, xr1);
+      const int xr0 = std::clamp(x0[r] >> 18, xl1, xr1);
 
       line.x[0] = x_min;
       line.x[1] = x_max;
