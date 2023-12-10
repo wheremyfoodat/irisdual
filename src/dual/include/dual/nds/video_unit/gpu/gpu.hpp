@@ -37,6 +37,13 @@ namespace dual::nds {
         m_renderer->CaptureAlpha(scanline, dst_buffer);
       }
 
+      const Matrix4<Fixed20x12>& GetClipMatrix() {
+        return m_cmd_processor.GetClipMatrix();
+      }
+
+      const Matrix4<Fixed20x12>& GetVecMatrix() {
+        return m_cmd_processor.GetClipMatrix();
+      }
 
       [[nodiscard]] u32 Read_DISP3DCNT() const {
         return m_io.disp3dcnt.half;

@@ -25,6 +25,19 @@ namespace dual::nds::gpu {
 
       void Reset();
 
+      const Matrix4<Fixed20x12>& GetClipMatrix() {
+        if(m_clip_mtx_dirty) {
+          m_clip_mtx = m_projection_mtx * m_coordinate_mtx;
+          m_clip_mtx_dirty = false;
+        }
+
+        return m_clip_mtx;
+      }
+
+      const Matrix4<Fixed20x12>& GetVecMatrix() {
+        return m_direction_mtx;
+      }
+
       void Write_GXFIFO(u32 word) {
         if(m_unpack.params_left > 0) {
           EnqueuePackedCmdParam(word);
@@ -119,12 +132,8 @@ namespace dual::nds::gpu {
       void ApplyMatrixToCurrent(const Matrix4<Fixed20x12>& rhs_matrix);
 
       void SubmitVertex(const Vector3<Fixed20x12>& position) {
-        if(m_clip_mtx_dirty) {
-          m_clip_mtx = m_projection_mtx * m_coordinate_mtx;
-          m_clip_mtx_dirty = false;
-        }
         m_last_position = position;
-        m_geometry_engine.SubmitVertex(position, m_clip_mtx);
+        m_geometry_engine.SubmitVertex(position, GetClipMatrix());
       }
 
       Scheduler& m_scheduler;

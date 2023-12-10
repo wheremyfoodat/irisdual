@@ -221,8 +221,8 @@ namespace dual::nds::arm9 {
       case REG(0x04000604): ATOM_PANIC("gpu: Unhandled read from RAM_COUNT");
       case REG(0x04000620) ... REG(0x0400062C): ATOM_PANIC("gpu: Unhandled read from POS_RESULT");
       case REG(0x04000630) ... REG(0x04000634): ATOM_PANIC("gpu: Unhandled read from VEC_RESULT");
-      //case REG(0x04000640) ... REG(0x0400067C): ATOM_PANIC("gpu: Unhandled read from CLIPMTX_RESULT");
-      case REG(0x04000680) ... REG(0x040006A0): ATOM_PANIC("gpu: Unhandled read from VECMTX_RESULT");
+      case REG(0x04000640) ... REG(0x0400067C): return (u32)gpu.GetClipMatrix()[(address >> 4) & 3][(address >> 2) & 3].Raw();
+      case REG(0x04000680) ... REG(0x040006A0): return  (u32)gpu.GetVecMatrix()[(address >> 4) & 3][(address >> 2) & 3].Raw();
 
       default: {
         Unhandled();
