@@ -25,7 +25,7 @@ namespace dual::nds::gpu {
 
       void Reset();
 
-      const Matrix4<Fixed20x12>& GetClipMatrix() {
+      [[nodiscard]] const Matrix4<Fixed20x12>& GetClipMatrix() const {
         if(m_clip_mtx_dirty) {
           m_clip_mtx = m_projection_mtx * m_coordinate_mtx;
           m_clip_mtx_dirty = false;
@@ -34,7 +34,7 @@ namespace dual::nds::gpu {
         return m_clip_mtx;
       }
 
-      const Matrix4<Fixed20x12>& GetVecMatrix() {
+      [[nodiscard]] const Matrix4<Fixed20x12>& GetVecMatrix() const {
         return m_direction_mtx;
       }
 
@@ -163,8 +163,8 @@ namespace dual::nds::gpu {
       size_t m_projection_mtx_index{};
       size_t m_coordinate_mtx_index{};
       size_t m_texture_mtx_index{};
-      bool m_clip_mtx_dirty{};
-      Matrix4<Fixed20x12> m_clip_mtx;
+      mutable bool m_clip_mtx_dirty{};
+      mutable Matrix4<Fixed20x12> m_clip_mtx;
 
       Vector3<Fixed20x12> m_last_position;
 
