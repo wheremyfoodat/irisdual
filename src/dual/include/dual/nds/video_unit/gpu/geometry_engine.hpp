@@ -148,10 +148,14 @@ namespace dual::nds::gpu {
         return m_material.shininess_table;
       }
 
-      void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
-
       [[nodiscard]] std::span<const Polygon> GetPolygonsToRender() const {
         return m_polygon_ram[m_current_buffer ^ 1];
+      }
+
+      void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
+
+      [[nodiscard]] atom::Vector_N<Vertex, 10> ClipPolygon(const atom::Vector_N<Vertex, 10>& vertex_list) const {
+        return ClipPolygon(vertex_list, false, m_polygon_attributes.render_far_plane_intersecting);
       }
 
     private:

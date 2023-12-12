@@ -125,6 +125,7 @@ namespace dual::nds::gpu {
       void cmdEndVertices();
       void cmdSwapBuffers();
       void cmdViewport();
+      void cmdBoxTest();
 
       Matrix4<Fixed20x12> DequeueMatrix4x4();
       Matrix4<Fixed20x12> DequeueMatrix4x3();

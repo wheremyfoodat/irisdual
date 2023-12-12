@@ -215,6 +215,7 @@ namespace dual::nds::gpu {
       case 0x41: cmdEndVertices(); break;
       case 0x50: cmdSwapBuffers(); break;
       case 0x60: cmdViewport(); break;
+      case 0x70: cmdBoxTest(); break;
       default: {
         if(k_cmd_num_params[command] == 0) {
           DequeueFIFO();
@@ -225,7 +226,6 @@ namespace dual::nds::gpu {
         }
 
         if(
-          command != 0x34 && // SHININESS
           command != 0x70 && // BOX_TEST
           true
         ) {
@@ -269,6 +269,49 @@ namespace dual::nds::gpu {
     m_viewport.y0 = y0;
     m_viewport.width  = 1 + x1 - x0;
     m_viewport.height = 1 + y1 - y0;
+  }
+
+  void CommandProcessor::cmdBoxTest() {
+    const Matrix4<Fixed20x12>& clip_matrix = GetClipMatrix();
+
+    const u32 param0 = (u32)DequeueFIFO();
+    const u32 param1 = (u32)DequeueFIFO();
+    const u32 param2 = (u32)DequeueFIFO();
+
+    const i16 x = (i16)(u16)(param0 >>  0);
+    const i16 y = (i16)(u16)(param0 >> 16);
+    const i16 z = (i16)(u16)(param1 >>  0);
+
+    const i16 w = (i16)(u16)(param1 >> 16);
+    const i16 h = (i16)(u16)(param2 >>  0);
+    const i16 d = (i16)(u16)(param2 >> 16);
+
+    /**
+     *      2--------6
+     *   ╱ |     ╱ |
+     * 1----|---5    |
+     * |    3---|----7
+     * | ╱     | ╱
+     * 0--------4
+     */
+    const Vector4<Fixed20x12> v[8] {
+      clip_matrix * Vector4<Fixed20x12>{x    , y    , z,     Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x    , y + h, z,     Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x    , y + h, z + d, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x    , y    , z + d, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x + w, y    , z,     Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x + w, y + h, z,     Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x + w, y + h, z + d, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x + w, y    , z + d, Fixed20x12::FromInt(1)}
+    };
+
+    m_gxstat.test_cmd_result =
+      !m_geometry_engine.ClipPolygon({{ {v[0]}, {v[1]}, {v[2]}, {v[3]} }}).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[4]}, {v[5]}, {v[6]}, {v[7]} }}).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[1]}, {v[5]}, {v[4]}, {v[0]} }}).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[2]}, {v[6]}, {v[7]}, {v[3]} }}).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[1]}, {v[5]}, {v[6]}, {v[2]} }}).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[0]}, {v[4]}, {v[7]}, {v[3]} }}).Empty();
   }
 
 } // namespace dual::nds::gpu
