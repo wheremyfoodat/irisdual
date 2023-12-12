@@ -190,11 +190,7 @@ namespace dual::nds::gpu {
         next_vertex_list.PushBack(m_current_vertex_list[m_current_vertex_list.Size() - 1]);
       }
 
-      m_current_vertex_list = ClipPolygon(
-        m_current_vertex_list,
-        m_primitive_is_quad && m_primitive_is_strip,
-        m_polygon_attributes.render_far_plane_intersecting
-      );
+      m_current_vertex_list = ClipPolygon(m_current_vertex_list, m_primitive_is_quad && m_primitive_is_strip);
     }
 
     for(const Vertex& v : m_current_vertex_list) {
@@ -292,11 +288,7 @@ namespace dual::nds::gpu {
     }
   }
 
-  atom::Vector_N<Vertex, 10> GeometryEngine::ClipPolygon(
-    const atom::Vector_N<Vertex, 10>& vertex_list,
-    bool quad_strip,
-    bool render_far_plane_intersecting
-  ) {
+  atom::Vector_N<Vertex, 10> GeometryEngine::ClipPolygon(const atom::Vector_N<Vertex, 10>& vertex_list, bool quad_strip) const {
     atom::Vector_N<Vertex, 10> clipped[2];
 
     clipped[0] = vertex_list;
@@ -314,7 +306,7 @@ namespace dual::nds::gpu {
     };
 
     const bool far_plane_intersecting = ClipPolygonAgainstPlane<2, CompareGt>(clipped[0], clipped[1]);
-    if(!render_far_plane_intersecting && far_plane_intersecting) {
+    if(!m_polygon_attributes.render_far_plane_intersecting && far_plane_intersecting) {
       // @todo: test if this is actually working as intended!
       return {};
     }

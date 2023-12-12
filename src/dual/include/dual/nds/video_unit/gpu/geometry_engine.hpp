@@ -154,18 +154,11 @@ namespace dual::nds::gpu {
 
       void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix);
 
-      [[nodiscard]] atom::Vector_N<Vertex, 10> ClipPolygon(const atom::Vector_N<Vertex, 10>& vertex_list) const {
-        return ClipPolygon(vertex_list, false, m_polygon_attributes.render_far_plane_intersecting);
-      }
+      [[nodiscard]] atom::Vector_N<Vertex, 10> ClipPolygon(
+        const atom::Vector_N<Vertex, 10>& vertex_list, bool quad_strip) const;
 
     private:
       static void NormalizeW(Polygon& poly);
-
-      static atom::Vector_N<Vertex, 10> ClipPolygon(
-        const atom::Vector_N<Vertex, 10>& vertex_list,
-        bool quad_strip,
-        bool render_far_plane_intersecting
-      );
 
       template<int axis, typename Comparator>
       static bool ClipPolygonAgainstPlane(

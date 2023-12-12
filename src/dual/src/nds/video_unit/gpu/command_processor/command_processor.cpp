@@ -306,12 +306,12 @@ namespace dual::nds::gpu {
     };
 
     m_gxstat.test_cmd_result =
-      !m_geometry_engine.ClipPolygon({{ {v[0]}, {v[1]}, {v[2]}, {v[3]} }}).Empty() ||
-      !m_geometry_engine.ClipPolygon({{ {v[4]}, {v[5]}, {v[6]}, {v[7]} }}).Empty() ||
-      !m_geometry_engine.ClipPolygon({{ {v[1]}, {v[5]}, {v[4]}, {v[0]} }}).Empty() ||
-      !m_geometry_engine.ClipPolygon({{ {v[2]}, {v[6]}, {v[7]}, {v[3]} }}).Empty() ||
-      !m_geometry_engine.ClipPolygon({{ {v[1]}, {v[5]}, {v[6]}, {v[2]} }}).Empty() ||
-      !m_geometry_engine.ClipPolygon({{ {v[0]}, {v[4]}, {v[7]}, {v[3]} }}).Empty();
+      !m_geometry_engine.ClipPolygon({{ {v[0]}, {v[1]}, {v[2]}, {v[3]} }}, false).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[4]}, {v[5]}, {v[6]}, {v[7]} }}, false).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[1]}, {v[5]}, {v[4]}, {v[0]} }}, false).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[2]}, {v[6]}, {v[7]}, {v[3]} }}, false).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[1]}, {v[5]}, {v[6]}, {v[2]} }}, false).Empty() ||
+      !m_geometry_engine.ClipPolygon({{ {v[0]}, {v[4]}, {v[7]}, {v[3]} }}, false).Empty();
   }
 
 } // namespace dual::nds::gpu
