@@ -278,13 +278,13 @@ namespace dual::nds::gpu {
     const u32 param1 = (u32)DequeueFIFO();
     const u32 param2 = (u32)DequeueFIFO();
 
-    const i16 x = (i16)(u16)(param0 >>  0);
-    const i16 y = (i16)(u16)(param0 >> 16);
-    const i16 z = (i16)(u16)(param1 >>  0);
+    const i16 x_min = (i16)(u16)(param0 >>  0);
+    const i16 y_min = (i16)(u16)(param0 >> 16);
+    const i16 z_min = (i16)(u16)(param1 >>  0);
 
-    const i16 w = (i16)(u16)(param1 >> 16);
-    const i16 h = (i16)(u16)(param2 >>  0);
-    const i16 d = (i16)(u16)(param2 >> 16);
+    const i16 x_max = (i16)(x_min + (i16)(u16)(param1 >> 16));
+    const i16 y_max = (i16)(y_min + (i16)(u16)(param2 >>  0));
+    const i16 z_max = (i16)(z_min + (i16)(u16)(param2 >> 16));
 
     /**
      *      2--------6
@@ -295,14 +295,14 @@ namespace dual::nds::gpu {
      * 0--------4
      */
     const Vector4<Fixed20x12> v[8] {
-      clip_matrix * Vector4<Fixed20x12>{x    , y    , z,     Fixed20x12::FromInt(1)},
-      clip_matrix * Vector4<Fixed20x12>{x    , y + h, z,     Fixed20x12::FromInt(1)},
-      clip_matrix * Vector4<Fixed20x12>{x    , y + h, z + d, Fixed20x12::FromInt(1)},
-      clip_matrix * Vector4<Fixed20x12>{x    , y    , z + d, Fixed20x12::FromInt(1)},
-      clip_matrix * Vector4<Fixed20x12>{x + w, y    , z,     Fixed20x12::FromInt(1)},
-      clip_matrix * Vector4<Fixed20x12>{x + w, y + h, z,     Fixed20x12::FromInt(1)},
-      clip_matrix * Vector4<Fixed20x12>{x + w, y + h, z + d, Fixed20x12::FromInt(1)},
-      clip_matrix * Vector4<Fixed20x12>{x + w, y    , z + d, Fixed20x12::FromInt(1)}
+      clip_matrix * Vector4<Fixed20x12>{x_min, y_min, z_min, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x_min, y_max, z_min, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x_min, y_max, z_max, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x_min, y_min, z_max, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x_max, y_min, z_min, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x_max, y_max, z_min, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x_max, y_max, z_max, Fixed20x12::FromInt(1)},
+      clip_matrix * Vector4<Fixed20x12>{x_max, y_min, z_max, Fixed20x12::FromInt(1)}
     };
 
     m_gxstat.test_cmd_result =
