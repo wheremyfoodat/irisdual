@@ -69,6 +69,16 @@ namespace dual::nds {
   }
 
   void Cartridge::Write_AUXSPIDATA(u8 value) {
+    if(!m_backup) {
+      m_auxspidata = 0xFFu;
+      return;
+    }
+
+    m_backup->Select();
+    m_auxspidata = m_backup->Transfer(value);
+    if(!m_auxspicnt.chip_select_hold) {
+      m_backup->Deselect();
+    }
   }
 
   auto Cartridge::Read_ROMCTRL() -> u32 {

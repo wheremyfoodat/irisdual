@@ -1,5 +1,7 @@
 
 #include <atom/logger/logger.hpp>
+#include <dual/nds/backup/eeprom512b.hpp>
+#include <dual/nds/backup/flash.hpp>
 #include <fstream>
 
 #include "application.hpp"
@@ -26,7 +28,7 @@ int Application::Run(int argc, char **argv) {
   LoadBootROM("boot9.bin", true);
   LoadBootROM("boot7.bin", false);
   if(argc < 2) {
-    LoadROM("pokesoulsilver.nds");
+    LoadROM("pokeblack2.nds");
   } else {
     LoadROM(argv[1]);
   }
@@ -71,7 +73,12 @@ void Application::LoadROM(const char* path) {
     ATOM_PANIC("Failed to read NDS file: '{}'", path);
   }
 
-  m_nds->LoadROM(std::make_shared<dual::nds::MemoryROM>(data, size));
+  const auto save_path = std::filesystem::path{path}.replace_extension("sav").string();
+
+  // TODO: decide the correct save type
+  std::shared_ptr<dual::nds::arm7::SPI::Device> backup = std::make_shared<dual::nds::FLASH>(save_path, dual::nds::FLASH::Size::_512K);
+
+  m_nds->LoadROM(std::make_shared<dual::nds::MemoryROM>(data, size), backup);
   m_nds->DirectBoot();
 }
 

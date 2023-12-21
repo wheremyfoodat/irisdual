@@ -33,7 +33,7 @@ namespace dual::nds {
       void Step(int cycles_to_run);
       void LoadBootROM9(std::span<u8, 0x8000> data);
       void LoadBootROM7(std::span<u8, 0x4000> data);
-      void LoadROM(std::shared_ptr<ROM> rom);
+      void LoadROM(std::shared_ptr<ROM> rom, std::shared_ptr<dual::nds::arm7::SPI::Device> backup);
       void DirectBoot();
 
       VideoUnit& GetVideoUnit() {

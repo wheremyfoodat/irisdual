@@ -3,6 +3,7 @@
 #include <atom/punning.hpp>
 #include <dual/nds/nds.hpp>
 #include <dual/nds/header.hpp>
+#include <dual/nds/backup/eeprom.hpp>
 
 #include "arm/arm.hpp"
 
@@ -97,8 +98,8 @@ namespace dual::nds {
     std::copy(data.begin(), data.end(), m_memory.arm7.bios.begin());
   }
 
-  void NDS::LoadROM(std::shared_ptr<ROM> rom) {
-    m_cartridge.SetROM(rom);
+  void NDS::LoadROM(std::shared_ptr<ROM> rom, std::shared_ptr<dual::nds::arm7::SPI::Device> backup) {
+    m_cartridge.SetROM(rom, backup);
     m_rom = std::move(rom);
   }
 
