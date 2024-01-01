@@ -1,5 +1,6 @@
 
 #include <atom/logger/logger.hpp>
+#include <atom/arguments.hpp>
 #include <dual/nds/backup/eeprom512b.hpp>
 #include <dual/nds/backup/flash.hpp>
 #include <fstream>
@@ -22,16 +23,25 @@ Application::~Application() {
   SDL_Quit();
 }
 
-int Application::Run(int argc, char **argv) {
+int Application::Run(int argc, char** argv) {
+  std::vector<const char*> files{};
+  std::string boot7_path = "boot7.bin";
+  std::string boot9_path = "boot9.bin";
+
+  atom::Arguments args{"irisdual", "A Nintendo DS emulator developed for fun, with performance and multicore CPUs in mind.", {0, 1, 0}};
+  args.RegisterArgument(boot7_path, true, "boot7", "Path to the ARM7 Boot ROM", "path");
+  args.RegisterArgument(boot9_path, true, "boot9", "Path to the ARM9 Boot ROM", "path");
+  args.RegisterFile("nds_file", false);
+
+  if(!args.Parse(argc, argv, &files)) {
+    std::exit(-1);
+  }
+
   CreateWindow();
   // ARM7 boot ROM must be loaded before the ROM when firmware booting.
-  LoadBootROM("boot9.bin", true);
-  LoadBootROM("boot7.bin", false);
-  if(argc < 2) {
-    LoadROM("pokeblack2.nds");
-  } else {
-    LoadROM(argv[1]);
-  }
+  LoadBootROM(boot7_path.c_str(), false);
+  LoadBootROM(boot9_path.c_str(), true);
+  LoadROM(files[0]);
   MainLoop();
   return 0;
 }
