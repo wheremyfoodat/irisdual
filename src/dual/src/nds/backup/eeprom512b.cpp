@@ -12,8 +12,7 @@ namespace dual::nds {
   void EEPROM512B::Reset() {
     static const std::vector<size_t> k_backup_sizes { 512 };
 
-    size_t size = 512;
-    m_file = BackupFile::OpenOrCreate(m_save_path, k_backup_sizes, size);
+    m_file = BackupFile::OpenOrCreate(m_save_path, k_backup_sizes, 512);
     Deselect();
 
     m_write_enable_latch = false;

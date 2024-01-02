@@ -16,13 +16,14 @@ namespace dual::nds {
       8192, 32768, 65536, 131072
     };
 
-    size_t bytes = k_backup_sizes[(int)m_size_hint];
+    m_file = BackupFile::OpenOrCreate(m_save_path, k_backup_sizes, k_backup_sizes[(int)m_size_hint]);
 
-    m_file = BackupFile::OpenOrCreate(m_save_path, k_backup_sizes, bytes);
-    m_mask = bytes - 1U;
+    const size_t save_size = m_file->Size();
+
+    m_mask = save_size - 1U;
     Deselect();
 
-    switch(bytes) {
+    switch(save_size) {
       case 8192: {
         m_size = Size::_8K;
         m_page_mask = 31;

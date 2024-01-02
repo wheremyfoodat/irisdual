@@ -19,7 +19,7 @@ namespace dual {
       static auto OpenOrCreate(
         const std::string& save_path,
         const std::vector<size_t>& valid_sizes,
-        size_t& default_size
+        size_t default_size
       ) -> std::unique_ptr<BackupFile> {
         namespace fs = std::filesystem;
 
@@ -29,24 +29,22 @@ namespace dual {
 
         // @todo: check that we have read and write permissions for the file.
         if(fs::is_regular_file(save_path)) {
-          const auto size = fs::file_size(save_path);
+          const auto file_size = fs::file_size(save_path);
 
           const auto begin = valid_sizes.begin();
           const auto end = valid_sizes.end();
 
-          if(std::find(begin, end, size) != end) {
+          if(std::find(begin, end, file_size) != end) {
             file->m_stream.open(save_path, flags);
             if(file->m_stream.fail()) {
               ATOM_PANIC("unable to open file: {}", save_path);
             }
-            default_size = size;
-            file->m_memory.reset(new u8[size]);
-            file->m_stream.read((char*)file->m_memory.get(), size);
+            file->m_file_size = file_size;
+            file->m_memory.reset(new u8[file_size]);
+            file->m_stream.read((char*)file->m_memory.get(), (std::streamsize)file_size);
             create = false;
           }
         }
-
-        file->m_file_size = default_size;
 
         /* A new save file is created either when no file exists yet,
          * or when the existing file has an invalid size.
@@ -56,6 +54,7 @@ namespace dual {
           if(file->m_stream.fail()) {
             ATOM_PANIC("unable to create file: {}", save_path);
           }
+          file->m_file_size = default_size;
           file->m_memory.reset(new u8[default_size]);
           file->MemorySet(0, default_size, 0xFF);
         }
@@ -65,6 +64,10 @@ namespace dual {
 
       void SetAutoUpdate(bool auto_update) {
         m_auto_update = auto_update;
+      }
+
+      [[nodiscard]] size_t Size() const {
+        return m_file_size;
       }
 
       auto Read(size_t index) -> u8 {

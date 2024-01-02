@@ -22,10 +22,8 @@ namespace dual::nds {
       0x40000, 0x80000, 0x100000
     };
 
-    auto size = k_backup_sizes[static_cast<int>(m_size_hint)];
-
-    m_file = BackupFile::OpenOrCreate(m_save_path, k_backup_sizes, size);
-    m_mask = size - 1U;
+    m_file = BackupFile::OpenOrCreate(m_save_path, k_backup_sizes, k_backup_sizes[static_cast<int>(m_size_hint)]);
+    m_mask = m_file->Size() - 1U;
     Deselect();
 
     m_write_enable_latch = false;
