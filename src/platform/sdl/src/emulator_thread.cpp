@@ -33,6 +33,14 @@ std::unique_ptr<dual::nds::NDS> EmulatorThread::Stop() {
   return std::move(m_nds);
 }
 
+void EmulatorThread::Reset() {
+  PushMessage({.type = MessageType::Reset});
+}
+
+void EmulatorThread::DirectBoot() {
+  PushMessage({.type = MessageType::DirectBoot});
+}
+
 void EmulatorThread::SetKeyState(dual::nds::Key key, bool pressed) {
   PushMessage({
     .type = MessageType::SetKeyState,
@@ -73,6 +81,14 @@ void EmulatorThread::ProcessMessages() {
     const Message& message = m_msg_queue.front();
 
     switch(message.type) {
+      case MessageType::Reset: {
+        m_nds->Reset();
+        break;
+      }
+      case MessageType::DirectBoot: {
+        m_nds->DirectBoot();
+        break;
+      }
       case MessageType::SetKeyState: {
         m_nds->SetKeyState(message.set_key_state.key, message.set_key_state.pressed);
         break;

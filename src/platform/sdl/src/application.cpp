@@ -160,22 +160,6 @@ void Application::MainLoop() {
 
       UpdateFPS();
     }
-
-    // @todo: move this logic into HandleEvent()
-
-    m_emu_thread.SetFastForward(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
-
-    if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F11]) {
-      m_nds = m_emu_thread.Stop();
-      m_nds->Reset();
-      m_emu_thread.Start(std::move(m_nds));
-    }
-
-    if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F12]) {
-      m_nds = m_emu_thread.Stop();
-      m_nds->DirectBoot();
-      m_emu_thread.Start(std::move(m_nds));
-    }
   }
 }
 
@@ -231,9 +215,10 @@ void Application::HandleEvent(const SDL_Event& event) {
 
   if(type == SDL_KEYUP || type == SDL_KEYDOWN) {
     const SDL_KeyboardEvent& keyboard_event = (const SDL_KeyboardEvent&)event;
+    const bool pressed = type == SDL_KEYDOWN;
 
     const auto update_key = [&](dual::nds::Key key) {
-      m_emu_thread.SetKeyState(key, type == SDL_KEYDOWN);
+      m_emu_thread.SetKeyState(key, pressed);
     };
 
     switch(keyboard_event.keysym.sym) {
@@ -249,6 +234,9 @@ void Application::HandleEvent(const SDL_Event& event) {
       case SDLK_DOWN:  update_key(dual::nds::Key::Down);  break;
       case SDLK_LEFT:  update_key(dual::nds::Key::Left);  break;
       case SDLK_RIGHT: update_key(dual::nds::Key::Right); break;
+      case SDLK_F11: if(!pressed) m_emu_thread.Reset(); break;
+      case SDLK_F12: if(!pressed) m_emu_thread.DirectBoot(); break;
+      case SDLK_SPACE: m_emu_thread.SetFastForward(pressed); break;
     }
   }
 }

@@ -20,6 +20,8 @@ class EmulatorThread {
     void Start(std::unique_ptr<dual::nds::NDS> nds);
     std::unique_ptr<dual::nds::NDS> Stop();
 
+    void Reset();
+    void DirectBoot();
     void SetKeyState(dual::nds::Key key, bool pressed);
     void SetTouchState(bool pen_down, u8 x, u8 y);
 
@@ -31,6 +33,8 @@ class EmulatorThread {
 
   private:
     enum class MessageType : u8 {
+      Reset,
+      DirectBoot,
       SetKeyState,
       SetTouchState
     };
