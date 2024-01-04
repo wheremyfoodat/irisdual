@@ -1,4 +1,5 @@
 
+#include <algorithm>
 #include <atom/logger/logger.hpp>
 #include <atom/arguments.hpp>
 #include <dual/nds/backup/eeprom512b.hpp>
@@ -141,6 +142,7 @@ void Application::MainLoop() {
       if(event.type == SDL_QUIT) {
         return;
       }
+      HandleEvent(event);
     }
 
     const auto frame = m_emu_thread.AcquireFrame();
@@ -172,6 +174,57 @@ void Application::MainLoop() {
       m_nds->DirectBoot();
       m_emu_thread.Start(std::move(m_nds));
     }
+  }
+}
+
+void Application::HandleEvent(const SDL_Event& event) {
+  const u32 type = event.type;
+
+  // @todo: do not hardcode the window geometry
+  const i32 window_x0 = 0;
+  const i32 window_x1 = 512;
+  const i32 window_y0 = 384;
+  const i32 window_y1 = 768;
+
+  const auto window_xy_in_range = [](i32 x, i32 y) {
+    return x >= window_x0 && x < window_x1 && y >= window_y0 && y < window_y1;
+  };
+
+  const auto window_x_to_screen_x = [&](i32 window_x) -> u8 {
+    return std::clamp((window_x - window_x0) * 256 / (window_x1 - window_x0), 0, 255);
+  };
+
+  const auto window_y_to_screen_y = [&](i32 window_y) -> u8 {
+    return std::clamp((window_y - window_y0) * 192 / (window_y1 - window_y0), 0, 191);
+  };
+
+  const auto set_touch_state = [&](i32 window_x, i32 window_y) {
+    m_emu_thread.SetTouchState(m_touch_pen_down, window_x_to_screen_x(window_x), window_y_to_screen_y(window_y));
+  };
+
+  if(type == SDL_MOUSEBUTTONUP || type == SDL_MOUSEBUTTONDOWN) {
+    const SDL_MouseButtonEvent& mouse_event = (const SDL_MouseButtonEvent&)event;
+
+    if(mouse_event.button == SDL_BUTTON_LEFT) {
+      const i32 window_x = mouse_event.x;
+      const i32 window_y = mouse_event.y;
+
+      m_touch_pen_down = window_xy_in_range(window_x, window_y) && mouse_event.state == SDL_PRESSED;
+      set_touch_state(window_x, window_y);
+    }
+  }
+
+  if(type == SDL_MOUSEMOTION) {
+    const SDL_MouseMotionEvent& mouse_event = (const SDL_MouseMotionEvent&)event;
+
+    const i32 window_x = mouse_event.x;
+    const i32 window_y = mouse_event.y;
+
+    if(window_xy_in_range(window_x, window_y)) {
+      m_touch_pen_down = mouse_event.state & SDL_BUTTON_LMASK;
+    }
+
+    set_touch_state(window_x, window_y);
   }
 }
 

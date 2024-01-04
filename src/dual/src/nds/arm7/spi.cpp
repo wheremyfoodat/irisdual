@@ -8,8 +8,10 @@ namespace dual::nds::arm7 {
 
   SPI::SPI(IRQ& irq) : m_irq{irq} {
     // @todo: better handle the case where firmware.bin does not exist.
-    m_device_table[1] = std::make_unique<FLASH>("firmware.bin", FLASH::Size::_256K);
-    m_device_table[2] = std::make_unique<TouchScreen>();
+    m_firmware = std::make_unique<FLASH>("firmware.bin", FLASH::Size::_256K);
+    m_touch_screen = std::make_unique<TouchScreen>();
+    m_device_table[1] = m_firmware.get();
+    m_device_table[2] = m_touch_screen.get();
     ReadAndApplyTouchScreenCalibrationData();
   }
 
@@ -60,7 +62,7 @@ namespace dual::nds::arm7 {
       return;
     }
 
-    Device* device = m_device_table[m_spicnt.device].get();
+    Device* device = m_device_table[m_spicnt.device];
 
     if(device) {
       if(!m_chip_select) {
@@ -84,11 +86,8 @@ namespace dual::nds::arm7 {
   }
 
   void SPI::ReadAndApplyTouchScreenCalibrationData() {
-    auto& firmware = (FLASH&)*m_device_table[1];
-    auto& touch_screen = (TouchScreen&)*m_device_table[2];
-
     const auto send_byte = [&](u8 byte) {
-      firmware.Transfer(byte);
+      m_firmware->Transfer(byte);
     };
 
     const auto send_address = [&](u32 address) {
@@ -98,7 +97,7 @@ namespace dual::nds::arm7 {
     };
 
     const auto read_byte = [&]() {
-      return firmware.Transfer(0u);
+      return m_firmware->Transfer(0u);
     };
 
     const auto read_half = [&]() {
@@ -109,13 +108,13 @@ namespace dual::nds::arm7 {
     TouchScreen::CalibrationData calibration_data{};
 
     u32 user_data_offset;
-    firmware.Select();
+    m_firmware->Select();
     send_byte(0x03u);
     send_address(0x20);
     user_data_offset = read_half();
-    firmware.Deselect();
+    m_firmware->Deselect();
 
-    firmware.Select();
+    m_firmware->Select();
     send_byte(0x03u);
     send_address(user_data_offset * 8u + 0x58u);
     calibration_data.adc_x1 = read_half();
@@ -126,9 +125,9 @@ namespace dual::nds::arm7 {
     calibration_data.adc_y2 = read_half();
     calibration_data.screen_x2 = read_byte();
     calibration_data.screen_y2 = read_byte();
-    firmware.Deselect();
+    m_firmware->Deselect();
 
-    touch_screen.SetCalibrationData(calibration_data);
+    ((TouchScreen&)*m_touch_screen).SetCalibrationData(calibration_data);
   }
 
 } // namespace dual::nds::arm7

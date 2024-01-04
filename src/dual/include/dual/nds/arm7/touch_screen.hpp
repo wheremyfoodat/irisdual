@@ -27,6 +27,7 @@ namespace dual::nds::arm7 {
       u8 Transfer(u8 data) override;
 
       void SetCalibrationData(const CalibrationData& data);
+      void SetTouchState(bool pen_down, u8 x, u8 y);
 
     private:
       enum class Channel {
@@ -44,6 +45,10 @@ namespace dual::nds::arm7 {
       int m_screen_x_delta{1};
       int m_screen_y_top_left{};
       int m_screen_y_delta{1};
+
+      bool m_pen_down{false};
+      int m_pen_x{0};
+      int m_pen_y{0};
   };
 
 } // namespace dual::nds::arm7

@@ -29,20 +29,23 @@ namespace dual::nds::arm7 {
     if(m_screen_y_delta == 0) m_screen_y_delta = 1;
   }
 
+  void TouchScreen::SetTouchState(bool pen_down, u8 x, u8 y) {
+    m_pen_down = pen_down;
+    m_pen_x = x;
+    m_pen_y = y;
+  }
+
   u8 TouchScreen::Transfer(u8 data) {
     const u8 byte_out = (u8)(m_data_out >> 8);
 
     m_data_out <<= 8;
 
-    /*const */u16 adc_x = 0x0000u;
-    /*const */u16 adc_y = 0x0FFFu;
+    u16 adc_x = 0x0000u;
+    u16 adc_y = 0x0FFFu;
 
-    {
-      const int screen_x = 64;
-      const int screen_y = 32;
-
-      adc_x = (u16)((screen_x - m_screen_x_top_left + 1) * m_adc_x_delta / m_screen_x_delta + m_adc_x_top_left);
-      adc_y = (u16)((screen_y - m_screen_y_top_left + 1) * m_adc_y_delta / m_screen_y_delta + m_adc_y_top_left);
+    if(m_pen_down) {
+      adc_x = (u16)((m_pen_x - m_screen_x_top_left + 1) * m_adc_x_delta / m_screen_x_delta + m_adc_x_top_left);
+      adc_y = (u16)((m_pen_y - m_screen_y_top_left + 1) * m_adc_y_delta / m_screen_y_delta + m_adc_y_top_left);
     }
 
     if(data & 0x80u) {

@@ -33,6 +33,13 @@ std::unique_ptr<dual::nds::NDS> EmulatorThread::Stop() {
   return std::move(m_nds);
 }
 
+void EmulatorThread::SetTouchState(bool pen_down, u8 x, u8 y) {
+  PushMessage({
+    .type = MessageType::SetTouchState,
+    .set_touch_state = { .pen_down = (u8)(pen_down ? 1 : 0), .x = x, .y = y }
+  });
+}
+
 bool EmulatorThread::GetFastForward() const {
   return m_fast_forward;
 }
@@ -41,6 +48,32 @@ void EmulatorThread::SetFastForward(bool fast_forward) {
   if(fast_forward != m_fast_forward) {
     m_fast_forward = fast_forward;
     m_nds->GetAPU().SetEnableOutput(!fast_forward);
+  }
+}
+
+void EmulatorThread::PushMessage(const Message& message) {
+  std::lock_guard lock_guard{m_msg_queue_mutex};
+  m_msg_queue.push(message); // @todo: can we use emplace?
+}
+
+void EmulatorThread::ProcessMessages() {
+  // @todo: would it be thread-safe to do an initial check on empty() before locking
+  // to avoid acquiring a lock when we do not have to?
+  // idea: use a separate std::atomic_int to track the number of messages in the queue
+  std::lock_guard lock_guard{m_msg_queue_mutex};
+
+  while(!m_msg_queue.empty()) {
+    const Message& message = m_msg_queue.front();
+
+    switch(message.type) {
+      case MessageType::SetTouchState: {
+        m_nds->SetTouchState(message.set_touch_state.pen_down, message.set_touch_state.x, message.set_touch_state.y);
+        break;
+      }
+      default: ATOM_PANIC("unhandled message type {}", (int)message.type);
+    }
+
+    m_msg_queue.pop();
   }
 }
 
@@ -60,6 +93,9 @@ void EmulatorThread::ThreadMain() {
   const uint half_buffer_size = full_buffer_size >> 1;
 
   while(m_running) {
+    // @todo: figure out how frequently we want to run this, especially when unthrottled.
+    ProcessMessages();
+
     if(!m_fast_forward) {
       uint current_buffer_size = audio_driver->GetNumberOfQueuedSamples();
 

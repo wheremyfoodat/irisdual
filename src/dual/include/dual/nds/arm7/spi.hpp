@@ -6,7 +6,13 @@
 #include <dual/nds/irq.hpp>
 #include <memory>
 
+namespace dual::nds {
+  class FLASH;
+} // namespace dual::nds
+
 namespace dual::nds::arm7 {
+
+  class TouchScreen;
 
   class SPI {
     public:
@@ -30,6 +36,10 @@ namespace dual::nds::arm7 {
       auto  Read_SPIDATA() -> u8;
       void Write_SPIDATA(u8 value);
 
+      [[nodiscard]] TouchScreen& GetTouchScreen() {
+        return (TouchScreen&)*m_touch_screen;
+      }
+
     private:
       void ReadAndApplyTouchScreenCalibrationData();
 
@@ -51,7 +61,9 @@ namespace dual::nds::arm7 {
 
       IRQ& m_irq;
 
-      std::unique_ptr<Device> m_device_table[4];
+      std::unique_ptr<Device> m_firmware{};
+      std::unique_ptr<Device> m_touch_screen{};
+      Device* m_device_table[4];
   };
 
 } // namespace dual::nds::arm7

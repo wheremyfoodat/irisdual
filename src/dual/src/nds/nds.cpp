@@ -1,6 +1,7 @@
 
 #include <algorithm>
 #include <atom/punning.hpp>
+#include <dual/nds/arm7/touch_screen.hpp>
 #include <dual/nds/nds.hpp>
 #include <dual/nds/header.hpp>
 #include <dual/nds/backup/eeprom.hpp>
@@ -195,6 +196,10 @@ namespace dual::nds {
     m_cartridge.DirectBoot();
 
     m_video_unit.DirectBoot();
+  }
+
+  void NDS::SetTouchState(bool pen_down, u8 x, u8 y) {
+    m_arm7.spi.GetTouchScreen().SetTouchState(pen_down, x, y);
   }
 
 } // namespace dual::nds

@@ -21,6 +21,7 @@ class Application {
     void LoadROM(const char* path);
     void LoadBootROM(const char* path, bool arm9);
     void MainLoop();
+    void HandleEvent(const SDL_Event& event);
     void UpdateFPS();
 
     SDL_Window* m_window;
@@ -31,4 +32,6 @@ class Application {
     EmulatorThread m_emu_thread{};
     int m_fps_counter{};
     std::chrono::time_point<std::chrono::system_clock> m_last_fps_update{};
+
+    bool m_touch_pen_down{false};
 };

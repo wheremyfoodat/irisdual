@@ -45,6 +45,8 @@ namespace dual::nds {
         return m_arm7.apu;
       }
 
+      void SetTouchState(bool pen_down, u8 x, u8 y);
+
     private:
       Scheduler m_scheduler{};
 

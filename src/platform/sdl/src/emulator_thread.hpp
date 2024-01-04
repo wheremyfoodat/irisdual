@@ -5,6 +5,8 @@
 #include <dual/nds/nds.hpp>
 #include <optional>
 #include <thread>
+#include <mutex>
+#include <queue>
 
 class EmulatorThread {
   public:
@@ -18,6 +20,8 @@ class EmulatorThread {
     void Start(std::unique_ptr<dual::nds::NDS> nds);
     std::unique_ptr<dual::nds::NDS> Stop();
 
+    void SetTouchState(bool pen_down, u8 x, u8 y);
+
     [[nodiscard]] bool GetFastForward() const;
     void SetFastForward(bool fast_forward);
 
@@ -25,6 +29,24 @@ class EmulatorThread {
     void ReleaseFrame();
 
   private:
+    enum class MessageType : u8 {
+      SetTouchState
+    };
+
+    struct Message {
+      MessageType type;
+      union {
+        struct {
+          u8 pen_down;
+          u8 x;
+          u8 y;
+        } set_touch_state;
+      };
+    };
+
+    void PushMessage(const Message& message);
+    void ProcessMessages();
+
     void ThreadMain();
     void PresentCallback(const u32* fb_top, const u32* fb_bottom);
 
@@ -32,6 +54,10 @@ class EmulatorThread {
     std::thread m_thread{};
     std::atomic_bool m_running{};
     std::atomic_bool m_fast_forward{};
+
+    // Thread-safe UI thread to emulator thread message queue
+    std::queue<Message> m_msg_queue{};
+    std::mutex m_msg_queue_mutex{};
 
     struct FrameMailbox {
       u32 frames[2][2][256 * 192];
