@@ -11,6 +11,7 @@
 #include <dual/nds/arm7/dma.hpp>
 #include <dual/nds/arm7/rtc.hpp>
 #include <dual/nds/arm7/spi.hpp>
+#include <dual/nds/arm7/wifi.hpp>
 #include <dual/nds/video_unit/video_unit.hpp>
 #include <dual/nds/vram/vram.hpp>
 #include <dual/nds/cartridge.hpp>
@@ -36,6 +37,7 @@ namespace dual::nds::arm7 {
         Cartridge& cartridge;
         RTC& rtc;
         APU& apu;
+        WIFI& wifi;
       };
 
       MemoryBus(SystemMemory& memory, const HW& hw);

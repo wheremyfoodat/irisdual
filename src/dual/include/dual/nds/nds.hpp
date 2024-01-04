@@ -9,6 +9,7 @@
 #include <dual/nds/arm7/memory.hpp>
 #include <dual/nds/arm7/rtc.hpp>
 #include <dual/nds/arm7/spi.hpp>
+#include <dual/nds/arm7/wifi.hpp>
 #include <dual/nds/arm9/cp15.hpp>
 #include <dual/nds/arm9/math.hpp>
 #include <dual/nds/arm9/memory.hpp>
@@ -88,6 +89,7 @@ namespace dual::nds {
         arm7::SPI spi{irq};
         arm7::RTC rtc{};
         arm7::APU apu;
+        arm7::WIFI wifi{};
 
         ARM7(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit, Cartridge& cartridge)
             : bus{memory, {
@@ -101,7 +103,8 @@ namespace dual::nds {
                 video_unit,
                 cartridge,
                 rtc,
-                apu
+                apu,
+                wifi
               }}
             , timer{scheduler, cycle_counter, irq}
             , apu{scheduler, bus} {}

@@ -187,6 +187,10 @@ namespace dual::nds::arm7 {
       case REG(0x04000504): return hw.apu.Read_SOUNDBIAS();
 
       default: {
+        if(address >= 0x04804000u && address < 0x048082F8u) {
+          return hw.wifi.Read_IO(address);
+        }
+
         Unhandled();
       }
     }
@@ -288,6 +292,11 @@ namespace dual::nds::arm7 {
       case REG(0x04000504): hw.apu.Write_SOUNDBIAS(value, mask); break;
 
       default: {
+        if(address >= 0x04804000u && address < 0x048082F8u) {
+          hw.wifi.Write_IO(address, value, mask);
+          return;
+        }
+
         Unhandled();
       }
     }
