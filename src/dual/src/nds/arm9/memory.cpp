@@ -1,6 +1,4 @@
 
-#include <SDL.h>
-
 #include <dual/nds/arm9/memory.hpp>
 
 namespace dual::nds::arm9 {
@@ -61,25 +59,6 @@ namespace dual::nds::arm9 {
         return atom::read<T>(m_swram.arm9.data, address & m_swram.arm9.mask);
       }
       case 0x04: {
-        if(address == 0x04000130) {
-          const u8* key_state = SDL_GetKeyboardState(nullptr);
-
-          u16 keyinput = 0x03FFu;
-
-          if(key_state[SDL_SCANCODE_A]) keyinput &= ~1u;
-          if(key_state[SDL_SCANCODE_S]) keyinput &= ~2u;
-          if(key_state[SDL_SCANCODE_BACKSPACE]) keyinput &= ~4u;
-          if(key_state[SDL_SCANCODE_RETURN]) keyinput &= ~8u;
-          if(key_state[SDL_SCANCODE_RIGHT]) keyinput &= ~16u;
-          if(key_state[SDL_SCANCODE_LEFT]) keyinput &= ~32u;
-          if(key_state[SDL_SCANCODE_UP]) keyinput &= ~64u;
-          if(key_state[SDL_SCANCODE_DOWN]) keyinput &= ~128u;
-          if(key_state[SDL_SCANCODE_F]) keyinput &= ~256u;
-          if(key_state[SDL_SCANCODE_D]) keyinput &= ~512u;
-
-          return keyinput;
-        }
-
         if constexpr(std::is_same_v<T, u8 >) return m_io.ReadByte(address);
         if constexpr(std::is_same_v<T, u16>) return m_io.ReadHalf(address);
         if constexpr(std::is_same_v<T, u32>) return m_io.ReadWord(address);

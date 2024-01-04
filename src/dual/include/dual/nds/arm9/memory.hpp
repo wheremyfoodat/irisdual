@@ -32,6 +32,7 @@ namespace dual::nds::arm9 {
         Math& math;
         VideoUnit& video_unit;
         Cartridge& cartridge;
+        u32& key_input;
       };
 
       struct TCM {

@@ -33,6 +33,13 @@ std::unique_ptr<dual::nds::NDS> EmulatorThread::Stop() {
   return std::move(m_nds);
 }
 
+void EmulatorThread::SetKeyState(dual::nds::Key key, bool pressed) {
+  PushMessage({
+    .type = MessageType::SetKeyState,
+    .set_key_state = { .key = key, .pressed = (u8)(pressed ? 1 : 0) }
+  });
+}
+
 void EmulatorThread::SetTouchState(bool pen_down, u8 x, u8 y) {
   PushMessage({
     .type = MessageType::SetTouchState,
@@ -66,6 +73,10 @@ void EmulatorThread::ProcessMessages() {
     const Message& message = m_msg_queue.front();
 
     switch(message.type) {
+      case MessageType::SetKeyState: {
+        m_nds->SetKeyState(message.set_key_state.key, message.set_key_state.pressed);
+        break;
+      }
       case MessageType::SetTouchState: {
         m_nds->SetTouchState(message.set_touch_state.pen_down, message.set_touch_state.x, message.set_touch_state.y);
         break;

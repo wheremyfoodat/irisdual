@@ -20,6 +20,7 @@ class EmulatorThread {
     void Start(std::unique_ptr<dual::nds::NDS> nds);
     std::unique_ptr<dual::nds::NDS> Stop();
 
+    void SetKeyState(dual::nds::Key key, bool pressed);
     void SetTouchState(bool pen_down, u8 x, u8 y);
 
     [[nodiscard]] bool GetFastForward() const;
@@ -30,12 +31,17 @@ class EmulatorThread {
 
   private:
     enum class MessageType : u8 {
+      SetKeyState,
       SetTouchState
     };
 
     struct Message {
       MessageType type;
       union {
+        struct {
+          dual::nds::Key key;
+          u8 pressed;
+        } set_key_state;
         struct {
           u8 pen_down;
           u8 x;

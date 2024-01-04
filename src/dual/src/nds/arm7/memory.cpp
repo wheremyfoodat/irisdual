@@ -1,6 +1,4 @@
 
-#include <SDL.h>
-
 #include <dual/nds/arm7/memory.hpp>
 
 namespace dual::nds::arm7 {
@@ -37,17 +35,6 @@ namespace dual::nds::arm7 {
         return atom::read<T>(m_swram.arm7.data, address & m_swram.arm7.mask);
       }
       case 0x04: {
-        if(address == 0x04000136) {
-          const u8* key_state = SDL_GetKeyboardState(nullptr);
-
-          u16 extkeyinput = 0x3Fu;
-
-          if(key_state[SDL_SCANCODE_Q]) extkeyinput &= ~1u;
-          if(key_state[SDL_SCANCODE_W]) extkeyinput &= ~2u;
-
-          return extkeyinput;
-        }
-
         if constexpr(std::is_same_v<T, u8 >) return m_io.ReadByte(address);
         if constexpr(std::is_same_v<T, u16>) return m_io.ReadHalf(address);
         if constexpr(std::is_same_v<T, u32>) return m_io.ReadWord(address);

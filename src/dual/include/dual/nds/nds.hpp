@@ -21,6 +21,7 @@
 #include <dual/nds/rom.hpp>
 #include <dual/nds/system_memory.hpp>
 #include <dual/nds/timer.hpp>
+#include <dual/nds/enums.hpp>
 #include <memory>
 #include <span>
 
@@ -45,6 +46,7 @@ namespace dual::nds {
         return m_arm7.apu;
       }
 
+      void SetKeyState(Key key, bool pressed);
       void SetTouchState(bool pen_down, u8 x, u8 y);
 
     private:
@@ -56,6 +58,8 @@ namespace dual::nds {
 
       Cartridge m_cartridge{m_scheduler, m_arm9.irq, m_arm7.irq, m_arm9.dma, m_arm7.dma, m_memory};
 
+      u32 m_key_input{};
+
       struct ARM9 {
         CycleCounter cycle_counter{1};
         std::unique_ptr<arm::CPU> cpu{};
@@ -66,7 +70,7 @@ namespace dual::nds {
         arm9::DMA dma{bus, irq};
         arm9::Math math{};
 
-        ARM9(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit, Cartridge& cartridge)
+        ARM9(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit, Cartridge& cartridge, u32& key_input)
             : bus{memory, {
                 irq,
                 timer,
@@ -76,10 +80,11 @@ namespace dual::nds {
                 memory.vram,
                 math,
                 video_unit,
-                cartridge
+                cartridge,
+                key_input
               }}
             , timer{scheduler, cycle_counter, irq} {}
-      } m_arm9{m_scheduler, m_memory, m_ipc, m_video_unit, m_cartridge};
+      } m_arm9{m_scheduler, m_memory, m_ipc, m_video_unit, m_cartridge, m_key_input};
 
       struct ARM7 {
         CycleCounter cycle_counter{0};
@@ -93,7 +98,7 @@ namespace dual::nds {
         arm7::APU apu;
         arm7::WIFI wifi{};
 
-        ARM7(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit, Cartridge& cartridge)
+        ARM7(Scheduler& scheduler, SystemMemory& memory, IPC& ipc, VideoUnit& video_unit, Cartridge& cartridge, u32& key_input)
             : bus{memory, {
                 irq,
                 timer,
@@ -106,11 +111,12 @@ namespace dual::nds {
                 cartridge,
                 rtc,
                 apu,
-                wifi
+                wifi,
+                key_input
               }}
             , timer{scheduler, cycle_counter, irq}
             , apu{scheduler, bus} {}
-      } m_arm7{m_scheduler, m_memory, m_ipc, m_video_unit, m_cartridge};
+      } m_arm7{m_scheduler, m_memory, m_ipc, m_video_unit, m_cartridge, m_key_input};
 
       IPC m_ipc{m_arm9.irq, m_arm7.irq};
 

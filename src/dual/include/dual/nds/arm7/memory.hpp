@@ -38,6 +38,7 @@ namespace dual::nds::arm7 {
         RTC& rtc;
         APU& apu;
         WIFI& wifi;
+        u32& key_input;
       };
 
       MemoryBus(SystemMemory& memory, const HW& hw);

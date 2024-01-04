@@ -112,8 +112,3 @@ target_include_directories(dual PRIVATE src)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   target_compile_options(dual PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fbracket-depth=8192>)
 endif()
-
-# @todo: remove this when properly implementing key input
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SDL2 REQUIRED IMPORTED_TARGET sdl2)
-target_link_libraries(dual PRIVATE PkgConfig::SDL2)

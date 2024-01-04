@@ -161,6 +161,8 @@ void Application::MainLoop() {
       UpdateFPS();
     }
 
+    // @todo: move this logic into HandleEvent()
+
     m_emu_thread.SetFastForward(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_SPACE]);
 
     if(SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_F11]) {
@@ -225,6 +227,29 @@ void Application::HandleEvent(const SDL_Event& event) {
     }
 
     set_touch_state(window_x, window_y);
+  }
+
+  if(type == SDL_KEYUP || type == SDL_KEYDOWN) {
+    const SDL_KeyboardEvent& keyboard_event = (const SDL_KeyboardEvent&)event;
+
+    const auto update_key = [&](dual::nds::Key key) {
+      m_emu_thread.SetKeyState(key, type == SDL_KEYDOWN);
+    };
+
+    switch(keyboard_event.keysym.sym) {
+      case SDLK_a: update_key(dual::nds::Key::A); break;
+      case SDLK_s: update_key(dual::nds::Key::B); break;
+      case SDLK_d: update_key(dual::nds::Key::L); break;
+      case SDLK_f: update_key(dual::nds::Key::R); break;
+      case SDLK_q: update_key(dual::nds::Key::X); break;
+      case SDLK_w: update_key(dual::nds::Key::Y); break;
+      case SDLK_BACKSPACE: update_key(dual::nds::Key::Select); break;
+      case SDLK_RETURN:    update_key(dual::nds::Key::Start);  break;
+      case SDLK_UP:    update_key(dual::nds::Key::Up);    break;
+      case SDLK_DOWN:  update_key(dual::nds::Key::Down);  break;
+      case SDLK_LEFT:  update_key(dual::nds::Key::Left);  break;
+      case SDLK_RIGHT: update_key(dual::nds::Key::Right); break;
+    }
   }
 }
 

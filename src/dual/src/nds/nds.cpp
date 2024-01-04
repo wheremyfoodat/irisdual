@@ -38,6 +38,8 @@ namespace dual::nds {
 
     m_cartridge.Reset();
 
+    m_key_input = 0x007F03FFu;
+
     m_memory.ewram.fill(0);
     m_memory.swram.Reset();
     m_memory.vram.Reset();
@@ -198,8 +200,22 @@ namespace dual::nds {
     m_video_unit.DirectBoot();
   }
 
+  void NDS::SetKeyState(Key key, bool pressed) {
+    if(pressed) {
+      m_key_input &= ~(1u << (int)key);
+    } else {
+      m_key_input |=   1u << (int)key;
+    }
+  }
+
   void NDS::SetTouchState(bool pen_down, u8 x, u8 y) {
     m_arm7.spi.GetTouchScreen().SetTouchState(pen_down, x, y);
+
+    if(pen_down) {
+      m_key_input &= ~(1 << 22);
+    } else {
+      m_key_input |=   1 << 22;
+    }
   }
 
 } // namespace dual::nds

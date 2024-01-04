@@ -155,6 +155,9 @@ namespace dual::nds::arm9 {
       case REG(0x04000108): return hw.timer.Read_TMCNT(2);
       case REG(0x0400010C): return hw.timer.Read_TMCNT(3);
 
+      // Key Input
+      case REG(0x04000130): return (u16)hw.key_input;
+
       // IPC
       case REG(0x04000180): return hw.ipc.Read_SYNC(CPU::ARM9);
       case REG(0x04000184): return hw.ipc.Read_FIFOCNT(CPU::ARM9);
