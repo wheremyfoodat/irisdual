@@ -134,7 +134,7 @@ namespace dual::nds::gpu {
 
       void SubmitVertex(const Vector3<Fixed20x12>& position) {
         m_last_position = position;
-        m_geometry_engine.SubmitVertex(position, GetClipMatrix());
+        m_geometry_engine.SubmitVertex(position, GetClipMatrix(), m_texture_mtx);
       }
 
       Scheduler& m_scheduler;

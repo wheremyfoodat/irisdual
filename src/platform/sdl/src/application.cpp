@@ -54,7 +54,7 @@ void Application::CreateWindow() {
     SDL_WINDOWPOS_CENTERED,
     512,
     768,
-    SDL_WINDOW_ALLOW_HIGHDPI
+    0//SDL_WINDOW_ALLOW_HIGHDPI
   );
 
   m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);

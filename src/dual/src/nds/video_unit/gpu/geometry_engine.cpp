@@ -56,13 +56,23 @@ namespace dual::nds::gpu {
     m_inside_vertex_list = false;
   }
 
-  void GeometryEngine::SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix) {
+  void GeometryEngine::SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix, const Matrix4<Fixed20x12>& texture_matrix) {
     if(!m_inside_vertex_list) {
       ATOM_PANIC("gpu: Submitted a vertex outside of a vertex list.");
     }
 
     if(m_texture_parameters.st_transform == TextureParams::Transform::Position) {
-      ATOM_PANIC("position ST transform");
+      const i64 position_x = (i64)position.X().Raw();
+      const i64 position_y = (i64)position.Y().Raw();
+      const i64 position_z = (i64)position.Z().Raw();
+
+      for(const int i : {0, 1}) {
+        const i64 x = position_x * texture_matrix[0][i].Raw();
+        const i64 y = position_y * texture_matrix[1][i].Raw();
+        const i64 z = position_z * texture_matrix[2][i].Raw();
+
+        m_vertex_uv[i] = (i16)(((x + y + z) >> 24) + m_vertex_uv_src[i].Raw());
+      }
     }
 
     const Vector4<Fixed20x12> clip_position = clip_matrix * Vector4<Fixed20x12>{position};
