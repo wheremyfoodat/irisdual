@@ -181,6 +181,13 @@ namespace dual::nds::gpu {
         break;
       }
 
+      const bool force_render_inner_span = y == y_min || y == y_max - 1;
+
+      int xl0 = x0[l] >> 18;
+      int xr1 = x1[r] >> 18;
+      int xl1 = std::clamp(x1[l] >> 18, xl0, xr1);
+      int xr0 = std::clamp(x0[r] >> 18, xl1, xr1);
+
       // Setup the leftmost and rightmost X-coordinates for the horizontal interpolator.
       line.x[0] = x0[l] >> 18;
       line.x[1] = x1[r] >> 18;
@@ -190,19 +197,22 @@ namespace dual::nds::gpu {
        *   A perfectly vertical right edge has a few gotchas:
        *   - the horizontal attribute interpolator's rightmost X coordinate is incremented by one
        *   - the right edge is nudged to the left by one pixel
+       *
+       * According to Jakly this applies specifically to right vertical edges these additional conditions are met:
+       *   - The left slope isn't vertical OR the start of the span is unequal to the end of the span
+       *   - The end of the span is not at x == 0
+       * She also noted that the logic is applied before edge-swapping.
+       *
+       * Currently we aren't 100% accurate here. We do the adjustment after edge-swapping.
+       * We also check the end of the span against 255 instead of 0 (Q: is this equivalent to x == 256?).
+       * For the latter this was necessary to avoid gaps at the right border of the viewport.
+       * Maybe the viewport transform or polygon clipping aren't accurate enough?
        */
-      if(edge[r].GetXSlope() == 0 && line.x[0] != line.x[1]) {
+      if(edge[r].GetXSlope() == 0 && (edge[l].GetXSlope() != 0 || line.x[0] != line.x[1]) && line.x[1] != 255) {
         line.x[1]++;
-        x0[r] -= 1 << 18;
-        x1[r] -= 1 << 18;
+        xr0 = std::max(xl1, xr0 - 1);
+        xr1 = std::max(xl1, xr1 - 1);
       }
-
-      const bool force_render_inner_span = y == y_min || y == y_max - 1;
-
-      const int xl0 = std::max(x0[l] >> 18, 0);
-      const int xr1 = std::min(x1[r] >> 18, 255);
-      const int xl1 = std::clamp(x1[l] >> 18, xl0, xr1);
-      const int xr0 = std::clamp(x0[r] >> 18, xl1, xr1);
 
       /**
        * Span fill rules, described by StrikerX3:
@@ -240,6 +250,9 @@ namespace dual::nds::gpu {
     if(m_io.disp3dcnt.enable_alpha_test) {
       alpha_test_threshold = m_io.alpha_test_ref << 1 | m_io.alpha_test_ref >> 4;
     }
+
+    x0 = std::max(x0, 0);
+    x1 = std::min(x1, 255);
 
     for(int x = x0; x <= x1; x++) {
       line_interp.Setup(line.w_16[0], line.w_16[1], x, line.x[0], line.x[1]);
