@@ -107,7 +107,7 @@ namespace dual::nds::gpu {
       }
 
       void SetVertexUV(Vector2<Fixed12x4> uv, const Matrix4<Fixed20x12>& texture_matrix);
-      void SetNormal(Vector3<Fixed20x12> normal);
+      void SetNormal(Vector3<Fixed20x12> normal, const Matrix4<Fixed20x12>& texture_matrix);
 
       void SetMaterialDiffuseColor(const Color4& color) {
         m_material.diffuse_color = color;

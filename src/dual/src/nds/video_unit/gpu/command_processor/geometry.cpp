@@ -16,7 +16,7 @@ namespace dual::nds::gpu {
       (i32)(xyz & (0x3FFu << 10)) << 12 >> 19,
       (i32)(xyz & (0x3FFu << 20)) <<  2 >> 19,
       0
-    }).XYZ());
+    }).XYZ(), m_texture_mtx);
   }
 
   void CommandProcessor::cmdSetUV() {

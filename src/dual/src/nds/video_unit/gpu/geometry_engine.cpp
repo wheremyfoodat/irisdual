@@ -444,9 +444,19 @@ namespace dual::nds::gpu {
     }
   }
 
-  void GeometryEngine::SetNormal(Vector3<Fixed20x12> normal) {
+  void GeometryEngine::SetNormal(Vector3<Fixed20x12> normal, const Matrix4<Fixed20x12>& texture_matrix) {
     if(m_texture_parameters.st_transform == TextureParams::Transform::Normal) {
-      ATOM_PANIC("normal ST transform");
+      const i64 normal_x = (i64)normal.X().Raw();
+      const i64 normal_y = (i64)normal.Y().Raw();
+      const i64 normal_z = (i64)normal.Z().Raw();
+
+      for(const int i : {0, 1}) {
+        const i64 x = normal_x * texture_matrix[0][i].Raw();
+        const i64 y = normal_y * texture_matrix[1][i].Raw();
+        const i64 z = normal_z * texture_matrix[2][i].Raw();
+
+        m_vertex_uv[i] = (i16)(((x + y + z) >> 24) + m_vertex_uv_src[i].Raw());
+      }
     }
 
     i32 r = m_material.emissive_color.R().Raw() << 14;
