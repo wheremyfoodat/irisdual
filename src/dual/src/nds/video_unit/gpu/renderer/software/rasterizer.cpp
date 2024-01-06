@@ -143,22 +143,6 @@ namespace dual::nds::gpu {
         r ^= 1;
       }
 
-      // Setup the leftmost and rightmost X-coordinates for the horizontal interpolator.
-      line.x[0] = x0[l] >> 18;
-      line.x[1] = x1[r] >> 18;
-
-      /**
-       * From StrikerX3:
-       *   A perfectly vertical right edge has a few gotchas:
-       *   - the horizontal attribute interpolator's rightmost X coordinate is incremented by one
-       *   - the right edge is nudged to the left by one pixel
-       */
-      if(edge[r].GetXSlope() == 0) {
-        line.x[1]++;
-        x0[r] -= 1 << 18;
-        x1[r] -= 1 << 18;
-      }
-
       for(int i = 0; i < 2; i++) {
         const int j = i ^ l;
         const u16 w0 = polygon.w_16[start[i]];
@@ -195,6 +179,22 @@ namespace dual::nds::gpu {
 
       if(y >= 192) {
         break;
+      }
+
+      // Setup the leftmost and rightmost X-coordinates for the horizontal interpolator.
+      line.x[0] = x0[l] >> 18;
+      line.x[1] = x1[r] >> 18;
+
+      /**
+       * From StrikerX3:
+       *   A perfectly vertical right edge has a few gotchas:
+       *   - the horizontal attribute interpolator's rightmost X coordinate is incremented by one
+       *   - the right edge is nudged to the left by one pixel
+       */
+      if(edge[r].GetXSlope() == 0 && line.x[0] != line.x[1]) {
+        line.x[1]++;
+        x0[r] -= 1 << 18;
+        x1[r] -= 1 << 18;
       }
 
       const bool force_render_inner_span = y == y_min || y == y_max - 1;
