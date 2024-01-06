@@ -33,8 +33,11 @@ namespace dual::nds::gpu {
   }
 
   void SoftwareRenderer::CaptureAlpha(int scanline, std::span<int, 256> dst_buffer) {
+    // Remapping from the [0, 63] range to the [0, 16] range is a hack but (currently) required for alpha-blending.
+    // Most likely the alpha-blending math needs to happen with higher precision (but how many bits?).
+    // @todo: make this more accurate.
     for(int x = 0; x < 256; x++) {
-      dst_buffer[x] = m_frame_buffer[scanline][x].A().Raw() >> 2;
+      dst_buffer[x] = (m_frame_buffer[scanline][x].A().Raw() + 1) >> 2;
     }
   }
 
