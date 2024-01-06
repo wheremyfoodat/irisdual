@@ -242,12 +242,25 @@ namespace dual::nds::gpu {
     }
 
     if(!poly.vertices.Empty()) {
+      const uint polygon_alpha  = m_polygon_attributes.alpha;
+      const auto texture_format = (TextureParams::Format)m_texture_parameters.format;
+      const auto polygon_mode   = (Polygon::Mode)m_polygon_attributes.polygon_mode;
+
+      const bool has_translucent_polygon_alpha  = polygon_alpha != 0u && polygon_alpha != 31u;
+      const bool has_translucent_texture_format = texture_format == TextureParams::Format::A3I5 ||
+                                                  texture_format == TextureParams::Format::A5I3;
+      const bool uses_texture_alpha = polygon_mode == Polygon::Mode::Modulation ||
+                                      polygon_mode == Polygon::Mode::Shaded;
+
+      const bool translucent = has_translucent_polygon_alpha || (has_translucent_texture_format && uses_texture_alpha);
+
       // @todo: calculate sorting key
       // @todo: supposedly texture parameters cannot be changed within polygon strips.
       poly.attributes = m_polygon_attributes;
       poly.texture_params = m_texture_parameters;
       poly.palette_base = m_texture_palette_base;
       poly.windedness = windedness;
+      poly.translucent = translucent;
 
       NormalizeW(poly);
 

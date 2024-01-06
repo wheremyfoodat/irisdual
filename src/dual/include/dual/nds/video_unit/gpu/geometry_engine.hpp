@@ -72,7 +72,8 @@ namespace dual::nds::gpu {
     TextureParams texture_params;
     u32 palette_base = 0u;
 
-    int windedness = 0;
+    int windedness;
+    bool translucent;
 
     atom::Vector_N<Vertex*, 10> vertices;
     atom::Vector_N<u16, 10> w_16;

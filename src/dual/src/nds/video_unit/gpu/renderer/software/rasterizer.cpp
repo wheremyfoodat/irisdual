@@ -50,6 +50,8 @@ namespace dual::nds::gpu {
     i32 y_min = std::numeric_limits<i32>::max();
     i32 y_max = std::numeric_limits<i32>::min();
 
+    const bool force_edge_draw = polygon.translucent || m_io.disp3dcnt.enable_anti_aliasing || m_io.disp3dcnt.enable_edge_marking;
+
     for(int i = 0; i < vertex_count; i++) {
       const Vertex* vertex = polygon.vertices[i];
       const Vector4<Fixed20x12>& position = vertex->position;
@@ -192,13 +194,17 @@ namespace dual::nds::gpu {
       line.x[0] = x_min;
       line.x[1] = x_max;
 
-      RenderPolygonSpan(polygon, line, y, xl0, xl1);
+      if(edge[l].GetXSlope() < 0 || !edge[l].IsXMajor() || force_edge_draw) {
+        RenderPolygonSpan(polygon, line, y, xl0, xl1);
+      }
 
       if(!wireframe || force_render_inner_span) {
         RenderPolygonSpan(polygon, line, y, xl1 + 1, xr0 - 1);
       }
 
-      RenderPolygonSpan(polygon, line, y, xr0, xr1);
+      if((edge[r].GetXSlope() > 0 && edge[r].IsXMajor()) || edge[r].GetXSlope() == 0 || force_edge_draw) {
+        RenderPolygonSpan(polygon, line, y, xr0, xr1);
+      }
     }
   }
 
