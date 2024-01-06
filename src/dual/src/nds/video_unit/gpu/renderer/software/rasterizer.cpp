@@ -50,7 +50,7 @@ namespace dual::nds::gpu {
     i32 y_min = std::numeric_limits<i32>::max();
     i32 y_max = std::numeric_limits<i32>::min();
 
-    const bool force_edge_draw = polygon.translucent || m_io.disp3dcnt.enable_anti_aliasing || m_io.disp3dcnt.enable_edge_marking;
+    const bool force_edge_draw_1 = polygon.translucent || m_io.disp3dcnt.enable_anti_aliasing || m_io.disp3dcnt.enable_edge_marking;
 
     for(int i = 0; i < vertex_count; i++) {
       const Vertex* vertex = polygon.vertices[i];
@@ -143,6 +143,22 @@ namespace dual::nds::gpu {
         r ^= 1;
       }
 
+      // Setup the leftmost and rightmost X-coordinates for the horizontal interpolator.
+      line.x[0] = x0[l] >> 18;
+      line.x[1] = x1[r] >> 18;
+
+      /**
+       * From StrikerX3:
+       *   A perfectly vertical right edge has a few gotchas:
+       *   - the horizontal attribute interpolator's rightmost X coordinate is incremented by one
+       *   - the right edge is nudged to the left by one pixel
+       */
+      if(edge[r].GetXSlope() == 0) {
+        line.x[1]++;
+        x0[r] -= 1 << 18;
+        x1[r] -= 1 << 18;
+      }
+
       for(int i = 0; i < 2; i++) {
         const int j = i ^ l;
         const u16 w0 = polygon.w_16[start[i]];
@@ -183,18 +199,22 @@ namespace dual::nds::gpu {
 
       const bool force_render_inner_span = y == y_min || y == y_max - 1;
 
-      const int x_min = x0[l] >> 18;
-      const int x_max = x1[r] >> 18;
-
-      const int xl0 = std::max(x_min, 0);
-      const int xr1 = std::min(x_max, 255);
+      const int xl0 = std::max(x0[l] >> 18, 0);
+      const int xr1 = std::min(x1[r] >> 18, 255);
       const int xl1 = std::clamp(x1[l] >> 18, xl0, xr1);
       const int xr0 = std::clamp(x0[r] >> 18, xl1, xr1);
 
-      line.x[0] = x_min;
-      line.x[1] = x_max;
+      /**
+       * Span fill rules, described by StrikerX3:
+       *  The interior is always filled, except in wireframe mode
+       *   - the left edge is filled if the slope is negative or not x-major
+       *   - the right edge is filled if the slope is positive and x-major, or if it is vertical (x0==x1)
+       *   - both edges are drawn when the polygon is translucent or wireframe,
+       *     or when antialiasing or edge marking is enabled, or it's the last scanline on the screen
+       */
+      const bool force_edge_draw_2 = force_edge_draw_1 || y == 191;
 
-      if(edge[l].GetXSlope() < 0 || !edge[l].IsXMajor() || force_edge_draw) {
+      if(edge[l].GetXSlope() < 0 || !edge[l].IsXMajor() || force_edge_draw_2) {
         RenderPolygonSpan(polygon, line, y, xl0, xl1);
       }
 
@@ -202,7 +222,7 @@ namespace dual::nds::gpu {
         RenderPolygonSpan(polygon, line, y, xl1 + 1, xr0 - 1);
       }
 
-      if((edge[r].GetXSlope() > 0 && edge[r].IsXMajor()) || edge[r].GetXSlope() == 0 || force_edge_draw) {
+      if((edge[r].GetXSlope() > 0 && edge[r].IsXMajor()) || edge[r].GetXSlope() == 0 || force_edge_draw_2) {
         RenderPolygonSpan(polygon, line, y, xr0, xr1);
       }
     }
@@ -215,9 +235,6 @@ namespace dual::nds::gpu {
     Color4 color;
     Vector2<Fixed12x4> uv;
 
-    const int x_min = line.x[0];
-    const int x_max = line.x[1];
-
     int alpha_test_threshold = 0u;
 
     if(m_io.disp3dcnt.enable_alpha_test) {
@@ -225,7 +242,7 @@ namespace dual::nds::gpu {
     }
 
     for(int x = x0; x <= x1; x++) {
-      line_interp.Setup(line.w_16[0], line.w_16[1], x, x_min, x_max);
+      line_interp.Setup(line.w_16[0], line.w_16[1], x, line.x[0], line.x[1]);
 
       const u32 depth_old = m_depth_buffer[y][x];
       const u32 depth_new = m_enable_w_buffer ?
