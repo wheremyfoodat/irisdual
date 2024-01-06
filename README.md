@@ -11,6 +11,13 @@ I do **not** intend to replace any of the established DS emulators.
 
 ![hgss](resources/hgss.png)
 
+## Credit
+- Martin Korth: for [GBATEK](http://problemkaputt.de/gbatek.htm)
+- [Arisotura](https://github.com/Arisotura/): for hardware documentation, especially regarding the 3D engine
+- [Hydr8gon](https://github.com/Hydr8gon/): for some hints and sharing 3D engine insights
+- [StrikerX3](https://github.com/StrikerX3): for documenting the precise formula for polygon edge interpolation
+- [Jaklyy](https://github.com/Jaklyy/): for 3D engine research and sharing her insights
+
 ## Copyright
 
 irisdual is Copyright © 2023 fleroviux. All rights reserved.<br>
