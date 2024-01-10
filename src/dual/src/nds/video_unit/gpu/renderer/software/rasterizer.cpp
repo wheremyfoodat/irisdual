@@ -192,6 +192,9 @@ namespace dual::nds::gpu {
       line.x[0] = x0[l] >> 18;
       line.x[1] = x1[r] >> 18;
 
+      const bool l_vertical = points[start[l]].x == points[end[l]].x;
+      const bool r_vertical = points[start[r]].x == points[end[r]].x;
+
       /**
        * From StrikerX3:
        *   A perfectly vertical right edge has a few gotchas:
@@ -208,7 +211,7 @@ namespace dual::nds::gpu {
        * For the latter this was necessary to avoid gaps at the right border of the viewport.
        * Maybe the viewport transform or polygon clipping aren't accurate enough?
        */
-      if(edge[r].GetXSlope() == 0 && (edge[l].GetXSlope() != 0 || line.x[0] != line.x[1]) && line.x[1] != 255) {
+      if(r_vertical && (!l_vertical || line.x[0] != line.x[1]) && line.x[1] != 255) {
         line.x[1]++;
         xr0 = std::max(xl1, xr0 - 1);
         xr1 = std::max(xl1, xr1 - 1);
