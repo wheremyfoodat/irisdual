@@ -75,6 +75,10 @@ namespace dual::nds {
         m_cmd_processor.Write_GXSTAT(value, mask);
       }
 
+      [[nodiscard]] u16 Read_RAM_COUNT() const {
+        return m_cmd_processor.Read_RAM_COUNT();
+      }
+
       void Write_ALPHA_TEST_REF(u32 value, u32 mask) {
         const u32 write_mask = 0x1Fu & mask;
 

@@ -221,7 +221,7 @@ namespace dual::nds::arm9 {
 
       // GPU3D
       case REG(0x04000600): return gpu.Read_GXSTAT();
-      case REG(0x04000604): ATOM_PANIC("gpu: Unhandled read from RAM_COUNT");
+      case REG(0x04000604): return gpu.Read_RAM_COUNT();
       case REG(0x04000620) ... REG(0x0400062C): ATOM_PANIC("gpu: Unhandled read from POS_RESULT");
       case REG(0x04000630) ... REG(0x04000634): ATOM_PANIC("gpu: Unhandled read from VEC_RESULT");
       case REG(0x04000640) ... REG(0x0400067C): return (u32)gpu.GetClipMatrix()[(address >> 4) & 3][(address >> 2) & 3].Raw();

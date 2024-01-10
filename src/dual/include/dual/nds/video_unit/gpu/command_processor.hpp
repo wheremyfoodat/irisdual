@@ -71,6 +71,10 @@ namespace dual::nds::gpu {
         RequestOrClearIRQ();
       }
 
+      [[nodiscard]] u32 Read_RAM_COUNT() const {
+        return m_geometry_engine.Read_RAM_COUNT();
+      }
+
       void SwapBuffers(gpu::RendererBase* renderer);
 
       [[nodiscard]] const Viewport& GetViewport() const {

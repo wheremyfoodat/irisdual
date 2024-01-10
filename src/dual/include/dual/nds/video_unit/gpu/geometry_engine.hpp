@@ -92,6 +92,10 @@ namespace dual::nds::gpu {
       void Begin(u32 parameter);
       void End();
 
+      [[nodiscard]] u32 Read_RAM_COUNT() const {
+        return m_polygon_ram[m_current_buffer].Size() | m_vertex_ram[m_current_buffer].Size() << 16;
+      }
+
       void SetPolygonAttributes(u32 attributes) {
         m_pending_polygon_attributes = attributes;
       }
