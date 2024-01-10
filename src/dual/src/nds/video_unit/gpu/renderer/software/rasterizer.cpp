@@ -244,6 +244,8 @@ namespace dual::nds::gpu {
   void SoftwareRenderer::RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1) {
     const i32 depth_test_threshold = m_enable_w_buffer ? 0xFF : 0x200;
 
+    const u32 alpha = polygon.attributes.alpha << 1 | polygon.attributes.alpha >> 4;
+
     Interpolator<8> line_interp{};
     Color4 color;
     Vector2<Fixed12x4> uv;
@@ -278,6 +280,8 @@ namespace dual::nds::gpu {
 
       line_interp.Perp(line.color[0], line.color[1], color);
       line_interp.Perp(line.uv[0], line.uv[1], uv);
+
+      color.A() = (i8)alpha;
 
       if(m_io.disp3dcnt.enable_texture_mapping && polygon.texture_params.format != TextureParams::Format::Disabled) {
         const Color4 texel = SampleTexture(polygon.texture_params, polygon.palette_base, uv);
