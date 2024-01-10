@@ -30,9 +30,9 @@ namespace dual::nds::gpu {
     }
   }
 
-  void SoftwareRenderer::RenderPolygons(const Viewport& viewport, std::span<const Polygon> polygons) {
-    for(const Polygon& polygon : polygons) {
-      RenderPolygon(viewport, polygon);
+  void SoftwareRenderer::RenderPolygons(const Viewport& viewport, std::span<const Polygon* const> polygons) {
+    for(const Polygon* polygon : polygons) {
+      RenderPolygon(viewport, *polygon);
     }
   }
 

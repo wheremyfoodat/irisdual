@@ -74,6 +74,7 @@ namespace dual::nds::gpu {
 
     int windedness;
     bool translucent;
+    u32 sorting_key;
 
     atom::Vector_N<Vertex*, 10> vertices;
     atom::Vector_N<u16, 10> w_16;
@@ -145,12 +146,16 @@ namespace dual::nds::gpu {
         m_material.enable_shininess_table = enabled;
       }
 
+      void SetManualTranslucentYSorting(bool manual_translucent_y_sorting) {
+        m_manual_translucent_y_sorting = manual_translucent_y_sorting;
+      }
+
       std::array<u8, 128>& GetShininessTable() {
         return m_material.shininess_table;
       }
 
-      [[nodiscard]] std::span<const Polygon> GetPolygonsToRender() const {
-        return m_polygon_ram[m_current_buffer ^ 1];
+      [[nodiscard]] std::span<const Polygon* const> GetPolygonsToRender() const {
+        return m_polygons_sorted;
       }
 
       void SubmitVertex(Vector3<Fixed20x12> position, const Matrix4<Fixed20x12>& clip_matrix, const Matrix4<Fixed20x12>& texture_matrix);
@@ -159,6 +164,8 @@ namespace dual::nds::gpu {
         const atom::Vector_N<Vertex, 10>& vertex_list, bool quad_strip) const;
 
     private:
+      void CalculateSortingKey(Polygon& poly) const;
+
       static void NormalizeW(Polygon& poly);
 
       template<int axis, typename Comparator>
@@ -177,6 +184,7 @@ namespace dual::nds::gpu {
 
       atom::Vector_N<Vertex, 6144> m_vertex_ram[2];
       atom::Vector_N<Polygon, 2048> m_polygon_ram[2];
+      atom::Vector_N<const Polygon*, 2048> m_polygons_sorted{};
       atom::Vector_N<Vertex, 10> m_current_vertex_list;
       bool m_inside_vertex_list{};
       bool m_primitive_is_quad{};
@@ -208,6 +216,8 @@ namespace dual::nds::gpu {
         std::array<u8, 128> shininess_table{};
         bool enable_shininess_table{false};
       } m_material{};
+
+      bool m_manual_translucent_y_sorting{};
   };
 
 } // namespace dual::nds::gpu

@@ -22,7 +22,7 @@ namespace dual::nds::gpu {
         m_enable_w_buffer = enable_w_buffer;
       }
 
-      void Render(const Viewport& viewport, std::span<const Polygon> polygons) override;
+      void Render(const Viewport& viewport, std::span<const Polygon* const> polygons) override;
 
       void CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) override;
       void CaptureAlpha(int scanline, std::span<int, 256> dst_buffer) override;
@@ -38,7 +38,7 @@ namespace dual::nds::gpu {
 
       void CopyVRAM();
       void RenderRearPlane();
-      void RenderPolygons(const Viewport& viewport, std::span<const Polygon> polygons);
+      void RenderPolygons(const Viewport& viewport, std::span<const Polygon* const> polygons);
       void RenderPolygon(const Viewport& viewport, const Polygon& polygon);
       void RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1);
       Color4 SampleTexture(TextureParams params, u32 palette_base, Vector2<Fixed12x4> uv);

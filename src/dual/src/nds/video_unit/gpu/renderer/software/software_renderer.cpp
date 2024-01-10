@@ -12,7 +12,7 @@ namespace dual::nds::gpu {
       , m_vram_palette{vram_palette} {
   }
 
-  void SoftwareRenderer::Render(const Viewport& viewport, std::span<const Polygon> polygons) {
+  void SoftwareRenderer::Render(const Viewport& viewport, std::span<const Polygon* const> polygons) {
     CopyVRAM();
     RenderRearPlane();
     RenderPolygons(viewport, polygons);

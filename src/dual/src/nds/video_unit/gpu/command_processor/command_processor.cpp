@@ -45,6 +45,7 @@ namespace dual::nds::gpu {
     if(m_swap_buffers_pending) {
       m_swap_buffers_pending = false;
       renderer->SetWBufferEnable(m_use_w_buffer_pending);
+      m_geometry_engine.SetManualTranslucentYSorting(m_manual_translucent_y_sorting_pending);
       m_geometry_engine.SwapBuffers();
       ProcessCommands();
     }

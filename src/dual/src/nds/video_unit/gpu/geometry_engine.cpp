@@ -31,11 +31,19 @@ namespace dual::nds::gpu {
     m_texture_parameters = {};
     m_lights = {};
     m_material = {};
+    m_manual_translucent_y_sorting = false;
   }
 
   void GeometryEngine::SwapBuffers() {
-    m_current_buffer ^= 1;
+    // Create a sorted list of all polygons to draw in this frame.
+    m_polygons_sorted.Clear();
+    for(const Polygon& poly : m_polygon_ram[m_current_buffer]) {
+      m_polygons_sorted.PushBack(&poly);
+    }
+    std::stable_sort(m_polygons_sorted.begin(), m_polygons_sorted.end(),
+      [](auto a, auto b){ return a->sorting_key < b->sorting_key; });
 
+    m_current_buffer ^= 1;
     m_vertex_ram[m_current_buffer].Clear();
     m_polygon_ram[m_current_buffer].Clear();
   }
@@ -254,7 +262,6 @@ namespace dual::nds::gpu {
 
       const bool translucent = has_translucent_polygon_alpha || (has_translucent_texture_format && uses_texture_alpha);
 
-      // @todo: calculate sorting key
       // @todo: supposedly texture parameters cannot be changed within polygon strips.
       poly.attributes = m_polygon_attributes;
       poly.texture_params = m_texture_parameters;
@@ -262,6 +269,7 @@ namespace dual::nds::gpu {
       poly.windedness = windedness;
       poly.translucent = translucent;
 
+      CalculateSortingKey(poly);
       NormalizeW(poly);
 
       // @todo: this is not ideal in terms of performance
@@ -270,6 +278,26 @@ namespace dual::nds::gpu {
       } else {
         m_io.disp3dcnt.poly_or_vert_ram_overflow = true;
       }
+    }
+  }
+
+  void GeometryEngine::CalculateSortingKey(Polygon& poly) const {
+    poly.sorting_key = poly.translucent ? 0x80000000u : 0u;
+
+    if(!poly.translucent || !m_manual_translucent_y_sorting)  {
+      Fixed20x12 min_y = std::numeric_limits<s32>::max();
+      Fixed20x12 max_y = std::numeric_limits<s32>::min();
+
+      for(const auto& vertex : poly.vertices) {
+        const Fixed20x12 y = vertex->position.Y() / vertex->position.W();
+
+        if(y < min_y) min_y = y;
+        if(y > max_y) max_y = y;
+      }
+
+      // @todo: using viewport-transformed coordinates might be more accurate.
+      poly.sorting_key |=  (min_y.Raw() + 0x2000) & 0x3FFF;
+      poly.sorting_key |= ((max_y.Raw() + 0x2000) & 0x3FFF) << 14;
     }
   }
 
