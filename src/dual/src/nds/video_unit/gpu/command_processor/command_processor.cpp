@@ -29,6 +29,7 @@ namespace dual::nds::gpu {
     m_unpack = {};
     m_cmd_pipe.Reset();
     m_cmd_fifo.Reset();
+    m_cmd_event = nullptr;
     m_mtx_mode = 0;
     m_projection_mtx_index = 0;
     m_coordinate_mtx_index = 0;
@@ -57,8 +58,17 @@ namespace dual::nds::gpu {
     if(m_cmd_fifo.IsEmpty() && !m_cmd_pipe.IsFull()) {
       m_cmd_pipe.Write(entry);
     } else {
+      /* HACK: before we drop any command or argument data,
+       * execute the next command early.
+       * In hardware enqueueing into full queue would stall the CPU or DMA,
+       * but this is difficult to emulate accurately.
+       */
       if(m_cmd_fifo.IsFull()) {
-        ATOM_PANIC("gpu: Attempted to write to full GXFIFO, busy={}", m_gxstat.busy);
+        m_gxstat.busy = false;
+        if(m_cmd_event) {
+          m_scheduler.Cancel(m_cmd_event);
+        }
+        ProcessCommandsImpl();
       }
 
       m_cmd_fifo.Write(entry);
@@ -161,7 +171,10 @@ namespace dual::nds::gpu {
       m_gxstat.busy = false;
       return;
     }
+    ProcessCommandsImpl();
+  }
 
+  void CommandProcessor::ProcessCommandsImpl() {
     const u8 command = (u8)(m_cmd_pipe.Peek() >> 32);
     const size_t number_of_entries = m_cmd_pipe.Count() + m_cmd_fifo.Count();
 
@@ -172,11 +185,14 @@ namespace dual::nds::gpu {
 
     ExecuteCommand(command);
 
-    m_gxstat.busy = true;
-    // @todo: think of a more efficient solution.
-    m_scheduler.Add(1, [this](int _) {
-      ProcessCommands();
-    });
+    if(!m_swap_buffers_pending) {
+      // @todo: think of a more efficient solution.
+      m_gxstat.busy = true;
+      m_cmd_event = m_scheduler.Add(1, [this](int _) {
+        m_cmd_event = nullptr;
+        ProcessCommands();
+      });
+    }
   }
 
   void CommandProcessor::ExecuteCommand(u8 command) {

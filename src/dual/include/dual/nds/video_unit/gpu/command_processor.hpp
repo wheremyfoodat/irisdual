@@ -93,6 +93,7 @@ namespace dual::nds::gpu {
       void UnpackNextCommands();
 
       void ProcessCommands();
+      void ProcessCommandsImpl();
       void ExecuteCommand(u8 command);
 
       void cmdMatrixMode();
@@ -154,6 +155,7 @@ namespace dual::nds::gpu {
 
       FIFO<u64, 4>   m_cmd_pipe;
       FIFO<u64, 256> m_cmd_fifo;
+      Scheduler::Event* m_cmd_event{};
 
       // Matrix Engine
       int m_mtx_mode{};
