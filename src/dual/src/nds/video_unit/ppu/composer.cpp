@@ -194,10 +194,7 @@ namespace dual::nds {
               if(pixel_new != k_color_transparent) {
                 pixel[0] = pixel_new;
                 layer[0] = bg;
-
-                if constexpr(opengl) {
-                  prio[0] = bgcnt[bg].priority;
-                }
+                prio[0] = bgcnt[bg].priority;
                 break;
               }
             }
@@ -210,8 +207,10 @@ namespace dual::nds {
             m_buffer_obj[x].color != k_color_transparent &&
             m_buffer_obj[x].priority <= prio[0]) {
           pixel[0] = m_buffer_obj[x].color;
-          layer[0] = LAYER_OBJ;
-          prio[0] = m_buffer_obj[x].priority;
+          if constexpr(opengl) {
+            layer[0] = LAYER_OBJ;
+            prio[0] = m_buffer_obj[x].priority;
+          }
         }
 
         if constexpr(opengl) {
