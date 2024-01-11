@@ -111,6 +111,7 @@ namespace dual::nds::gpu {
         }
         m_coordinate_mtx = m_coordinate_mtx_stack[stack_address];
         m_direction_mtx = m_direction_mtx_stack[stack_address];
+        m_clip_mtx_dirty = true;
         break;
       }
       case 3: m_texture_mtx = m_texture_mtx_stack; break;
