@@ -15,7 +15,7 @@ namespace dual::nds {
     Up = 6,
     Down = 7,
     R = 8,
-    L = 10,
+    L = 9,
     X = 16,
     Y = 17
   };
