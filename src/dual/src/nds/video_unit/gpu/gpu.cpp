@@ -9,7 +9,7 @@ namespace dual::nds {
     IRQ& arm9_irq,
     arm9::DMA& arm9_dma,
     const VRAM& vram
-  )   : m_cmd_processor{scheduler, arm9_irq, m_io, m_geometry_engine}
+  )   : m_cmd_processor{scheduler, arm9_irq, arm9_dma, m_io, m_geometry_engine}
       , m_geometry_engine{m_io} {
     m_renderer = std::make_unique<gpu::SoftwareRenderer>(m_io, vram.region_gpu_texture, vram.region_gpu_palette);
   }

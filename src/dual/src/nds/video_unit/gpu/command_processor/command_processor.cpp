@@ -17,10 +17,12 @@ namespace dual::nds::gpu {
   CommandProcessor::CommandProcessor(
     Scheduler& scheduler,
     IRQ& arm9_irq,
+    arm9::DMA& arm9_dma,
     IO& io,
     GeometryEngine& geometry_engine
   )   : m_scheduler{scheduler}
       , m_arm9_irq{arm9_irq}
+      , m_arm9_dma{arm9_dma}
       , m_gxstat{io.gxstat}
       , m_geometry_engine{geometry_engine} {
   }
@@ -62,8 +64,11 @@ namespace dual::nds::gpu {
        * execute the next command early.
        * In hardware enqueueing into full queue would stall the CPU or DMA,
        * but this is difficult to emulate accurately.
+       *
+       * A while-loop instead of an if-statement seems necessary here.
+       * Probably because of GXFIFO DMAs triggered by processing commands.
        */
-      if(m_cmd_fifo.IsFull()) {
+      while(m_cmd_fifo.IsFull()) {
         m_gxstat.busy = false;
         if(m_cmd_event) {
           m_scheduler.Cancel(m_cmd_event);
@@ -101,11 +106,14 @@ namespace dual::nds::gpu {
   }
 
   void CommandProcessor::UpdateFIFOStatus() {
-    const auto fifo_size  = m_cmd_fifo.Count();
+    const size_t fifo_size = m_cmd_fifo.Count();
+    const bool   fifo_less_than_half_full = fifo_size < 128;
 
-    m_gxstat.cmd_fifo_size = fifo_size;
+    m_gxstat.cmd_fifo_size  = fifo_size;
     m_gxstat.cmd_fifo_empty = m_cmd_fifo.IsEmpty();
-    m_gxstat.cmd_fifo_less_than_half_full = fifo_size < 128;
+    m_gxstat.cmd_fifo_less_than_half_full = fifo_less_than_half_full;
+
+    m_arm9_dma.SetGXFIFOLessThanHalfFull(fifo_less_than_half_full);
 
     RequestOrClearIRQ();
   }

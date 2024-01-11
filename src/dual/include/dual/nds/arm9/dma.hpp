@@ -25,6 +25,7 @@ namespace dual::nds::arm9 {
 
       void Reset();
       void Request(StartTime timing);
+      void SetGXFIFOLessThanHalfFull(bool less_than_half_full);
 
       u32   Read_DMASAD(int id);
       void Write_DMASAD(int id, u32 value, u32 mask);
@@ -67,6 +68,8 @@ namespace dual::nds::arm9 {
         u32 dad = 0u;
         u32 length = 0u;
       } m_latch[4]{};
+
+      bool m_less_than_half_full{};
   };
 
 } // namespace dual::nds::arm9

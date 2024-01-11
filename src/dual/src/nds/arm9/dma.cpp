@@ -9,6 +9,8 @@ namespace dual::nds::arm9 {
     for(auto& dmacnt : m_dmacnt) dmacnt = {};
     for(auto& dmafill : m_dmafill) dmafill = 0u;
     for(auto& latch : m_latch) latch = {};
+
+    m_less_than_half_full = true;
   }
 
   void DMA::Request(StartTime timing) {
@@ -19,6 +21,13 @@ namespace dual::nds::arm9 {
         Run(id);
       }
     }
+  }
+
+  void DMA::SetGXFIFOLessThanHalfFull(bool less_than_half_full) {
+    if(less_than_half_full && !m_less_than_half_full) {
+      Request(StartTime::GXFIFO);
+    }
+    m_less_than_half_full = less_than_half_full;
   }
 
   u32 DMA::Read_DMASAD(int id) {
@@ -73,8 +82,8 @@ namespace dual::nds::arm9 {
         Run(id);
       }
 
-      if(dmacnt.timing == StartTime::GXFIFO) {
-        ATOM_PANIC("arm9: DMA: unimplemented GXFIFO DMA enabled.");
+      if(dmacnt.timing == StartTime::GXFIFO && m_less_than_half_full) {
+        Run(id);
       }
     }
   }
