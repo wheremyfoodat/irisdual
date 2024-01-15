@@ -301,9 +301,14 @@ namespace dual::nds::gpu {
             }
             break;
           }
-          case Polygon::Mode::Shadow: ATOM_PANIC("unhandled shadow polygon");
+          case Polygon::Mode::Shadow:
           case Polygon::Mode::Decal: {
-            ATOM_PANIC("unhandled decal polygon");
+            const int s = texel.A().Raw();
+            const int t = 63 - s;
+
+            for(int i : {0, 1, 2}) {
+              color[i] = (texel[i].Raw() * s + color[i].Raw() * t) >> 6;
+            }
             break;
           }
           case Polygon::Mode::Shaded: {
