@@ -18,8 +18,17 @@ namespace dual::nds::gpu {
         const Region<8>& vram_palette
       );
 
-      void SetWBufferEnable(bool enable_w_buffer) {
+      void SetWBufferEnable(bool enable_w_buffer) override {
         m_enable_w_buffer = enable_w_buffer;
+      }
+
+      virtual void UpdateToonTable(size_t table_offset, std::span<const u32> table_data) override {
+        size_t i = table_offset * 2u;
+
+        for(u32 pair : table_data) {
+          m_toon_table[i++] = Color4::FromRGB555((u16)(pair >>  0));
+          m_toon_table[i++] = Color4::FromRGB555((u16)(pair >> 16));
+        }
       }
 
       void Render(const Viewport& viewport, std::span<const Polygon* const> polygons) override;
@@ -61,6 +70,7 @@ namespace dual::nds::gpu {
       u8 m_vram_palette_copy[131072]{};
       Color4 m_frame_buffer[192][256];
       u32 m_depth_buffer[192][256];
+      std::array<Color4, 32> m_toon_table{};
   };
 
 } // namespace dual::nds::gpu

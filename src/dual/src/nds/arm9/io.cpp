@@ -380,25 +380,16 @@ namespace dual::nds::arm9 {
       case REG(0x04000304): hw.video_unit.Write_POWCNT((u16)value, (u16)mask); break;
 
       // GPU3D
-      case REG(0x04000340): if(gpu.GetRenderEnginePowerOn()) gpu.Write_ALPHA_TEST_REF(value, mask); break;
-      case REG(0x04000350): if(gpu.GetRenderEnginePowerOn()) gpu.Write_CLEAR_COLOR(value, mask); break;
-      case REG(0x04000354): if(gpu.GetRenderEnginePowerOn()) gpu.Write_CLEAR_DEPTH(value, mask); break;
-      case REG(0x04000400): // GXFIFO (mirrored from 04000400 to 0400043C)
-      case REG(0x04000404):
-      case REG(0x04000408):
-      case REG(0x0400040C):
-      case REG(0x04000410):
-      case REG(0x04000414):
-      case REG(0x04000418):
-      case REG(0x0400041C):
-      case REG(0x04000420):
-      case REG(0x04000424):
-      case REG(0x04000428):
-      case REG(0x0400042C):
-      case REG(0x04000430):
-      case REG(0x04000434):
-      case REG(0x04000438):
-      case REG(0x0400043C): {
+      case REG(0x04000340): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_ALPHA_TEST_REF(value, mask); break;
+      case REG(0x04000350): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_CLEAR_COLOR(value, mask); break;
+      case REG(0x04000354): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_CLEAR_DEPTH(value, mask); break;
+      case REG(0x04000380) ... REG(0x040003BC): {
+        if(gpu.GetRenderEnginePowerOn()) [[likely]] {
+          gpu.Write_TOON_TABLE(address, value, mask);
+        }
+        break;
+      }
+      case REG(0x04000400) ... REG(0x0400043C): {
         if(gpu.GetGeometryEnginePowerOn()) [[likely]] {
           gpu.Write_GXFIFO(value);
         }

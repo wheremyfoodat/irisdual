@@ -21,6 +21,8 @@ namespace dual::nds {
 
     m_render_engine_power_on = false;
     m_geometry_engine_power_on = false;
+
+    m_renderer->UpdateToonTable(0u, m_io.toon_table);
   }
 
 } // namespace dual::nds

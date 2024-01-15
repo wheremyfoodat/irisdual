@@ -97,6 +97,14 @@ namespace dual::nds {
         m_io.clear_depth = (value & write_mask) | (m_io.clear_depth & ~write_mask);
       }
 
+      void Write_TOON_TABLE(u32 address, u32 value, u32 mask) {
+        const size_t index = (address >> 2) & 15u;
+
+        m_io.toon_table[index] = (value & mask) | (m_io.toon_table[index] & ~mask);
+
+        m_renderer->UpdateToonTable(index, std::span{&m_io.toon_table[index], 2u});
+      }
+
       void SwapBuffers() {
         m_cmd_processor.SwapBuffers(m_renderer.get());
       }

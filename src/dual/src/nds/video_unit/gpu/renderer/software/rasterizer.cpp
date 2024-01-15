@@ -290,27 +290,51 @@ namespace dual::nds::gpu {
           continue;
         }
 
+        const auto modulate = [](Fixed6 a, Fixed6 b) {
+          return ((a.Raw() + 1) * (b.Raw() + 1) - 1) >> 6;
+        };
+
         switch((Polygon::Mode)polygon.attributes.polygon_mode) {
           case Polygon::Mode::Modulation: {
-            for(const int i : {0, 1, 2, 3}) {
-              const int a = texel[i].Raw();
-              const int b = color[i].Raw();
-              color[i] = (i8)(((a + 1) * (b + 1) - 1) >> 6);
+            for(int i : {0, 1, 2, 3}) {
+              color[i] = modulate(texel[i], color[i]);
             }
             break;
           }
-          case Polygon::Mode::Shadow:
+          case Polygon::Mode::Shadow: ATOM_PANIC("unhandled shadow polygon");
           case Polygon::Mode::Decal: {
-            // @todo
+            ATOM_PANIC("unhandled decal polygon");
             break;
           }
           case Polygon::Mode::Shaded: {
-            // @todo
+            const Color4 toon_color = m_toon_table[color.R().Raw() >> 1];
+
+            if(!m_io.disp3dcnt.enable_highlight_shading) {
+              for(int i : {0, 1, 2}) {
+                color[i] = modulate(texel[i], toon_color[i]);
+              }
+            } else {
+              for(int i : {0, 1, 2}) {
+                color[i] = std::min(64, modulate(texel[i], color[i]) + toon_color[i].Raw());
+              }
+            }
+
+            color[3] = modulate(texel[3], color[3]);
             break;
           }
         }
       } else if(polygon.attributes.polygon_mode == Polygon::Mode::Shaded) {
-        // @todo
+        const Color4 toon_color = m_toon_table[color.R().Raw() >> 1];
+
+        if(!m_io.disp3dcnt.enable_highlight_shading) {
+          for(int i : {0, 1, 2}) {
+            color[i] = toon_color[i];
+          }
+        } else {
+          for(int i : {0, 1, 2}) {
+            color[i] = std::min(64, color[i].Raw() + toon_color[i].Raw());
+          }
+        }
       }
 
       // @todo: reject translucent pixel if the polygon ID is equal and the destination (old?) pixel isn't opaque.

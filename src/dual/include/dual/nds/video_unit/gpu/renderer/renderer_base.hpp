@@ -20,6 +20,7 @@ namespace dual::nds::gpu {
       virtual ~RendererBase() = default;
 
       virtual void SetWBufferEnable(bool enable_w_buffer) = 0;
+      virtual void UpdateToonTable(size_t table_offset, std::span<const u32> table_data) = 0;
 
       virtual void Render(const Viewport& viewport, std::span<const Polygon* const> polygons) = 0;
 

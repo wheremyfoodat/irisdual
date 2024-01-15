@@ -3,6 +3,7 @@
 
 #include <atom/bit.hpp>
 #include <atom/integer.hpp>
+#include <array>
 
 namespace dual::nds::gpu {
 
@@ -62,6 +63,7 @@ namespace dual::nds::gpu {
     u32 alpha_test_ref{};
     CLEAR_COLOR clear_color;
     u32 clear_depth{};
+    std::array<u32, 16> toon_table{};
   };
 
 } // namespace dual::nds::gpu
