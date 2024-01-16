@@ -13,6 +13,7 @@ namespace dual::nds {
     arm9::DMA& dma9,
     arm7::DMA& dma7
   )   : m_scheduler{scheduler}
+      , m_vram{memory.vram}
       , m_gpu{scheduler, irq9, dma9, memory.vram}
       , m_ppu{{0, memory, &m_gpu}, {1, memory}}
       , m_dma9{dma9}
@@ -26,7 +27,9 @@ namespace dual::nds {
 
     m_vcount = 0xFFFFu;
     m_powcnt1 = {};
+    m_dispcapcnt = {};
     m_display_swap_latch = false;
+    m_display_capture_active = false;
 
     m_gpu.Reset();
     for(auto& ppu : m_ppu) ppu.Reset();
@@ -59,8 +62,6 @@ namespace dual::nds {
     if(++m_vcount == k_total_lines) {
       for(auto& ppu : m_ppu) ppu.WaitForRenderWorker();
 
-      for(auto& ppu : m_ppu) ppu.SwapBuffers();
-
       if(m_present_callback) [[likely]] {
         const u32* frames[2] {
           m_ppu[1].GetFrameBuffer(),
@@ -74,7 +75,10 @@ namespace dual::nds {
         m_present_callback(frames[0], frames[1]);
       }
 
+      for(auto& ppu : m_ppu) ppu.SwapBuffers();
+
       m_display_swap_latch = m_powcnt1.enable_display_swap;
+      m_display_capture_active = m_dispcapcnt.capture_enable;
       m_vcount = 0u;
     }
 
@@ -82,7 +86,8 @@ namespace dual::nds {
     UpdateVerticalCounterMatchFlag(CPU::ARM7);
 
     if(m_vcount < k_drawing_lines) {
-      m_ppu[0].OnDrawScanlineBegin(m_vcount, false);
+      // @todo: check if display capture reads BG+3D
+      m_ppu[0].OnDrawScanlineBegin(m_vcount, m_display_capture_active);
       m_ppu[1].OnDrawScanlineBegin(m_vcount, false);
 
       // @todo: check if this type of DMA has weird start/stop behaviour like on the GBA.
@@ -106,6 +111,9 @@ namespace dual::nds {
         }
 
         m_gpu.SwapBuffers();
+
+        m_dispcapcnt.capture_enable = false;
+        m_display_capture_active = false;
       }
 
       // The GPU begins rendering the frame in the last 48 scanlines of V-blank.
@@ -148,6 +156,10 @@ namespace dual::nds {
       for(auto& ppu : m_ppu) ppu.OnDrawScanlineEnd();
 
       m_dma9.Request(arm9::DMA::StartTime::HBlank);
+
+      if(m_display_capture_active) {
+        RunDisplayCapture();
+      }
     }
 
     m_scheduler.Add(524 - late, this, &VideoUnit::BeginHDraw);
@@ -186,5 +198,128 @@ namespace dual::nds {
     m_gpu.SetGeometryEnginePowerOn(m_powcnt1.enable_gpu_geometry_engine);
   }
 
+  u32 VideoUnit::Read_DISPCAPCNT() {
+    return m_dispcapcnt.word;
+  }
+
+  void VideoUnit::Write_DISPCAPCNT(u32 value, u32 mask) {
+    const u32 write_mask = 0xEF3F1F1Fu & mask;
+
+    m_dispcapcnt.word = (value & write_mask) | (m_dispcapcnt.word & ~write_mask);
+  }
+
+  void VideoUnit::RunDisplayCapture() {
+    constexpr int k_capture_size_lut[4][2] {
+      {128, 128}, {256,  64}, {256, 128}, {256, 192}
+    };
+
+    const uint size = m_dispcapcnt.capture_size;
+
+    const int height = k_capture_size_lut[size][1];
+
+    if(m_vcount >= height) {
+      return;
+    }
+
+    const int width = k_capture_size_lut[size][0];
+
+    const u32 line_offset = m_vcount * 256;
+
+    const u32 vram_write_base    = m_dispcapcnt.vram_write_block  << 17;
+    const u32 vram_write_offset  = m_dispcapcnt.vram_write_offset << 15;
+    const u32 vram_write_address = vram_write_base + ((vram_write_offset + line_offset * sizeof(u16)) & 0x1FFFF);
+
+    u16* const buffer_dst = m_vram.region_lcdc.GetUnsafePointer<u16>(vram_write_address);
+
+    if(buffer_dst == nullptr) [[unlikely]] {
+      return;
+    }
+
+    m_ppu[0].WaitForRenderWorker();
+
+    const auto capture_a = [&](u16* dst) {
+      if(m_dispcapcnt.src_a == DISPCAPCNT::SourceA::GPUAndPPU) {
+        std::memcpy(dst, m_ppu[0].GetLayerMergeOutput(), sizeof(u16) * width);
+      } else {
+        // @todo: perhaps a fixed-size span is not ideal for this.
+        m_gpu.CaptureColor(m_vcount, std::span<u16, 256>{dst, 256}, width, true);
+      }
+    };
+
+    const auto capture_b = [&](u16* dst) {
+      if(m_dispcapcnt.src_b == DISPCAPCNT::SourceB::VRAM) {
+        const u32 vram_read_base   = m_ppu[0].m_mmio.dispcnt.vram_block << 17;
+        const u32 vram_read_offset = m_dispcapcnt.vram_read_offset << 15;
+
+        const u16* const src = m_vram.region_lcdc.GetUnsafePointer<u16>(
+          vram_read_base + ((vram_read_offset + line_offset * sizeof(u16)) & 0x1FFFF));
+
+        if(src != nullptr) [[likely]] {
+          std::memcpy(dst, src, sizeof(u16) * width);
+        } else {
+          std::memset(dst, 0, sizeof(u16) * width);
+        }
+      } else {
+        ATOM_PANIC("unhandled main memory display FIFO capture");
+      }
+    };
+
+    switch((DISPCAPCNT::CaptureSource)m_dispcapcnt.capture_src) {
+      case DISPCAPCNT::CaptureSource::A: {
+        capture_a(buffer_dst);
+        break;
+      }
+      case DISPCAPCNT::CaptureSource::B: {
+        capture_b(buffer_dst);
+        break;
+      }
+      default: {
+        u16 buffer_a[width];
+        u16 buffer_b[width];
+
+        capture_a(buffer_a);
+        capture_b(buffer_b);
+
+        const int eva = std::min((int)m_dispcapcnt.eva, 16);
+        const int evb = std::min((int)m_dispcapcnt.evb, 16);
+        const bool need_clamp = (eva + evb) > 16;
+
+        for(int x = 0; x < width; x++) {
+          const u16 color_a = buffer_a[x];
+          const u16 color_b = buffer_b[x];
+
+          const int r_a = (color_a >>  0) & 31;
+          const int g_a = (color_a >>  5) & 31;
+          const int b_a = (color_a >> 10) & 31;
+          const int a_a =  color_a >> 15;
+
+          const int r_b = (color_b >>  0) & 31;
+          const int g_b = (color_b >>  5) & 31;
+          const int b_b = (color_b >> 10) & 31;
+          const int a_b =  color_b >> 15;
+
+          const int factor_a = a_a * eva;
+          const int factor_b = a_b * evb;
+
+          int r_out = (r_a * factor_a + r_b * factor_b + 8) >> 4;
+          int g_out = (g_a * factor_a + g_b * factor_b + 8) >> 4;
+          int b_out = (b_a * factor_a + b_b * factor_b + 8) >> 4;
+
+          if(need_clamp) {
+            r_out = std::min(r_out, 15);
+            g_out = std::min(g_out, 15);
+            b_out = std::min(b_out, 15);
+          }
+
+          const int a_out = (eva > 0 ? a_a : 0) | (evb > 0 ? a_b : 0);
+
+          buffer_dst[x] = r_out | (g_out << 5) | (b_out << 10) | (a_out << 15);
+        }
+        break;
+      }
+    }
+
+    m_ppu[0].OnWriteVRAM_LCDC(vram_write_address, vram_write_address + width * sizeof(u16));
+  }
 
 } // namespace dual::nds

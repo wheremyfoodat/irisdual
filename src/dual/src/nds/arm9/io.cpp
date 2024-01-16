@@ -121,6 +121,7 @@ namespace dual::nds::arm9 {
       case REG(0x04000048): return PPU_READ_1616(ppu_a, winin, winout, mask);
       case REG(0x04000050): return PPU_READ_1616(ppu_a, bldcnt, bldalpha, mask);
       case REG(0x04000060): return gpu.Read_DISP3DCNT();
+      case REG(0x04000064): return hw.video_unit.Read_DISPCAPCNT();
       case REG(0x0400006C): return PPU_READ_16__(ppu_a, master_bright);
 
       // PPU B
@@ -274,6 +275,7 @@ namespace dual::nds::arm9 {
       case REG(0x04000050): if(ppu_a.GetPowerOn()) [[likely]] PPU_WRITE_1616(ppu_a, bldcnt, bldalpha, value, mask); break;
       case REG(0x04000054): if(ppu_a.GetPowerOn()) [[likely]] PPU_WRITE_16__(ppu_a, bldy, value, mask); break;
       case REG(0x04000060): gpu.Write_DISP3DCNT((u16)value, (u16)mask); break;
+      case REG(0x04000064): hw.video_unit.Write_DISPCAPCNT(value, mask);
       case REG(0x0400006C): PPU_WRITE_16__(ppu_a, master_bright, value, mask); break;
 
       // PPU B

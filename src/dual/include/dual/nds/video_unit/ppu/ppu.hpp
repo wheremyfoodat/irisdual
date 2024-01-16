@@ -63,6 +63,10 @@ namespace dual::nds {
         return &m_frame_buffer[m_frame][0];
       }
 
+      [[nodiscard]] const u16* GetLayerMergeOutput() const {
+        return &m_buffer_compose[0];
+      }
+
       void SwapBuffers() {
         m_frame ^= 1;
       }

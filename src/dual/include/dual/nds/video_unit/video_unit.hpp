@@ -49,17 +49,21 @@ namespace dual::nds {
       u16   Read_POWCNT1();
       void Write_POWCNT(u16 value, u16 mask);
 
+      u32   Read_DISPCAPCNT();
+      void Write_DISPCAPCNT(u32 value, u32 mask);
+
     private:
       static constexpr int k_drawing_lines = 192;
       static constexpr int k_blanking_lines = 71;
       static constexpr int k_total_lines = k_drawing_lines + k_blanking_lines;
 
       void UpdateVerticalCounterMatchFlag(CPU cpu);
-
       void BeginHDraw(int late);
       void BeginHBlank(int late);
+      void RunDisplayCapture();
 
       Scheduler& m_scheduler;
+      VRAM& m_vram;
 
       GPU m_gpu;
       PPU m_ppu[2];
@@ -90,7 +94,39 @@ namespace dual::nds {
         u16 half = 0u;
       } m_powcnt1{};
 
+      union DISPCAPCNT {
+        enum class SourceA {
+          GPUAndPPU = 0,
+          GPU = 1
+        };
+
+        enum class SourceB {
+          VRAM = 0,
+          MainMemoryDisplayFIFO = 1
+        };
+
+        enum class CaptureSource {
+          A = 0,
+          B = 1,
+          BlendAB = 2
+        };
+
+        atom::Bits< 0, 5, u32> eva;
+        atom::Bits< 8, 5, u32> evb;
+        atom::Bits<16, 2, u32> vram_write_block;
+        atom::Bits<18, 2, u32> vram_write_offset;
+        atom::Bits<20, 2, u32> capture_size;
+        atom::Bits<24, 1, u32> src_a;
+        atom::Bits<25, 1, u32> src_b;
+        atom::Bits<26, 2, u32> vram_read_offset;
+        atom::Bits<29, 2, u32> capture_src;
+        atom::Bits<31, 1, u32> capture_enable;
+
+        u32 word = 0u;
+      } m_dispcapcnt{};
+
       bool m_display_swap_latch{};
+      bool m_display_capture_active{};
 
       IRQ* m_irq[2]{};
       arm9::DMA& m_dma9;
