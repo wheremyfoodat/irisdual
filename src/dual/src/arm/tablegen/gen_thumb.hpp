@@ -111,6 +111,7 @@ static constexpr auto GenerateHandlerThumb() -> Handler16 {
     case ThumbInstrType::LongBranchLinkExchangeSuffix: {
       return &ARM::Thumb_LongBranchLinkSuffix<true>;
     }
+    default: break;
   }
 
   return &ARM::Thumb_Unimplemented;

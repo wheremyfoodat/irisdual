@@ -486,6 +486,8 @@ void Thumb_ConditionalBranch(u16 instruction) {
 }
 
 void Thumb_SWI(u16 instruction) {
+  (void)instruction;
+
   // Save current program status register.
   m_state.spsr[(int)Bank::Supervisor] = m_state.cpsr;
 

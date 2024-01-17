@@ -99,6 +99,7 @@ static constexpr auto GenerateHandlerARM() -> Handler32 {
     case ARMInstrType::CoprocessorRegisterXfer: return &ARM::ARM_CoprocessorRegisterTransfer;
     case ARMInstrType::SoftwareInterrupt: return &ARM::ARM_SWI;
     case ARMInstrType::BranchLinkExchangeImm: return &ARM::ARM_BranchLinkExchangeImm;
+    default: break;
   }
 
   return &ARM::ARM_Undefined;

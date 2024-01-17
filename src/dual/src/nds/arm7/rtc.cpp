@@ -64,6 +64,9 @@ namespace dual::nds::arm7 {
         TransmitBufferSIO();
         break;
       }
+      case State::Complete: {
+        break;
+      }
     }
   }
 

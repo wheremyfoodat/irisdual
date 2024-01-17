@@ -203,9 +203,7 @@ namespace dual::nds {
       }
 
       Color4(const Color4& other) {
-        for(const int i : {0, 1, 2, 3}) {
-          this->data[i] = other[i];
-        }
+        operator=(other);
       }
 
       static Color4 FromRGB555(u16 color) {
@@ -225,6 +223,13 @@ namespace dual::nds {
         return  R().Raw() >> 1 |
                (G().Raw() >> 1) <<  5 |
                (B().Raw() >> 1) << 10;
+      }
+
+      Color4& operator=(const Color4& other) {
+        for(const int i : {0, 1, 2, 3}) {
+          this->data[i] = other[i];
+        }
+        return *this;
       }
 
       [[nodiscard]] Color4 operator*(Fixed6 other) const {

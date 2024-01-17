@@ -787,6 +787,8 @@ void ARM_BlockDataTransfer(u32 instruction) {
 }
 
 void ARM_SWI(u32 instruction) {
+  (void)instruction;
+
   // Save current program status register.
   m_state.spsr[(int)Bank::Supervisor] = m_state.cpsr;
 
