@@ -227,7 +227,7 @@ namespace dual::nds {
 
     const u32 vram_write_base    = m_dispcapcnt.vram_write_block  << 17;
     const u32 vram_write_offset  = m_dispcapcnt.vram_write_offset << 15;
-    const u32 vram_write_address = vram_write_base + ((vram_write_offset + line_offset * sizeof(u16)) & 0x1FFFF);
+    const u32 vram_write_address = vram_write_base + ((vram_write_offset + line_offset * sizeof(u16)) & 0x1FFFFu);
 
     u16* const buffer_dst = m_vram.region_lcdc.GetUnsafePointer<u16>(vram_write_address);
 
@@ -248,11 +248,11 @@ namespace dual::nds {
 
     const auto capture_b = [&](u16* dst) {
       if(m_dispcapcnt.src_b == DISPCAPCNT::SourceB::VRAM) {
-        const u32 vram_read_base   = m_ppu[0].m_mmio.dispcnt.vram_block << 17;
-        const u32 vram_read_offset = m_dispcapcnt.vram_read_offset << 15;
+        const u32 vram_read_base    = m_ppu[0].m_mmio.dispcnt.vram_block << 17;
+        const u32 vram_read_offset  = m_dispcapcnt.vram_read_offset << 15;
+        const u32 vram_read_address = vram_read_base + ((vram_read_offset + line_offset * sizeof(u16)) & 0x1FFFFu);
 
-        const u16* const src = m_vram.region_lcdc.GetUnsafePointer<u16>(
-          vram_read_base + ((vram_read_offset + line_offset * sizeof(u16)) & 0x1FFFF));
+        const u16* const src = m_vram.region_lcdc.GetUnsafePointer<u16>(vram_read_address);
 
         if(src != nullptr) [[likely]] {
           std::memcpy(dst, src, sizeof(u16) * width);
