@@ -45,6 +45,16 @@ namespace dual::nds::gpu {
         u32 depth[2];
       };
 
+      struct PixelAttributes {
+        enum Flags : u16 {
+          Shadow = 1,
+          Edge = 2
+        };
+
+        u8 poly_id[2];
+        u16 flags;
+      };
+
       void CopyVRAM();
       void RenderRearPlane();
       void RenderPolygons(const Viewport& viewport, std::span<const Polygon* const> polygons);
@@ -70,6 +80,7 @@ namespace dual::nds::gpu {
       u8 m_vram_palette_copy[131072]{};
       Color4 m_frame_buffer[192][256];
       u32 m_depth_buffer[192][256];
+      PixelAttributes m_attribute_buffer[192][256];
       std::array<Color4, 32> m_toon_table{};
   };
 

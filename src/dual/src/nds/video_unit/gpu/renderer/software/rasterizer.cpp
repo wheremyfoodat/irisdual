@@ -20,12 +20,30 @@ namespace dual::nds::gpu {
       (i8)((m_io.clear_color.color_a << 1) | (m_io.clear_color.color_a >> 4)),
     };
 
+    for(int y = 0; y < 192; y++) {
+      for(int x = 0; x < 256; x++) {
+        m_frame_buffer[y][x] = clear_color;
+      }
+    }
+
     const u32 clear_depth = (((u32)m_io.clear_depth << 9) + (((u32)m_io.clear_depth + 1u) >> 15)) * 0x1FFu;
 
     for(int y = 0; y < 192; y++) {
       for(int x = 0; x < 256; x++) {
-        m_frame_buffer[y][x] = clear_color;
         m_depth_buffer[y][x] = clear_depth;
+      }
+    }
+
+    // @todo: check that translucent polygon ID is initialized correctly.
+    const u8 poly_id = m_io.clear_color.polygon_id;
+    const PixelAttributes clear_attributes = {
+      .poly_id = { poly_id, poly_id },
+      .flags = 0
+    };
+
+    for(int y = 0; y < 192; y++) {
+      for(int x = 0; x < 256; x++) {
+        m_attribute_buffer[y][x] = clear_attributes;
       }
     }
   }
@@ -243,12 +261,9 @@ namespace dual::nds::gpu {
 
   void SoftwareRenderer::RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1) {
     const i32 depth_test_threshold = m_enable_w_buffer ? 0xFF : 0x200;
-
     const u32 alpha = polygon.attributes.alpha << 1 | polygon.attributes.alpha >> 4;
-
-    Interpolator<8> line_interp{};
-    Color4 color;
-    Vector2<Fixed12x4> uv;
+    const auto polygon_mode = (Polygon::Mode)polygon.attributes.polygon_mode;
+    const u8 polygon_id = polygon.attributes.polygon_id;
 
     int alpha_test_threshold = 0u;
 
@@ -258,6 +273,10 @@ namespace dual::nds::gpu {
 
     x0 = std::max(x0, 0);
     x1 = std::min(x1, 255);
+
+    Interpolator<8> line_interp{};
+    Color4 color;
+    Vector2<Fixed12x4> uv;
 
     for(int x = x0; x <= x1; x++) {
       line_interp.Setup(line.w_16[0], line.w_16[1], x, line.x[0], line.x[1]);
@@ -272,6 +291,18 @@ namespace dual::nds::gpu {
         depth_test_passed = std::abs((i32)depth_new - (i32)depth_old) <= depth_test_threshold;
       } else {
         depth_test_passed = depth_new < depth_old;
+      }
+
+      if(polygon_mode == Polygon::Mode::Shadow && polygon_id == 0u) {
+        /**
+         * I'm not sure if the depth buffer and Polygon ID should be updated,
+         * in case the depth test passes.
+         * But certainly the shadow flag should _not_ be cleared if the test passes (this causes shadows in Mario Kart DS to look incorrect).
+         */
+        if(!depth_test_passed) {
+          m_attribute_buffer[y][x].flags |= PixelAttributes::Shadow;
+        }
+        continue;
       }
 
       if(!depth_test_passed) {
@@ -291,10 +322,10 @@ namespace dual::nds::gpu {
         }
 
         const auto modulate = [](Fixed6 a, Fixed6 b) {
-          return ((a.Raw() + 1) * (b.Raw() + 1) - 1) >> 6;
+          return (i8)(((a.Raw() + 1) * (b.Raw() + 1) - 1) >> 6);
         };
 
-        switch((Polygon::Mode)polygon.attributes.polygon_mode) {
+        switch(polygon_mode) {
           case Polygon::Mode::Modulation: {
             for(int i : {0, 1, 2, 3}) {
               color[i] = modulate(texel[i], color[i]);
@@ -307,7 +338,7 @@ namespace dual::nds::gpu {
             const int t = 63 - s;
 
             for(int i : {0, 1, 2}) {
-              color[i] = (texel[i].Raw() * s + color[i].Raw() * t) >> 6;
+              color[i] = (i8)((texel[i].Raw() * s + color[i].Raw() * t) >> 6);
             }
             break;
           }
@@ -320,7 +351,7 @@ namespace dual::nds::gpu {
               }
             } else {
               for(int i : {0, 1, 2}) {
-                color[i] = std::min(64, modulate(texel[i], color[i]) + toon_color[i].Raw());
+                color[i] = (i8)std::min(64, modulate(texel[i], color[i]) + toon_color[i].Raw());
               }
             }
 
@@ -337,7 +368,7 @@ namespace dual::nds::gpu {
           }
         } else {
           for(int i : {0, 1, 2}) {
-            color[i] = std::min(64, color[i].Raw() + toon_color[i].Raw());
+            color[i] = (i8)std::min(64, color[i].Raw() + toon_color[i].Raw());
           }
         }
       }
@@ -355,15 +386,29 @@ namespace dual::nds::gpu {
         color.A() = std::max(color.A(), m_frame_buffer[y][x].A());
       }
 
-      m_frame_buffer[y][x] = color;
+      PixelAttributes& attributes = m_attribute_buffer[y][x];
+
+      if(polygon_mode == Polygon::Mode::Shadow) {
+        // We assume that polygon_id != 0 here because we discard the other shadow polygon pixels.
+        if(attributes.flags & PixelAttributes::Shadow && attributes.poly_id[0] != polygon_id) {
+          m_frame_buffer[y][x] = color;
+        }
+      } else {
+        m_frame_buffer[y][x] = color;
+      }
 
       if(opaque_pixel) {
         m_depth_buffer[y][x] = depth_new;
+        attributes.poly_id[0] = polygon_id;
       } else {
         if(polygon.attributes.enable_translucent_depth_write) {
           m_depth_buffer[y][x] = depth_new;
         }
+        attributes.poly_id[1] = polygon_id;
       }
+
+      // Probably the shadow flag is cleared not only by rendered shadow polygons, but this needs proof.
+      attributes.flags &= ~PixelAttributes::Shadow;
     }
   }
 
