@@ -373,20 +373,25 @@ namespace dual::nds::gpu {
         }
       }
 
-      // @todo: reject translucent pixel if the polygon ID is equal and the destination (old?) pixel isn't opaque.
+      PixelAttributes& attributes = m_attribute_buffer[y][x];
 
       const bool opaque_pixel = color.A() == 63;
 
-      if(!opaque_pixel && m_io.disp3dcnt.enable_alpha_blend && m_frame_buffer[y][x].A() != 0) {
-        const Fixed6 a0 = color.A();
-        const Fixed6 a1 = Fixed6{63} - a0;
-        for(const int i : {0, 1, 2}) {
-          color[i] = color[i] * a0 + m_frame_buffer[y][x][i] * a1;
+      if(!opaque_pixel) {
+        // @todo: do not reject pixel if the destination pixel is opaque.
+        if(attributes.poly_id[1] == polygon_id) {
+          continue;
         }
-        color.A() = std::max(color.A(), m_frame_buffer[y][x].A());
-      }
 
-      PixelAttributes& attributes = m_attribute_buffer[y][x];
+        if(m_io.disp3dcnt.enable_alpha_blend && m_frame_buffer[y][x].A() != 0) {
+          const Fixed6 a0 = color.A();
+          const Fixed6 a1 = Fixed6{63} - a0;
+          for (const int i: {0, 1, 2}) {
+            color[i] = color[i] * a0 + m_frame_buffer[y][x][i] * a1;
+          }
+          color.A() = std::max(color.A(), m_frame_buffer[y][x].A());
+        }
+      }
 
       if(polygon_mode == Polygon::Mode::Shadow) {
         // We assume that polygon_id != 0 here because we discard the other shadow polygon pixels.
@@ -407,7 +412,7 @@ namespace dual::nds::gpu {
         attributes.poly_id[1] = polygon_id;
       }
 
-      // Probably the shadow flag is cleared not only by rendered shadow polygons, but this needs proof.
+      // Probably the shadow flag is cleared not only by shadow polygons, but this needs proof.
       attributes.flags &= ~PixelAttributes::Shadow;
     }
   }
