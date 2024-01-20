@@ -321,56 +321,9 @@ namespace dual::nds::gpu {
           continue;
         }
 
-        const auto modulate = [](Fixed6 a, Fixed6 b) {
-          return (i8)(((a.Raw() + 1) * (b.Raw() + 1) - 1) >> 6);
-        };
-
-        switch(polygon_mode) {
-          case Polygon::Mode::Modulation: {
-            for(int i : {0, 1, 2, 3}) {
-              color[i] = modulate(texel[i], color[i]);
-            }
-            break;
-          }
-          case Polygon::Mode::Shadow:
-          case Polygon::Mode::Decal: {
-            const int s = texel.A().Raw();
-            const int t = 63 - s;
-
-            for(int i : {0, 1, 2}) {
-              color[i] = (i8)((texel[i].Raw() * s + color[i].Raw() * t) >> 6);
-            }
-            break;
-          }
-          case Polygon::Mode::Shaded: {
-            const Color4 toon_color = m_toon_table[color.R().Raw() >> 1];
-
-            if(!m_io.disp3dcnt.enable_highlight_shading) {
-              for(int i : {0, 1, 2}) {
-                color[i] = modulate(texel[i], toon_color[i]);
-              }
-            } else {
-              for(int i : {0, 1, 2}) {
-                color[i] = (i8)std::min(64, modulate(texel[i], color[i]) + toon_color[i].Raw());
-              }
-            }
-
-            color[3] = modulate(texel[3], color[3]);
-            break;
-          }
-        }
+        color = ShadeTexturedPolygon(polygon_mode, texel, color);
       } else if(polygon.attributes.polygon_mode == Polygon::Mode::Shaded) {
-        const Color4 toon_color = m_toon_table[color.R().Raw() >> 1];
-
-        if(!m_io.disp3dcnt.enable_highlight_shading) {
-          for(int i : {0, 1, 2}) {
-            color[i] = toon_color[i];
-          }
-        } else {
-          for(int i : {0, 1, 2}) {
-            color[i] = (i8)std::min(64, color[i].Raw() + toon_color[i].Raw());
-          }
-        }
+        color = ShadeShadedUntexturedPolygon(color);
       }
 
       PixelAttributes& attributes = m_attribute_buffer[y][x];
@@ -415,6 +368,72 @@ namespace dual::nds::gpu {
       // Probably the shadow flag is cleared not only by shadow polygons, but this needs proof.
       attributes.flags &= ~PixelAttributes::Shadow;
     }
+  }
+
+  Color4 SoftwareRenderer::ShadeTexturedPolygon(Polygon::Mode polygon_mode, Color4 texture_color, Color4 vertex_color) {
+    const auto modulate = [](Fixed6 a, Fixed6 b) {
+      return (i8)(((a.Raw() + 1) * (b.Raw() + 1) - 1) >> 6);
+    };
+
+    Color4 result_color;
+
+    switch(polygon_mode) {
+      case Polygon::Mode::Modulation: {
+        for(int i : {0, 1, 2, 3}) {
+          result_color[i] = modulate(texture_color[i], vertex_color[i]);
+        }
+        break;
+      }
+      case Polygon::Mode::Shadow:
+      case Polygon::Mode::Decal: {
+        const int s = texture_color.A().Raw();
+        const int t = 63 - s;
+
+        for(int i : {0, 1, 2}) {
+          result_color[i] = (i8)((texture_color[i].Raw() * s + vertex_color[i].Raw() * t) >> 6);
+        }
+        break;
+      }
+      case Polygon::Mode::Shaded: {
+        const Color4 toon_color = m_toon_table[vertex_color.R().Raw() >> 1];
+
+        if(!m_io.disp3dcnt.enable_highlight_shading) {
+          for(int i : {0, 1, 2}) {
+            result_color[i] = modulate(texture_color[i], toon_color[i]);
+          }
+        } else {
+          for(int i : {0, 1, 2}) {
+            result_color[i] = (i8)std::min(64, modulate(texture_color[i], vertex_color[i]) + toon_color[i].Raw());
+          }
+        }
+
+        result_color[3] = modulate(texture_color[3], vertex_color[3]);
+        break;
+      }
+      default: {
+        ATOM_PANIC("unhandled polygon mode");
+      }
+    }
+
+    return result_color;
+  }
+
+  Color4 SoftwareRenderer::ShadeShadedUntexturedPolygon(Color4 vertex_color) {
+    const Color4 toon_color = m_toon_table[vertex_color.R().Raw() >> 1];
+
+    Color4 result_color;
+
+    if(!m_io.disp3dcnt.enable_highlight_shading) {
+      for(int i : {0, 1, 2}) {
+        result_color[i] = toon_color[i];
+      }
+    } else {
+      for(int i : {0, 1, 2}) {
+        result_color[i] = (i8)std::min(64, vertex_color[i].Raw() + toon_color[i].Raw());
+      }
+    }
+
+    return result_color;
   }
 
   Color4 SoftwareRenderer::SampleTexture(TextureParams params, u32 palette_base, Vector2<Fixed12x4> uv) {
