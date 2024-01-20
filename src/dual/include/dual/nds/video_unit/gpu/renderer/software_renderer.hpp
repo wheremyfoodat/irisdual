@@ -63,6 +63,7 @@ namespace dual::nds::gpu {
       Color4 ShadeTexturedPolygon(Polygon::Mode polygon_mode, Color4 texture_color, Color4 vertex_color);
       Color4 ShadeShadedUntexturedPolygon(Color4 vertex_color);
       Color4 SampleTexture(TextureParams params, u32 palette_base, Vector2<Fixed12x4> uv);
+      void RenderAntiAliasing();
 
       template<typename T>
       auto ReadTextureVRAM(u32 address) {
@@ -80,8 +81,8 @@ namespace dual::nds::gpu {
       bool m_enable_w_buffer{};
       u8 m_vram_texture_copy[524288]{};
       u8 m_vram_palette_copy[131072]{};
-      Color4 m_frame_buffer[192][256];
-      u32 m_depth_buffer[192][256];
+      Color4 m_frame_buffer[2][192][256];
+      u32 m_depth_buffer[2][192][256];
       PixelAttributes m_attribute_buffer[192][256];
       std::array<Color4, 32> m_toon_table{};
   };

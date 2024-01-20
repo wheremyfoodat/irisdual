@@ -22,7 +22,14 @@ namespace dual::nds::gpu {
 
     for(int y = 0; y < 192; y++) {
       for(int x = 0; x < 256; x++) {
-        m_frame_buffer[y][x] = clear_color;
+        m_frame_buffer[0][y][x] = clear_color;
+      }
+    }
+
+    // @todo: is clearing this actually necessary?
+    for(int y = 0; y < 192; y++) {
+      for(int x = 0; x < 256; x++) {
+        m_frame_buffer[1][y][x] = Color4{0, 0, 0, 0};
       }
     }
 
@@ -30,7 +37,8 @@ namespace dual::nds::gpu {
 
     for(int y = 0; y < 192; y++) {
       for(int x = 0; x < 256; x++) {
-        m_depth_buffer[y][x] = clear_depth;
+        m_depth_buffer[0][y][x] = clear_depth;
+        m_depth_buffer[1][y][x] = clear_depth;
       }
     }
 
@@ -281,7 +289,7 @@ namespace dual::nds::gpu {
     for(int x = x0; x <= x1; x++) {
       line_interp.Setup(line.w_16[0], line.w_16[1], x, line.x[0], line.x[1]);
 
-      const u32 depth_old = m_depth_buffer[y][x];
+      const u32 depth_old = m_depth_buffer[0][y][x];
       const u32 depth_new = m_enable_w_buffer ?
         line_interp.Perp(line.depth[0], line.depth[1]) : line_interp.Lerp(line.depth[0], line.depth[1]);
 
@@ -305,9 +313,10 @@ namespace dual::nds::gpu {
         continue;
       }
 
-      if(!depth_test_passed) {
-        continue;
-      }
+      // @todo: I guess we can do this early reject if anti-aliasing is disabled.
+//      if(!depth_test_passed) {
+//        continue;
+//      }
 
       line_interp.Perp(line.color[0], line.color[1], color);
       line_interp.Perp(line.uv[0], line.uv[1], uv);
@@ -330,37 +339,71 @@ namespace dual::nds::gpu {
 
       const bool opaque_pixel = color.A() == 63;
 
+      // // @todo: translucent pixels should be blended into both the top and bottom pixel.
+
+      const auto AlphaBlend = [this](Color4 top, Color4 bottom) {
+        if(bottom.A() == 0) return top;
+
+        // @todo: this will be calculated multiple times even though it stays the same.
+        const Fixed6 a0 = top.A();
+        const Fixed6 a1 = Fixed6{63} - a0;
+
+        for(const int  i: {0, 1, 2}) {
+          top[i] = top[i] * a0 + bottom[i] * a1;
+        }
+        top.A() = std::max(top.A(), bottom.A());
+        return top;
+      };
+
+      // @todo: simplify this
       if(!opaque_pixel) {
         // @todo: do not reject pixel if the destination pixel is opaque.
         if(attributes.poly_id[1] == polygon_id) {
           continue;
         }
-
-        if(m_io.disp3dcnt.enable_alpha_blend && m_frame_buffer[y][x].A() != 0) {
-          const Fixed6 a0 = color.A();
-          const Fixed6 a1 = Fixed6{63} - a0;
-          for (const int i: {0, 1, 2}) {
-            color[i] = color[i] * a0 + m_frame_buffer[y][x][i] * a1;
-          }
-          color.A() = std::max(color.A(), m_frame_buffer[y][x].A());
-        }
       }
 
+      bool color_write = true;
+
+      // @todo: maybe simplify this.
       if(polygon_mode == Polygon::Mode::Shadow) {
         // We assume that polygon_id != 0 here because we discard the other shadow polygon pixels.
-        if(attributes.flags & PixelAttributes::Shadow && attributes.poly_id[0] != polygon_id) {
-          m_frame_buffer[y][x] = color;
-        }
-      } else {
-        m_frame_buffer[y][x] = color;
+        color_write = attributes.flags & PixelAttributes::Shadow && attributes.poly_id[0] != polygon_id;
       }
 
+      if(!depth_test_passed) {
+        // @todo: most likely this is incorrect for the "equals" depth test.
+        if(color_write && depth_new < m_depth_buffer[1][y][x]) {
+          // @todo: validate that the new bottom pixel will be alpha blended into the old bottom pixel.
+          if(!opaque_pixel) {
+            m_frame_buffer[1][y][x] = AlphaBlend(color, m_frame_buffer[1][y][x]);
+          } else {
+            m_frame_buffer[1][y][x] = color;
+          }
+          m_depth_buffer[1][y][x] = depth_new;
+        }
+        continue;
+      }
+
+      if(color_write) {
+        if(!opaque_pixel) {
+          m_frame_buffer[1][y][x] = AlphaBlend(color, m_frame_buffer[1][y][x]);
+          m_frame_buffer[0][y][x] = AlphaBlend(color, m_frame_buffer[0][y][x]);
+        } else {
+          m_frame_buffer[1][y][x] = m_frame_buffer[0][y][x];
+          m_frame_buffer[0][y][x] = color;
+        }
+      }
+
+      // @todo: ensure that this is correct if translucent depth write is off.
+      m_depth_buffer[1][y][x] = m_depth_buffer[0][y][x];
+
       if(opaque_pixel) {
-        m_depth_buffer[y][x] = depth_new;
+        m_depth_buffer[0][y][x] = depth_new;
         attributes.poly_id[0] = polygon_id;
       } else {
         if(polygon.attributes.enable_translucent_depth_write) {
-          m_depth_buffer[y][x] = depth_new;
+          m_depth_buffer[0][y][x] = depth_new;
         }
         attributes.poly_id[1] = polygon_id;
       }
@@ -597,6 +640,10 @@ namespace dual::nds::gpu {
     };
 
     return {};
+  }
+
+  void SoftwareRenderer::RenderAntiAliasing() {
+    // draw the rest of the owl
   }
 
 } // namespace dual::nds::gpu
