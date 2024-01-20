@@ -322,7 +322,7 @@ namespace dual::nds::gpu {
         }
 
         color = ShadeTexturedPolygon(polygon_mode, texel, color);
-      } else if(polygon.attributes.polygon_mode == Polygon::Mode::Shaded) {
+      } else if(polygon_mode == Polygon::Mode::Shaded) {
         color = ShadeShadedUntexturedPolygon(color);
       }
 
