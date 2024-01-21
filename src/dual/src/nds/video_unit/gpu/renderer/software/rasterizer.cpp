@@ -25,12 +25,10 @@ namespace dual::nds::gpu {
   }
 
   void SoftwareRenderer::ClearDepthBuffer() {
-    const u32 clear_depth = (((u32)m_io.clear_depth << 9) + (((u32)m_io.clear_depth + 1u) >> 15)) * 0x1FFu;
-
     for(int y = 0; y < 192; y++) {
       for(int x = 0; x < 256; x++) {
-        m_depth_buffer[0][y][x] = clear_depth;
-        m_depth_buffer[1][y][x] = clear_depth;
+        m_depth_buffer[0][y][x] = m_clear_depth;
+        m_depth_buffer[1][y][x] = m_clear_depth;
       }
     }
   }
@@ -209,7 +207,7 @@ namespace dual::nds::gpu {
         break;
       }
 
-      const bool force_render_inner_span = y == y_min || y == y_max - 1;
+      const bool inner_span_is_edge = y == y_min || y == y_max - 1;
 
       int xl0 = x0[l] >> 18;
       int xr1 = x1[r] >> 18;
@@ -265,11 +263,12 @@ namespace dual::nds::gpu {
           cov[0] = edge[l].GetXSlope() != 0 ? (u8)(((x0[l] >> 12) & 63u) ^ 63u) : 63;
         }
 
-        RenderPolygonSpan(polygon, line, y, xl0, xl1, cov[0], cov[1]);
+        RenderPolygonSpan(polygon, line, y, xl0, xl1, true, cov[0], cov[1]);
       }
 
-      if(!wireframe || force_render_inner_span) {
-        RenderPolygonSpan(polygon, line, y, xl1 + 1, xr0 - 1, 63, 63);
+      if(!wireframe || inner_span_is_edge) {
+        // @todo: are there cases where this should be marked as an edge?
+        RenderPolygonSpan(polygon, line, y, xl1 + 1, xr0 - 1, inner_span_is_edge, 63, 63);
       }
 
       if((edge[r].GetXSlope() > 0 && edge[r].IsXMajor()) || edge[r].GetXSlope() == 0 || force_edge_draw_2) {
@@ -282,12 +281,12 @@ namespace dual::nds::gpu {
           cov[0] = edge[r].GetXSlope() != 0 ? (u8)((x1[r] >> 12) & 63u) : 63;
         }
 
-        RenderPolygonSpan(polygon, line, y, xr0, xr1, cov[0], cov[1]);
+        RenderPolygonSpan(polygon, line, y, xr0, xr1, true, cov[0], cov[1]);
       }
     }
   }
 
-  void SoftwareRenderer::RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1, int cov0, int cov1) {
+  void SoftwareRenderer::RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1, bool edge, int cov0, int cov1) {
     const i32 depth_test_threshold = m_enable_w_buffer ? 0xFF : 0x200;
     const u32 alpha = polygon.attributes.alpha << 1 | polygon.attributes.alpha >> 4;
     const auto polygon_mode = (Polygon::Mode)polygon.attributes.polygon_mode;
@@ -390,7 +389,11 @@ namespace dual::nds::gpu {
         } else {
           m_frame_buffer[1][y][x] = m_frame_buffer[0][y][x];
           m_frame_buffer[0][y][x] = color;
-          attributes.flags &= ~PixelAttributes::Translucent;
+          attributes.flags &= ~(PixelAttributes::Translucent | PixelAttributes::Edge);
+
+          if(edge && polygon_id != m_attribute_buffer[y][x].poly_id[0]) {
+            attributes.flags |= PixelAttributes::Edge;
+          }
 
           if(x1 != x0) {
             m_coverage_buffer[y][x] = (cov0 * (x - x0) + cov1 * (x1 - x)) / (x1 - x0);

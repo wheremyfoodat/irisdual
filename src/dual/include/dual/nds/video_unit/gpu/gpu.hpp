@@ -79,6 +79,14 @@ namespace dual::nds {
         return m_cmd_processor.Read_RAM_COUNT();
       }
 
+      void Write_EDGE_COLOR(u32 address, u32 value, u32 mask) {
+        const size_t index = (address >> 2) & 3u;
+
+        m_io.edge_color[index] = (value & mask) | (m_io.edge_color[index] & ~mask);
+
+        m_renderer->UpdateEdgeColor(index, std::span{&m_io.edge_color[index], 2u});
+      }
+
       void Write_ALPHA_TEST_REF(u32 value, u32 mask) {
         const u32 write_mask = 0x1Fu & mask;
 

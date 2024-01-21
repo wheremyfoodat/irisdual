@@ -19,6 +19,8 @@ namespace dual::nds::gpu {
 
     const bool enabled_aa = m_io.disp3dcnt.enable_anti_aliasing;
 
+    m_clear_depth = (((u32)m_io.clear_depth << 9) + (((u32)m_io.clear_depth + 1u) >> 15)) * 0x1FFu;
+
     CopyVRAM();
     ClearColorBuffer();
     ClearDepthBuffer();
@@ -27,8 +29,13 @@ namespace dual::nds::gpu {
       ClearCoverageBuffer();
     }
     RenderPolygons(viewport, polygons);
+
     if(enabled_aa) {
       RenderAntiAliasing();
+    }
+
+    if(m_io.disp3dcnt.enable_edge_marking) {
+      RenderEdgeMarking();
     }
   }
 

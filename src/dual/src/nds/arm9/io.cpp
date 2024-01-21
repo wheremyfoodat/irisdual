@@ -382,6 +382,12 @@ namespace dual::nds::arm9 {
       case REG(0x04000304): hw.video_unit.Write_POWCNT((u16)value, (u16)mask); break;
 
       // GPU3D
+      case REG(0x04000330) ... REG(0x0400033C): {
+        if(gpu.GetRenderEnginePowerOn()) [[likely]] {
+          gpu.Write_EDGE_COLOR(address, value, mask);
+        }
+        break;
+      }
       case REG(0x04000340): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_ALPHA_TEST_REF(value, mask); break;
       case REG(0x04000350): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_CLEAR_COLOR(value, mask); break;
       case REG(0x04000354): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_CLEAR_DEPTH(value, mask); break;

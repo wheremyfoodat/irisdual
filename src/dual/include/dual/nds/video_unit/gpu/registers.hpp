@@ -60,6 +60,7 @@ namespace dual::nds::gpu {
   struct IO {
     DISP3DCNT disp3dcnt;
     GXSTAT gxstat;
+    std::array<u32, 4> edge_color{};
     u32 alpha_test_ref{};
     CLEAR_COLOR clear_color;
     u32 clear_depth{};
