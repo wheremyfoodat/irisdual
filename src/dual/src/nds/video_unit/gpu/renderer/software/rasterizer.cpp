@@ -675,7 +675,7 @@ namespace dual::nds::gpu {
           continue;
         }
 
-        for(int i : {0, 1, 2}) {
+        for(int i : {0, 1, 2, 3}) {
           m_frame_buffer[0][y][x][i] = (i8)((top[i].Raw() * coverage + bottom[i].Raw() * (64 - coverage)) >> 6);
         }
       }
