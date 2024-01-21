@@ -50,6 +50,14 @@ namespace dual::nds::gpu {
     }
   }
 
+  void SoftwareRenderer::ClearCoverageBuffer() {
+    for(int y = 0; y < 192; y++) {
+      for(int x = 0; x < 256; x++) {
+        m_coverage_buffer[y][x] = 63;
+      }
+    }
+  }
+
   void SoftwareRenderer::RenderPolygons(const Viewport& viewport, std::span<const Polygon* const> polygons) {
     for(const Polygon* polygon : polygons) {
       RenderPolygon(viewport, *polygon);

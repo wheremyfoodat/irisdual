@@ -60,6 +60,7 @@ namespace dual::nds::gpu {
       void ClearColorBuffer();
       void ClearDepthBuffer();
       void ClearAttributeBuffer();
+      void ClearCoverageBuffer();
       void RenderPolygons(const Viewport& viewport, std::span<const Polygon* const> polygons);
       void RenderPolygon(const Viewport& viewport, const Polygon& polygon);
       void RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1, int cov0, int cov1);

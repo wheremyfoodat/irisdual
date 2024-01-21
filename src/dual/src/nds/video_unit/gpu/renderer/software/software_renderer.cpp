@@ -17,13 +17,17 @@ namespace dual::nds::gpu {
       ATOM_PANIC("gpu: sw: Unimplemented rear plane bitmap");
     }
 
+    const bool enabled_aa = m_io.disp3dcnt.enable_anti_aliasing;
+
     CopyVRAM();
     ClearColorBuffer();
     ClearDepthBuffer();
     ClearAttributeBuffer();
+    if(enabled_aa) {
+      ClearCoverageBuffer();
+    }
     RenderPolygons(viewport, polygons);
-
-    if(m_io.disp3dcnt.enable_anti_aliasing) {
+    if(enabled_aa) {
       RenderAntiAliasing();
     }
   }
