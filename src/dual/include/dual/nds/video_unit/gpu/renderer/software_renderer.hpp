@@ -48,7 +48,8 @@ namespace dual::nds::gpu {
       struct PixelAttributes {
         enum Flags : u16 {
           Shadow = 1,
-          Edge = 2
+          Edge = 2,
+          Translucent = 8
         };
 
         u8 poly_id[2];

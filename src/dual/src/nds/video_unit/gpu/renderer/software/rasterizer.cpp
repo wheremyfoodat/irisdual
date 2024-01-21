@@ -351,8 +351,7 @@ namespace dual::nds::gpu {
 
       const bool opaque_pixel = color.A() == 63;
 
-      // @todo: Do not reject pixel if the destination pixel is opaque.
-      if(!opaque_pixel && attributes.poly_id[1] == polygon_id) {
+      if(!opaque_pixel && (attributes.flags & PixelAttributes::Translucent) && attributes.poly_id[1] == polygon_id) {
         continue;
       }
 
@@ -379,9 +378,11 @@ namespace dual::nds::gpu {
         if(!opaque_pixel) {
           m_frame_buffer[1][y][x] = AlphaBlend(color, m_frame_buffer[1][y][x]);
           m_frame_buffer[0][y][x] = AlphaBlend(color, m_frame_buffer[0][y][x]);
+          attributes.flags |= PixelAttributes::Translucent;
         } else {
           m_frame_buffer[1][y][x] = m_frame_buffer[0][y][x];
           m_frame_buffer[0][y][x] = color;
+          attributes.flags &= ~PixelAttributes::Translucent;
 
           if(x1 != x0) {
             m_coverage_buffer[y][x] = (cov0 * (x - x0) + cov1 * (x1 - x)) / (x1 - x0);
