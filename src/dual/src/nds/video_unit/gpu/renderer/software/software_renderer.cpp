@@ -13,16 +13,26 @@ namespace dual::nds::gpu {
   }
 
   void SoftwareRenderer::Render(const Viewport& viewport, std::span<const Polygon* const> polygons) {
+    if(m_io.disp3dcnt.enable_rear_plane_bitmap) {
+      ATOM_PANIC("gpu: sw: Unimplemented rear plane bitmap");
+    }
+
     CopyVRAM();
-    RenderRearPlane();
+    ClearColorBuffer();
+    ClearDepthBuffer();
+    ClearAttributeBuffer();
     RenderPolygons(viewport, polygons);
+
+    if(m_io.disp3dcnt.enable_anti_aliasing) {
+      RenderAntiAliasing();
+    }
   }
 
   void SoftwareRenderer::CaptureColor(int scanline, std::span<u16, 256> dst_buffer, int dst_width, bool display_capture) {
     // @todo: write a separate method for display capture?
 
     for(int x = 0; x < dst_width; x++) {
-      const Color4& color = m_frame_buffer[scanline][x];
+      const Color4& color = m_frame_buffer[0][scanline][x];
 
       if(display_capture) {
         dst_buffer[x] = color.ToRGB555() | (color.A() != 0 ? 0x8000u : 0u);
@@ -37,7 +47,7 @@ namespace dual::nds::gpu {
     // Most likely the alpha-blending math needs to happen with higher precision (but how many bits?).
     // @todo: make this more accurate.
     for(int x = 0; x < 256; x++) {
-      dst_buffer[x] = (m_frame_buffer[scanline][x].A().Raw() + 1) >> 2;
+      dst_buffer[x] = (m_frame_buffer[0][scanline][x].A().Raw() + 1) >> 2;
     }
   }
 

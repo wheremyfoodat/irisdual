@@ -8,11 +8,7 @@
 
 namespace dual::nds::gpu {
 
-  void SoftwareRenderer::RenderRearPlane() {
-    if(m_io.disp3dcnt.enable_rear_plane_bitmap) {
-      ATOM_PANIC("gpu: sw: Unimplemented rear plane bitmap");
-    }
-
+  void SoftwareRenderer::ClearColorBuffer() {
     const Color4 clear_color = Color4{
       (i8)((m_io.clear_color.color_r << 1) | (m_io.clear_color.color_r >> 4)),
       (i8)((m_io.clear_color.color_g << 1) | (m_io.clear_color.color_g >> 4)),
@@ -22,25 +18,31 @@ namespace dual::nds::gpu {
 
     for(int y = 0; y < 192; y++) {
       for(int x = 0; x < 256; x++) {
-        m_frame_buffer[y][x] = clear_color;
+        m_frame_buffer[0][y][x] = clear_color;
+        m_frame_buffer[1][y][x] = Color4{0, 0, 0, 0};
       }
     }
+  }
 
+  void SoftwareRenderer::ClearDepthBuffer() {
     const u32 clear_depth = (((u32)m_io.clear_depth << 9) + (((u32)m_io.clear_depth + 1u) >> 15)) * 0x1FFu;
 
     for(int y = 0; y < 192; y++) {
       for(int x = 0; x < 256; x++) {
-        m_depth_buffer[y][x] = clear_depth;
+        m_depth_buffer[0][y][x] = clear_depth;
+        m_depth_buffer[1][y][x] = clear_depth;
       }
     }
+  }
 
-    // @todo: check that translucent polygon ID is initialized correctly.
+  void SoftwareRenderer::ClearAttributeBuffer() {
     const u8 poly_id = m_io.clear_color.polygon_id;
     const PixelAttributes clear_attributes = {
       .poly_id = { poly_id, poly_id },
       .flags = 0
     };
 
+    // @todo: Validate that the translucent polygon ID is initialized correctly.
     for(int y = 0; y < 192; y++) {
       for(int x = 0; x < 256; x++) {
         m_attribute_buffer[y][x] = clear_attributes;
@@ -156,7 +158,7 @@ namespace dual::nds::gpu {
       }
 
       // Detect when the left and right edges become swapped
-      if(x0[l] >> 18 > x1[r] >> 18) {
+      if(x0[l] >> 18 > x0[r] >> 18 || x1[l] >> 18 > x1[r] >> 18) {
         l ^= 1;
         r ^= 1;
       }
@@ -207,8 +209,8 @@ namespace dual::nds::gpu {
       int xr0 = std::clamp(x0[r] >> 18, xl1, xr1);
 
       // Setup the leftmost and rightmost X-coordinates for the horizontal interpolator.
-      line.x[0] = x0[l] >> 18;
-      line.x[1] = x1[r] >> 18;
+      line.x[0] = xl0;
+      line.x[1] = xr1;
 
       const bool l_vertical = points[start[l]].x == points[end[l]].x;
       const bool r_vertical = points[start[r]].x == points[end[r]].x;
@@ -246,20 +248,38 @@ namespace dual::nds::gpu {
       const bool force_edge_draw_2 = force_edge_draw_1 || y == 191;
 
       if(edge[l].GetXSlope() < 0 || !edge[l].IsXMajor() || force_edge_draw_2) {
-        RenderPolygonSpan(polygon, line, y, xl0, xl1);
+        int cov[2];
+
+        if(edge[l].IsXMajor()) {
+          cov[0] = 63;
+          cov[1] = 0;
+        } else {
+          cov[0] = edge[l].GetXSlope() != 0 ? (u8)(((x0[l] >> 12) & 63u) ^ 63u) : 63;
+        }
+
+        RenderPolygonSpan(polygon, line, y, xl0, xl1, cov[0], cov[1]);
       }
 
       if(!wireframe || force_render_inner_span) {
-        RenderPolygonSpan(polygon, line, y, xl1 + 1, xr0 - 1);
+        RenderPolygonSpan(polygon, line, y, xl1 + 1, xr0 - 1, 63, 63);
       }
 
       if((edge[r].GetXSlope() > 0 && edge[r].IsXMajor()) || edge[r].GetXSlope() == 0 || force_edge_draw_2) {
-        RenderPolygonSpan(polygon, line, y, xr0, xr1);
+        int cov[2];
+
+        if(edge[r].IsXMajor()) {
+          cov[0] = 0;
+          cov[1] = 63;
+        } else {
+          cov[0] = edge[r].GetXSlope() != 0 ? (u8)((x1[r] >> 12) & 63u) : 63;
+        }
+
+        RenderPolygonSpan(polygon, line, y, xr0, xr1, cov[0], cov[1]);
       }
     }
   }
 
-  void SoftwareRenderer::RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1) {
+  void SoftwareRenderer::RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1, int cov0, int cov1) {
     const i32 depth_test_threshold = m_enable_w_buffer ? 0xFF : 0x200;
     const u32 alpha = polygon.attributes.alpha << 1 | polygon.attributes.alpha >> 4;
     const auto polygon_mode = (Polygon::Mode)polygon.attributes.polygon_mode;
@@ -278,20 +298,21 @@ namespace dual::nds::gpu {
     Color4 color;
     Vector2<Fixed12x4> uv;
 
+    const auto EvaluateDepthTest = [&](u32 depth_old, u32 depth_new) {
+      if(polygon.attributes.use_equal_depth_test) [[unlikely]] {
+        return std::abs((i32)depth_new - (i32)depth_old) <= depth_test_threshold;
+      }
+      return depth_new < depth_old;
+    };
+
     for(int x = x0; x <= x1; x++) {
       line_interp.Setup(line.w_16[0], line.w_16[1], x, line.x[0], line.x[1]);
 
-      const u32 depth_old = m_depth_buffer[y][x];
+      const u32 depth_old = m_depth_buffer[0][y][x];
       const u32 depth_new = m_enable_w_buffer ?
         line_interp.Perp(line.depth[0], line.depth[1]) : line_interp.Lerp(line.depth[0], line.depth[1]);
 
-      bool depth_test_passed;
-
-      if(polygon.attributes.use_equal_depth_test) {
-        depth_test_passed = std::abs((i32)depth_new - (i32)depth_old) <= depth_test_threshold;
-      } else {
-        depth_test_passed = depth_new < depth_old;
-      }
+      const bool depth_test_passed = EvaluateDepthTest(depth_old, depth_new);
 
       if(polygon_mode == Polygon::Mode::Shadow && polygon_id == 0u) {
         /**
@@ -305,7 +326,7 @@ namespace dual::nds::gpu {
         continue;
       }
 
-      if(!depth_test_passed) {
+      if(!depth_test_passed && !m_io.disp3dcnt.enable_anti_aliasing) {
         continue;
       }
 
@@ -330,37 +351,55 @@ namespace dual::nds::gpu {
 
       const bool opaque_pixel = color.A() == 63;
 
-      if(!opaque_pixel) {
-        // @todo: do not reject pixel if the destination pixel is opaque.
-        if(attributes.poly_id[1] == polygon_id) {
-          continue;
-        }
-
-        if(m_io.disp3dcnt.enable_alpha_blend && m_frame_buffer[y][x].A() != 0) {
-          const Fixed6 a0 = color.A();
-          const Fixed6 a1 = Fixed6{63} - a0;
-          for (const int i: {0, 1, 2}) {
-            color[i] = color[i] * a0 + m_frame_buffer[y][x][i] * a1;
-          }
-          color.A() = std::max(color.A(), m_frame_buffer[y][x].A());
-        }
+      // @todo: Do not reject pixel if the destination pixel is opaque.
+      if(!opaque_pixel && attributes.poly_id[1] == polygon_id) {
+        continue;
       }
+
+      bool color_write = true;
 
       if(polygon_mode == Polygon::Mode::Shadow) {
         // We assume that polygon_id != 0 here because we discard the other shadow polygon pixels.
-        if(attributes.flags & PixelAttributes::Shadow && attributes.poly_id[0] != polygon_id) {
-          m_frame_buffer[y][x] = color;
-        }
-      } else {
-        m_frame_buffer[y][x] = color;
+        color_write = (attributes.flags & PixelAttributes::Shadow) && attributes.poly_id[0] != polygon_id;
       }
 
+      if(!depth_test_passed) {
+        if(color_write && EvaluateDepthTest(m_depth_buffer[1][y][x], depth_new)) {
+          if(!opaque_pixel) {
+            m_frame_buffer[1][y][x] = AlphaBlend(color, m_frame_buffer[1][y][x]);
+          } else {
+            m_frame_buffer[1][y][x] = color;
+          }
+          m_depth_buffer[1][y][x] = depth_new;
+        }
+        continue;
+      }
+
+      if(color_write) {
+        if(!opaque_pixel) {
+          m_frame_buffer[1][y][x] = AlphaBlend(color, m_frame_buffer[1][y][x]);
+          m_frame_buffer[0][y][x] = AlphaBlend(color, m_frame_buffer[0][y][x]);
+        } else {
+          m_frame_buffer[1][y][x] = m_frame_buffer[0][y][x];
+          m_frame_buffer[0][y][x] = color;
+
+          if(x1 != x0) {
+            m_coverage_buffer[y][x] = (cov0 * (x - x0) + cov1 * (x1 - x)) / (x1 - x0);
+          } else {
+            m_coverage_buffer[y][x] = cov0;
+          }
+        }
+      }
+
+      // @todo: Ensure that this is correct if translucent depth write is off.
+      m_depth_buffer[1][y][x] = m_depth_buffer[0][y][x];
+
       if(opaque_pixel) {
-        m_depth_buffer[y][x] = depth_new;
+        m_depth_buffer[0][y][x] = depth_new;
         attributes.poly_id[0] = polygon_id;
       } else {
         if(polygon.attributes.enable_translucent_depth_write) {
-          m_depth_buffer[y][x] = depth_new;
+          m_depth_buffer[0][y][x] = depth_new;
         }
         attributes.poly_id[1] = polygon_id;
       }
@@ -434,6 +473,21 @@ namespace dual::nds::gpu {
     }
 
     return result_color;
+  }
+
+  Color4 SoftwareRenderer::AlphaBlend(Color4 src, Color4 dst) {
+    if(dst.A() == 0) return src;
+
+    const Fixed6 a0 = src.A();
+    const Fixed6 a1 = Fixed6{63} - a0;
+
+    for(const int i : {0, 1, 2}) {
+      src[i] = src[i] * a0 + dst[i] * a1;
+    }
+
+    src.A() = std::max(src.A(), dst.A());
+
+    return src;
   }
 
   Color4 SoftwareRenderer::SampleTexture(TextureParams params, u32 palette_base, Vector2<Fixed12x4> uv) {
@@ -597,6 +651,24 @@ namespace dual::nds::gpu {
     };
 
     return {};
+  }
+
+  void SoftwareRenderer::RenderAntiAliasing() {
+    for(int y = 0; y < 192; y++) {
+      for(int x = 0; x < 256; x++) {
+        const Color4 top    = m_frame_buffer[0][y][x];
+        const Color4 bottom = m_frame_buffer[1][y][x];
+        const int coverage  = m_coverage_buffer[y][x];
+
+        if(bottom.A() == 0 || coverage == 63) {
+          continue;
+        }
+
+        for(int i : {0, 1, 2}) {
+          m_frame_buffer[0][y][x][i] = (i8)((top[i].Raw() * coverage + bottom[i].Raw() * (64 - coverage)) >> 6);
+        }
+      }
+    }
   }
 
 } // namespace dual::nds::gpu
