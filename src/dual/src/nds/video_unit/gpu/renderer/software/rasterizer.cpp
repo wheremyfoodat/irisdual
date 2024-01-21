@@ -318,7 +318,7 @@ namespace dual::nds::gpu {
       const u32 depth_new = m_enable_w_buffer ?
         line_interp.Perp(line.depth[0], line.depth[1]) : line_interp.Lerp(line.depth[0], line.depth[1]);
 
-      const bool depth_test_passed = EvaluateDepthTest(depth_old, depth_new);
+      const bool top_depth_test_passed = EvaluateDepthTest(depth_old, depth_new);
 
       if(polygon_mode == Polygon::Mode::Shadow && polygon_id == 0u) {
         /**
@@ -326,13 +326,15 @@ namespace dual::nds::gpu {
          * in case the depth test passes.
          * But certainly the shadow flag should _not_ be cleared if the test passes (this causes shadows in Mario Kart DS to look incorrect).
          */
-        if(!depth_test_passed) {
+        if(!top_depth_test_passed) {
           m_attribute_buffer[y][x].flags |= PixelAttributes::Shadow;
         }
         continue;
       }
 
-      if(!depth_test_passed && !m_io.disp3dcnt.enable_anti_aliasing) {
+      const bool bottom_depth_test_passed = top_depth_test_passed || EvaluateDepthTest(m_depth_buffer[1][y][x], depth_new);
+
+      if(!bottom_depth_test_passed) {
         continue;
       }
 
@@ -368,8 +370,8 @@ namespace dual::nds::gpu {
         color_write = (attributes.flags & PixelAttributes::Shadow) && attributes.poly_id[0] != polygon_id;
       }
 
-      if(!depth_test_passed) {
-        if(color_write && EvaluateDepthTest(m_depth_buffer[1][y][x], depth_new)) {
+      if(!top_depth_test_passed) {
+        if(color_write && bottom_depth_test_passed) {
           if(!opaque_pixel) {
             m_frame_buffer[1][y][x] = AlphaBlend(color, m_frame_buffer[1][y][x]);
           } else {
