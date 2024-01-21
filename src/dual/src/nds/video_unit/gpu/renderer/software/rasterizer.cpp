@@ -19,11 +19,6 @@ namespace dual::nds::gpu {
     for(int y = 0; y < 192; y++) {
       for(int x = 0; x < 256; x++) {
         m_frame_buffer[0][y][x] = clear_color;
-      }
-    }
-
-    for(int y = 0; y < 192; y++) {
-      for(int x = 0; x < 256; x++) {
         m_frame_buffer[1][y][x] = Color4{0, 0, 0, 0};
       }
     }
