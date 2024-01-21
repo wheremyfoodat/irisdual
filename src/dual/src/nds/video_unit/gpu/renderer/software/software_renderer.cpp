@@ -34,6 +34,10 @@ namespace dual::nds::gpu {
       RenderEdgeMarking();
     }
 
+    if(m_io.disp3dcnt.enable_fog) {
+      RenderFog();
+    }
+
     if(enabled_aa) {
       RenderAntiAliasing();
     }

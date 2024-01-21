@@ -58,7 +58,8 @@ namespace dual::nds::gpu {
         enum Flags : u16 {
           Shadow = 1,
           Edge = 2,
-          Translucent = 8
+          Translucent = 8,
+          Fog = 16
         };
 
         u8 poly_id[2];
@@ -77,8 +78,9 @@ namespace dual::nds::gpu {
       Color4 ShadeShadedUntexturedPolygon(Color4 vertex_color);
       Color4 AlphaBlend(Color4 src, Color4 dst);
       Color4 SampleTexture(TextureParams params, u32 palette_base, Vector2<Fixed12x4> uv);
-      void RenderAntiAliasing();
       void RenderEdgeMarking();
+      void RenderFog();
+      void RenderAntiAliasing();
 
       template<typename T>
       auto ReadTextureVRAM(u32 address) {

@@ -220,9 +220,13 @@ namespace dual::nds {
       }
 
       [[nodiscard]] u16 ToRGB555() const {
-        return  R().Raw() >> 1 |
-               (G().Raw() >> 1) <<  5 |
-               (B().Raw() >> 1) << 10;
+        int r = R().Raw();
+        int g = G().Raw();
+        int b = B().Raw();
+
+        return  r >> 1 |
+               (g >> 1) <<  5 |
+               (b >> 1) << 10;
       }
 
       Color4& operator=(const Color4& other) {

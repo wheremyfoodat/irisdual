@@ -57,13 +57,25 @@ namespace dual::nds::gpu {
     u32 word = 0u;
   };
 
+  union FOG_COLOR {
+    atom::Bits< 0, 5, u32> color_r;
+    atom::Bits< 5, 5, u32> color_g;
+    atom::Bits<10, 5, u32> color_b;
+    atom::Bits<16, 5, u32> color_a;
+
+    u32 word = 0u;
+  };
+
   struct IO {
     DISP3DCNT disp3dcnt;
     GXSTAT gxstat;
     std::array<u32, 4> edge_color{};
     u32 alpha_test_ref{};
-    CLEAR_COLOR clear_color;
+    CLEAR_COLOR clear_color{};
     u32 clear_depth{};
+    FOG_COLOR fog_color{};
+    u32 fog_offset{};
+    std::array<u32,  8> fog_table{};
     std::array<u32, 16> toon_table{};
   };
 

@@ -105,6 +105,24 @@ namespace dual::nds {
         m_io.clear_depth = (value & write_mask) | (m_io.clear_depth & ~write_mask);
       }
 
+      void Write_FOG_COLOR(u32 value, u32 mask) {
+        const u32 write_mask = 0x1F7FFFu & mask;
+
+        m_io.fog_color.word = (value & write_mask) | (m_io.fog_color.word & ~write_mask);
+      }
+
+      void Write_FOG_OFFSET(u32 value, u32 mask) {
+        const u32 write_mask = 0x7FFFu & mask;
+
+        m_io.fog_offset = (value & write_mask) | (m_io.fog_offset & ~write_mask);
+      }
+
+      void Write_FOG_TABLE(u32 address, u32 value, u32 mask) {
+        const size_t index = (address >> 2) & 7u;
+
+        m_io.fog_table[index] = (value & mask) | (m_io.fog_table[index] & ~mask);
+      }
+
       void Write_TOON_TABLE(u32 address, u32 value, u32 mask) {
         const size_t index = (address >> 2) & 15u;
 

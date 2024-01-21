@@ -35,9 +35,10 @@ namespace dual::nds::gpu {
 
   void SoftwareRenderer::ClearAttributeBuffer() {
     const u8 poly_id = m_io.clear_color.polygon_id;
+
     const PixelAttributes clear_attributes = {
       .poly_id = { poly_id, poly_id },
-      .flags = 0
+      .flags = (u16)(m_io.clear_color.enable_rear_plane_fog ? PixelAttributes::Fog : 0)
     };
 
     // @todo: Validate that the translucent polygon ID is initialized correctly.
@@ -290,6 +291,7 @@ namespace dual::nds::gpu {
     const u32 alpha = polygon.attributes.alpha << 1 | polygon.attributes.alpha >> 4;
     const auto polygon_mode = (Polygon::Mode)polygon.attributes.polygon_mode;
     const u8 polygon_id = polygon.attributes.polygon_id;
+    const bool enable_fog = polygon.attributes.enable_fog;
 
     int alpha_test_threshold = 0u;
 
@@ -387,13 +389,20 @@ namespace dual::nds::gpu {
           m_frame_buffer[1][y][x] = AlphaBlend(color, m_frame_buffer[1][y][x]);
           m_frame_buffer[0][y][x] = AlphaBlend(color, m_frame_buffer[0][y][x]);
           attributes.flags |= PixelAttributes::Translucent;
+          if(!enable_fog) {
+            attributes.flags &= ~PixelAttributes::Fog;
+          }
         } else {
           m_frame_buffer[1][y][x] = m_frame_buffer[0][y][x];
           m_frame_buffer[0][y][x] = color;
-          attributes.flags &= ~(PixelAttributes::Translucent | PixelAttributes::Edge);
+          attributes.flags &= ~(PixelAttributes::Translucent | PixelAttributes::Edge | PixelAttributes::Fog);
 
           if(edge && polygon_id != m_attribute_buffer[y][x].poly_id[0]) {
             attributes.flags |= PixelAttributes::Edge;
+          }
+
+          if(enable_fog) {
+            attributes.flags |= PixelAttributes::Fog;
           }
 
           if(x1 != x0) {

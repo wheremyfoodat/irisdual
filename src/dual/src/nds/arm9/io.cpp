@@ -391,6 +391,14 @@ namespace dual::nds::arm9 {
       case REG(0x04000340): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_ALPHA_TEST_REF(value, mask); break;
       case REG(0x04000350): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_CLEAR_COLOR(value, mask); break;
       case REG(0x04000354): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_CLEAR_DEPTH(value, mask); break;
+      case REG(0x04000358): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_FOG_COLOR(value, mask); break;
+      case REG(0x0400035C): if(gpu.GetRenderEnginePowerOn()) [[likely]] gpu.Write_FOG_OFFSET(value, mask); break;
+      case REG(0x04000360) ... REG(0x0400037C): {
+        if(gpu.GetRenderEnginePowerOn()) [[likely]] {
+          gpu.Write_FOG_TABLE(address, value, mask);
+        }
+        break;
+      }
       case REG(0x04000380) ... REG(0x040003BC): {
         if(gpu.GetRenderEnginePowerOn()) [[likely]] {
           gpu.Write_TOON_TABLE(address, value, mask);

@@ -165,9 +165,6 @@ namespace dual::nds {
           } else if(blend_mode != BlendControl::Mode::Off) {
             if(have_dst && sfx_enable) {
               switch((BlendControl::Mode)blend_mode) {
-                case BlendControl::Mode::Alpha:
-                  pixel[0] = AlphaBlend(pixel[0], pixel[1], (int)mmio.bldalpha.a, (int)mmio.bldalpha.b);
-                  break;
                 case BlendControl::Mode::Brighten:
                   pixel[0] = Brighten(pixel[0], (int)mmio.bldy.half);
                   break;

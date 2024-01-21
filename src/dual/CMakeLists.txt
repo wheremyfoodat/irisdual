@@ -28,6 +28,7 @@ set(SOURCES
   src/nds/video_unit/gpu/command_processor/geometry.cpp
   src/nds/video_unit/gpu/command_processor/matrix.cpp
   src/nds/video_unit/gpu/renderer/software/edge_marking.cpp
+  src/nds/video_unit/gpu/renderer/software/fog.cpp
   src/nds/video_unit/gpu/renderer/software/rasterizer.cpp
   src/nds/video_unit/gpu/renderer/software/software_renderer.cpp
   src/nds/video_unit/gpu/geometry_engine.cpp
