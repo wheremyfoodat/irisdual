@@ -13,8 +13,14 @@ namespace dual::nds::gpu {
   }
 
   void SoftwareRenderer::Render(const Viewport& viewport, std::span<const Polygon* const> polygons) {
+    if(m_io.disp3dcnt.enable_rear_plane_bitmap) {
+      ATOM_PANIC("gpu: sw: Unimplemented rear plane bitmap");
+    }
+
     CopyVRAM();
-    RenderRearPlane();
+    ClearColorBuffer();
+    ClearDepthBuffer();
+    ClearAttributeBuffer();
     RenderPolygons(viewport, polygons);
 
     if(m_io.disp3dcnt.enable_anti_aliasing) {

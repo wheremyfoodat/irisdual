@@ -56,12 +56,15 @@ namespace dual::nds::gpu {
       };
 
       void CopyVRAM();
-      void RenderRearPlane();
+      void ClearColorBuffer();
+      void ClearDepthBuffer();
+      void ClearAttributeBuffer();
       void RenderPolygons(const Viewport& viewport, std::span<const Polygon* const> polygons);
       void RenderPolygon(const Viewport& viewport, const Polygon& polygon);
-      void RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1);
+      void RenderPolygonSpan(const Polygon& polygon, const Line& line, i32 y, int x0, int x1, int cov0, int cov1);
       Color4 ShadeTexturedPolygon(Polygon::Mode polygon_mode, Color4 texture_color, Color4 vertex_color);
       Color4 ShadeShadedUntexturedPolygon(Color4 vertex_color);
+      Color4 AlphaBlend(Color4 src, Color4 dst);
       Color4 SampleTexture(TextureParams params, u32 palette_base, Vector2<Fixed12x4> uv);
       void RenderAntiAliasing();
 
@@ -84,6 +87,7 @@ namespace dual::nds::gpu {
       Color4 m_frame_buffer[2][192][256];
       u32 m_depth_buffer[2][192][256];
       PixelAttributes m_attribute_buffer[192][256];
+      u8 m_coverage_buffer[192][256];
       std::array<Color4, 32> m_toon_table{};
   };
 
