@@ -30,12 +30,12 @@ namespace dual::nds::gpu {
     }
     RenderPolygons(viewport, polygons);
 
-    if(enabled_aa) {
-      RenderAntiAliasing();
-    }
-
     if(m_io.disp3dcnt.enable_edge_marking) {
       RenderEdgeMarking();
+    }
+
+    if(enabled_aa) {
+      RenderAntiAliasing();
     }
   }
 

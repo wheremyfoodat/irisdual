@@ -37,7 +37,16 @@ namespace dual::nds::gpu {
         edge |= y != 191 ? EvaluateCondition(center_depth, center_poly_id, m_depth_buffer[0][y_d][x], m_attribute_buffer[y_d][x].poly_id[0]) : border_edge;
 
         if(edge) {
-          m_frame_buffer[0][y][x] = m_edge_color[center_poly_id >> 3];
+          const Color4 edge_color = m_edge_color[center_poly_id >> 3];
+
+          m_frame_buffer[0][y][x].R() = edge_color.R();
+          m_frame_buffer[0][y][x].G() = edge_color.G();
+          m_frame_buffer[0][y][x].B() = edge_color.B();
+
+          // @todo: It is unclear how edge-marking and anti-aliasing work together.
+          if(m_io.disp3dcnt.enable_anti_aliasing) {
+            m_coverage_buffer[y][x] = 32u;
+          }
         }
       }
     }
