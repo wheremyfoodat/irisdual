@@ -267,7 +267,6 @@ namespace dual::nds::gpu {
       }
 
       if(!wireframe || inner_span_is_edge) {
-        // @todo: are there cases where this should be marked as an edge?
         RenderPolygonSpan(polygon, line, y, xl1 + 1, xr0 - 1, inner_span_is_edge, 63, 63);
       }
 
