@@ -17,7 +17,7 @@ class Application {
     int Run(int argc, char** argv);
 
   private:
-    void CreateWindow();
+    void CreateWindow(int scale, bool fullscreen);
     void LoadROM(const char* path);
     void LoadBootROM(const char* path, bool arm9);
     void MainLoop();
@@ -27,6 +27,7 @@ class Application {
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
     SDL_Texture* m_textures[2];
+    SDL_Rect m_screen_geometry[2];
 
     std::unique_ptr<dual::nds::NDS> m_nds{};
     EmulatorThread m_emu_thread{};

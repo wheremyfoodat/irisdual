@@ -28,17 +28,21 @@ int Application::Run(int argc, char** argv) {
   std::vector<const char*> files{};
   std::string boot7_path = "boot7.bin";
   std::string boot9_path = "boot9.bin";
+  int scale = 0;
+  bool fullscreen = false;
 
   atom::Arguments args{"irisdual", "A Nintendo DS emulator developed for fun, with performance and multicore CPUs in mind.", {0, 1, 0}};
   args.RegisterArgument(boot7_path, true, "boot7", "Path to the ARM7 Boot ROM", "path");
   args.RegisterArgument(boot9_path, true, "boot9", "Path to the ARM9 Boot ROM", "path");
+  args.RegisterArgument(scale, true, "scale", "Screen scale factor");
+  args.RegisterArgument(fullscreen, true, "fullscreen", "Whether to run in fullscreen or windowed mode");
   args.RegisterFile("nds_file", false);
 
   if(!args.Parse(argc, argv, &files)) {
     std::exit(-1);
   }
 
-  CreateWindow();
+  CreateWindow(scale, fullscreen);
   // ARM7 boot ROM must be loaded before the ROM when firmware booting.
   LoadBootROM(boot7_path.c_str(), false);
   LoadBootROM(boot9_path.c_str(), true);
@@ -47,15 +51,54 @@ int Application::Run(int argc, char** argv) {
   return 0;
 }
 
-void Application::CreateWindow() {
-  m_window = SDL_CreateWindow(
-    "irisdual",
-    SDL_WINDOWPOS_CENTERED,
-    SDL_WINDOWPOS_CENTERED,
-    512,
-    768,
-    0//SDL_WINDOW_ALLOW_HIGHDPI
-  );
+void Application::CreateWindow(int scale, bool fullscreen) {
+  if(fullscreen) {
+    m_window = SDL_CreateWindow(
+      "irisdual",
+      SDL_WINDOWPOS_CENTERED,
+      SDL_WINDOWPOS_CENTERED,
+      1,
+      1,
+      SDL_WINDOW_FULLSCREEN_DESKTOP //SDL_WINDOW_ALLOW_HIGHDPI
+    );
+
+    int win_w, win_h;
+    SDL_GetWindowSize(m_window, &win_w, &win_h);
+
+    if(scale == 0) {
+      const int screen_w = win_h * 256 / 384;
+      const int screen_h = win_h / 2;
+      const int x_offset = (win_w - screen_w) / 2;
+
+      m_screen_geometry[0] = {x_offset, 0, screen_w, screen_h};
+      m_screen_geometry[1] = {x_offset, screen_h, screen_w, screen_h};
+    } else {
+      const int actual_scale = std::min(scale, std::min(win_w / 256, win_h / 384));
+      const int screen_w = 256 * actual_scale;
+      const int screen_h = 192 * actual_scale;
+      const int x_offset = (win_w - screen_w) / 2;
+      const int y_offset = (win_h - screen_h * 2) / 2;
+
+      m_screen_geometry[0] = {x_offset, y_offset, screen_w, screen_h};
+      m_screen_geometry[1] = {x_offset, y_offset + screen_h, screen_w, screen_h};
+    }
+  } else {
+    const int actual_scale = std::max(scale, 1);
+    const int screen_w = 256 * actual_scale;
+    const int screen_h = 192 * actual_scale;
+
+    m_screen_geometry[0] = {0, 0, screen_w, screen_h};
+    m_screen_geometry[1] = {0, screen_h, screen_w, screen_h};
+
+    m_window = SDL_CreateWindow(
+      "irisdual",
+      SDL_WINDOWPOS_CENTERED,
+      SDL_WINDOWPOS_CENTERED,
+      screen_w,
+      screen_h * 2,
+      0//SDL_WINDOW_ALLOW_HIGHDPI
+    );
+  }
 
   m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 
@@ -128,11 +171,6 @@ void Application::LoadBootROM(const char* path, bool arm9) {
 }
 
 void Application::MainLoop() {
-  static const SDL_Rect rects[2] {
-    {0,   0, 512, 384},
-    {0, 384, 512, 384}
-  };
-
   SDL_Event event;
 
   m_emu_thread.Start(std::move(m_nds));
@@ -152,8 +190,8 @@ void Application::MainLoop() {
       SDL_UpdateTexture(m_textures[1], nullptr, frame.value().second, 256 * sizeof(u32));
 
       SDL_RenderClear(m_renderer);
-      SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &rects[0]);
-      SDL_RenderCopy(m_renderer, m_textures[1], nullptr, &rects[1]);
+      SDL_RenderCopy(m_renderer, m_textures[0], nullptr, &m_screen_geometry[0]);
+      SDL_RenderCopy(m_renderer, m_textures[1], nullptr, &m_screen_geometry[1]);
       SDL_RenderPresent(m_renderer);
 
       m_emu_thread.ReleaseFrame();
@@ -166,13 +204,13 @@ void Application::MainLoop() {
 void Application::HandleEvent(const SDL_Event& event) {
   const u32 type = event.type;
 
-  // @todo: do not hardcode the window geometry
-  const i32 window_x0 = 0;
-  const i32 window_x1 = 512;
-  const i32 window_y0 = 384;
-  const i32 window_y1 = 768;
+  const SDL_Rect& bottom_screen = m_screen_geometry[1];
+  const i32 window_x0 = bottom_screen.x;
+  const i32 window_x1 = bottom_screen.x + bottom_screen.w;
+  const i32 window_y0 = bottom_screen.y;
+  const i32 window_y1 = bottom_screen.y + bottom_screen.h;
 
-  const auto window_xy_in_range = [](i32 x, i32 y) {
+  const auto window_xy_in_range = [&](i32 x, i32 y) {
     return x >= window_x0 && x < window_x1 && y >= window_y0 && y < window_y1;
   };
 
