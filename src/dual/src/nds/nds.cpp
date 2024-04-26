@@ -81,9 +81,13 @@ namespace dual::nds {
     const u64 step_target = m_step_target + cycles_to_run;
 
     while(m_scheduler.GetTimestampNow() < step_target) {
-      // @todo: do not sync so tightly when either CPU is halted.
       const u64 target = std::min(m_scheduler.GetTimestampTarget(), step_target);
-      const int cycles = std::min(32, static_cast<int>(target - m_scheduler.GetTimestampNow()));
+
+      // Run both CPUs for up to 32 cycles. Skip to the next event if both CPUs are halting.
+      int cycles = static_cast<int>(target - m_scheduler.GetTimestampNow());
+      if(!m_arm9.cpu->GetWaitingForIRQ() || !m_arm7.cpu->GetWaitingForIRQ()) {
+        cycles = std::min(cycles, 32);
+      }
 
       m_arm9.cpu->Run(cycles * 2);
       m_arm7.cpu->Run(cycles);
