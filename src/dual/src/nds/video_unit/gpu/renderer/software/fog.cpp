@@ -6,10 +6,10 @@ namespace dual::nds::gpu {
 
   void SoftwareRenderer::RenderFog() {
     Color4 fog_color;
-    fog_color.R() = m_io.fog_color.color_r << 1 | m_io.fog_color.color_r >> 4;
-    fog_color.G() = m_io.fog_color.color_g << 1 | m_io.fog_color.color_g >> 4;
-    fog_color.B() = m_io.fog_color.color_b << 1 | m_io.fog_color.color_b >> 4;
-    fog_color.A() = m_io.fog_color.color_a << 1 | m_io.fog_color.color_a >> 4;
+    fog_color.R() = (i8)(m_io.fog_color.color_r << 1 | m_io.fog_color.color_r >> 4);
+    fog_color.G() = (i8)(m_io.fog_color.color_g << 1 | m_io.fog_color.color_g >> 4);
+    fog_color.B() = (i8)(m_io.fog_color.color_b << 1 | m_io.fog_color.color_b >> 4);
+    fog_color.A() = (i8)(m_io.fog_color.color_a << 1 | m_io.fog_color.color_a >> 4);
 
     const auto ReadFogTable = [this](int index) {
       index = std::clamp(index, 0, 31);
@@ -38,8 +38,8 @@ namespace dual::nds::gpu {
         const int fog_table_index_int   = fog_table_index >> 10;
         const int fog_table_index_fract = fog_table_index & 0x3FF;
 
-        const int density0 = ReadFogTable(fog_table_index_int);
-        const int density1 = ReadFogTable(fog_table_index_int + 1);
+        const int density0 = (int)ReadFogTable(fog_table_index_int);
+        const int density1 = (int)ReadFogTable(fog_table_index_int + 1);
         const int density  = (density0 * (0x400 - fog_table_index_fract) + density1 * fog_table_index_fract) >> 10;
 
         if(ignore_rgb) {
