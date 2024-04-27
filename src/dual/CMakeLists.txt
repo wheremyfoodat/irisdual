@@ -104,9 +104,14 @@ set(HEADERS_PUBLIC
   include/dual/nds/timer.hpp
 )
 
+option(DUAL_ENABLE_JIT "Enable Just-In-Time compiler support" ON)
+
 add_library(dual ${SOURCES} ${HEADERS} ${HEADERS_PUBLIC})
 
 target_link_libraries(dual PUBLIC atom-common atom-logger atom-math)
+if(DUAL_ENABLE_JIT)
+  target_link_libraries(dual PRIVATE lunatic)
+endif()
 
 target_include_directories(dual PUBLIC include)
 target_include_directories(dual PRIVATE src)
