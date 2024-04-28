@@ -7,6 +7,11 @@
 
 namespace dual::arm {
 
+  struct AttachCPn {
+    int id;
+    dual::arm::Coprocessor* coprocessor;
+  };
+
   class CPU {
     public:
       enum class Model {
@@ -72,7 +77,8 @@ namespace dual::arm {
       virtual u32  GetExceptionBase() const = 0;
       virtual void SetExceptionBase(u32 address) = 0;
 
-      virtual void SetCoprocessor(int id, Coprocessor* coprocessor) = 0;
+      virtual void InvalidateICache() {}
+      virtual void InvalidateICacheRange(u32 address_lo, u32 address_hi) {}
 
       virtual void SetUnalignedDataAccessEnable(bool enable) = 0;
 
