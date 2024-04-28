@@ -1,13 +1,13 @@
 
 #include <atom/meta.hpp>
 
-#include "arm/arm.hpp"
+#include "arm/interpreter/interpreter_cpu.hpp"
 #include "decoder.hpp"
 
 namespace dual::arm {
 
-  using Handler16 = ARM::Handler16;
-  using Handler32 = ARM::Handler32;
+  using Handler16 = InterpreterCPU::Handler16;
+  using Handler32 = InterpreterCPU::Handler32;
 
   /** A helper class used to generate lookup tables for
     * the interpreter at compiletime.
@@ -57,7 +57,7 @@ namespace dual::arm {
     }
   };
 
-  std::array<Handler16, 2048> ARM::k_opcode_lut_16 = TableGen::GenerateTableThumb();
-  std::array<Handler32, 8192> ARM::k_opcode_lut_32 = TableGen::GenerateTableARM();
+  std::array<Handler16, 2048> InterpreterCPU::k_opcode_lut_16 = TableGen::GenerateTableThumb();
+  std::array<Handler32, 8192> InterpreterCPU::k_opcode_lut_32 = TableGen::GenerateTableARM();
 
 } // namespace dual::arm
