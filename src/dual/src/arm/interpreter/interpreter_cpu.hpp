@@ -12,9 +12,9 @@
 
 namespace dual::arm {
 
-  class ARM final : public CPU {
+  class InterpreterCPU final : public CPU {
     public:
-      ARM(
+      InterpreterCPU(
         Memory& memory,
         Scheduler& scheduler,
         CycleCounter& cycle_counter,
@@ -109,8 +109,8 @@ namespace dual::arm {
 
       void Run(int cycles) override;
 
-      typedef void (ARM::*Handler16)(u16);
-      typedef void (ARM::*Handler32)(u32);
+      typedef void (InterpreterCPU::*Handler16)(u16);
+      typedef void (InterpreterCPU::*Handler32)(u32);
 
     private:
       enum class Condition {

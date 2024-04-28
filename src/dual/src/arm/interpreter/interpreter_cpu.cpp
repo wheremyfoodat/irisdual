@@ -1,9 +1,9 @@
 
-#include "arm.hpp"
+#include "interpreter_cpu.hpp"
 
 namespace dual::arm {
 
-  ARM::ARM(
+  InterpreterCPU::InterpreterCPU(
     Memory& memory,
     Scheduler& scheduler,
     CycleCounter& cycle_counter,
@@ -24,7 +24,7 @@ namespace dual::arm {
     }
   }
 
-  void ARM::Reset() {
+  void InterpreterCPU::Reset() {
     constexpr u32 nop = 0xE320F000;
 
     m_state = {};
@@ -36,7 +36,7 @@ namespace dual::arm {
     SetIRQFlag(false);
   }
 
-  void ARM::Run(int cycles) {
+  void InterpreterCPU::Run(int cycles) {
     if(GetWaitingForIRQ()) {
       m_cycle_counter.AddDeviceCycles((uint)cycles);
       return;
@@ -86,7 +86,7 @@ namespace dual::arm {
     }
   }
 
-  void ARM::SignalIRQ() {
+  void InterpreterCPU::SignalIRQ() {
     if(m_state.cpsr.mask_irq) {
       return;
     }
@@ -111,19 +111,19 @@ namespace dual::arm {
     ReloadPipeline32();
   }
 
-  void ARM::ReloadPipeline32() {
+  void InterpreterCPU::ReloadPipeline32() {
     m_opcode[0] = ReadWordCode(m_state.r15);
     m_opcode[1] = ReadWordCode(m_state.r15 + 4);
     m_state.r15 += 8;
   }
 
-  void ARM::ReloadPipeline16() {
+  void InterpreterCPU::ReloadPipeline16() {
     m_opcode[0] = ReadHalfCode(m_state.r15);
     m_opcode[1] = ReadHalfCode(m_state.r15 + 2);
     m_state.r15 += 4;
   }
 
-  void ARM::BuildConditionTable() {
+  void InterpreterCPU::BuildConditionTable() {
     for(int flags = 0; flags < 16; flags++) {
       bool n = flags & 8;
       bool z = flags & 4;
@@ -149,7 +149,7 @@ namespace dual::arm {
     }
   }
 
-  auto ARM::GetRegisterBankByMode(Mode mode) -> Bank {
+  auto InterpreterCPU::GetRegisterBankByMode(Mode mode) -> Bank {
     switch(mode) {
       case Mode::User:       return Bank::None;
       case Mode::System:     return Bank::None;
@@ -163,7 +163,7 @@ namespace dual::arm {
     ATOM_PANIC("invalid ARM CPU mode: 0x{:02X}", (uint)mode);
   }
 
-  void ARM::SwitchMode(Mode new_mode) {
+  void InterpreterCPU::SwitchMode(Mode new_mode) {
     auto old_bank = GetRegisterBankByMode((Mode)m_state.cpsr.mode);
     auto new_bank = GetRegisterBankByMode(new_mode);
 

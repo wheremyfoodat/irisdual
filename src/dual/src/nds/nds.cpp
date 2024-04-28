@@ -6,8 +6,7 @@
 #include <dual/nds/header.hpp>
 #include <dual/nds/backup/eeprom.hpp>
 
-#include "arm/arm.hpp"
-
+#include "arm/interpreter/interpreter_cpu.hpp"
 #ifdef DUAL_ENABLE_JIT
   #include "arm/jit/lunatic_cpu.hpp"
 #endif
@@ -75,8 +74,8 @@ namespace dual::nds {
 
     switch(m_cpu_execution_engine) {
       case CPUExecutionEngine::Interpreter: {
-        m_arm9.cpu = std::make_unique<arm::ARM>(m_arm9.bus, m_scheduler, m_arm9.cycle_counter, arm::CPU::Model::ARM9, std::span<const arm::AttachCPn>{{attach_cp15}});
-        m_arm7.cpu = std::make_unique<arm::ARM>(m_arm7.bus, m_scheduler, m_arm7.cycle_counter, arm::CPU::Model::ARM7);
+        m_arm9.cpu = std::make_unique<arm::InterpreterCPU>(m_arm9.bus, m_scheduler, m_arm9.cycle_counter, arm::CPU::Model::ARM9, std::span<const arm::AttachCPn>{{attach_cp15}});
+        m_arm7.cpu = std::make_unique<arm::InterpreterCPU>(m_arm7.bus, m_scheduler, m_arm7.cycle_counter, arm::CPU::Model::ARM7);
         break;
       }
 #ifdef DUAL_ENABLE_JIT

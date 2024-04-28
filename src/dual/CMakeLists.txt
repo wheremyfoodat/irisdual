@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(SOURCES
-  src/arm/tablegen/tablegen.cpp
-  src/arm/arm.cpp
+  src/arm/interpreter/tablegen/tablegen.cpp
+  src/arm/interpreter/interpreter_cpu.cpp
   src/common/scheduler.cpp
   src/nds/arm7/apu.cpp
   src/nds/arm7/dma.cpp
@@ -50,14 +50,14 @@ set(SOURCES
 )
 
 set(HEADERS
-  src/arm/handlers/arithmetic.inl
-  src/arm/handlers/handler16.inl
-  src/arm/handlers/handler32.inl
-  src/arm/handlers/memory.inl
-  src/arm/tablegen/decoder.hpp
-  src/arm/tablegen/gen_arm.hpp
-  src/arm/tablegen/gen_thumb.hpp
-  src/arm/arm.hpp
+  src/arm/interpreter/handlers/arithmetic.inl
+  src/arm/interpreter/handlers/handler16.inl
+  src/arm/interpreter/handlers/handler32.inl
+  src/arm/interpreter/handlers/memory.inl
+  src/arm/interpreter/tablegen/decoder.hpp
+  src/arm/interpreter/tablegen/gen_arm.hpp
+  src/arm/interpreter/tablegen/gen_thumb.hpp
+  src/arm/interpreter/interpreter_cpu.hpp
   src/nds/video_unit/gpu/renderer/software/edge.hpp
   src/nds/video_unit/gpu/renderer/software/interpolator.hpp
 )
