@@ -8,6 +8,7 @@
 #include <dual/arm/memory.hpp>
 #include <dual/common/cycle_counter.hpp>
 #include <dual/common/scheduler.hpp>
+#include <span>
 
 namespace dual::arm {
 
@@ -17,7 +18,8 @@ namespace dual::arm {
         Memory& memory,
         Scheduler& scheduler,
         CycleCounter& cycle_counter,
-        Model model
+        Model model,
+        std::span<const AttachCPn> coprocessor_table = {}
       );
 
       void Reset() override;
@@ -28,10 +30,6 @@ namespace dual::arm {
 
       void SetExceptionBase(u32 address) override {
         m_exception_base = address;
-      }
-
-      void SetCoprocessor(int id, Coprocessor* coprocessor) override {
-        m_coprocessors.at(id) = coprocessor;
       }
 
       void SetUnalignedDataAccessEnable(bool enable) override {
@@ -169,7 +167,7 @@ namespace dual::arm {
       Scheduler& m_scheduler;
       CycleCounter& m_cycle_counter;
       Model m_model;
-      std::array<Coprocessor*, 16> m_coprocessors;
+      std::array<Coprocessor*, 16> m_coprocessors{};
 
       bool m_irq_line;
       bool m_wait_for_irq = false;

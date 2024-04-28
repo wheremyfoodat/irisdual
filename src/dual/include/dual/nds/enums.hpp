@@ -29,6 +29,11 @@ namespace dual::nds {
     return (CPU)((int)cpu ^ 1);
   }
 
+  enum class CPUExecutionEngine {
+    Interpreter,
+    JIT
+  };
+
 } // namespace dual::nds
 
 template<> struct fmt::formatter<dual::nds::CPU> : formatter<std::string_view> {

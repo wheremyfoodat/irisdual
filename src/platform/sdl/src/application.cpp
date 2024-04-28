@@ -30,12 +30,16 @@ int Application::Run(int argc, char** argv) {
   std::string boot9_path = "boot9.bin";
   int scale = 0;
   bool fullscreen = false;
+  bool enable_jit = false;
 
   atom::Arguments args{"irisdual", "A Nintendo DS emulator developed for fun, with performance and multicore CPUs in mind.", {0, 1, 0}};
   args.RegisterArgument(boot7_path, true, "boot7", "Path to the ARM7 Boot ROM", "path");
   args.RegisterArgument(boot9_path, true, "boot9", "Path to the ARM9 Boot ROM", "path");
   args.RegisterArgument(scale, true, "scale", "Screen scale factor");
   args.RegisterArgument(fullscreen, true, "fullscreen", "Whether to run in fullscreen or windowed mode");
+#ifdef DUAL_ENABLE_JIT
+  args.RegisterArgument(enable_jit, true, "jit", "Use dynamic recompilation");
+#endif
   args.RegisterFile("nds_file", false);
 
   if(!args.Parse(argc, argv, &files)) {
@@ -43,6 +47,12 @@ int Application::Run(int argc, char** argv) {
   }
 
   CreateWindow(scale, fullscreen);
+#ifdef DUAL_ENABLE_JIT
+  // CPU engine must be configured before resetting the emulator
+  if(enable_jit) {
+    m_nds->SetCPUExecutionEngine(dual::nds::CPUExecutionEngine::JIT);
+  }
+#endif
   // ARM7 boot ROM must be loaded before the ROM when firmware booting.
   LoadBootROM(boot7_path.c_str(), false);
   LoadBootROM(boot9_path.c_str(), true);

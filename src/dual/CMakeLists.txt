@@ -106,11 +106,17 @@ set(HEADERS_PUBLIC
 
 option(DUAL_ENABLE_JIT "Enable Just-In-Time compiler support" ON)
 
+if(DUAL_ENABLE_JIT)
+  list(APPEND SOURCES src/arm/jit/lunatic_cpu.cpp)
+  list(APPEND HEADERS src/arm/jit/lunatic_cpu.hpp)
+endif()
+
 add_library(dual ${SOURCES} ${HEADERS} ${HEADERS_PUBLIC})
 
 target_link_libraries(dual PUBLIC atom-common atom-logger atom-math)
 if(DUAL_ENABLE_JIT)
   target_link_libraries(dual PRIVATE lunatic)
+  target_compile_definitions(dual PUBLIC DUAL_ENABLE_JIT)
 endif()
 
 target_include_directories(dual PUBLIC include)

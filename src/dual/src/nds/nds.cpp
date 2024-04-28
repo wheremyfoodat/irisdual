@@ -8,30 +8,23 @@
 
 #include "arm/arm.hpp"
 
+#ifdef DUAL_ENABLE_JIT
+  #include "arm/jit/lunatic_cpu.hpp"
+#endif
+
 namespace dual::nds {
 
   NDS::NDS() {
-    m_arm9.cpu = std::make_unique<arm::ARM>(
-      m_arm9.bus,
-      m_scheduler,
-      m_arm9.cycle_counter,
-      arm::CPU::Model::ARM9
-    );
-    m_arm9.cp15 = std::make_unique<arm9::CP15>(m_arm9.cpu.get(), &m_arm9.bus);
-    m_arm9.cpu->SetCoprocessor(15, m_arm9.cp15.get());
+    m_arm9.cp15 = std::make_unique<arm9::CP15>(&m_arm9.bus);
+  }
 
-    m_arm7.cpu = std::make_unique<arm::ARM>(
-      m_arm7.bus,
-      m_scheduler,
-      m_arm7.cycle_counter,
-      arm::CPU::Model::ARM7
-    );
-
-    m_arm9.irq.SetCPU(m_arm9.cpu.get());
-    m_arm7.irq.SetCPU(m_arm7.cpu.get());
+  void NDS::SetCPUExecutionEngine(CPUExecutionEngine cpu_execution_engine) {
+    m_cpu_execution_engine = cpu_execution_engine;
   }
 
   void NDS::Reset() {
+    CreateCPUCores();
+
     m_scheduler.Reset();
 
     m_video_unit.Reset();
@@ -75,6 +68,29 @@ namespace dual::nds {
     m_ipc.Reset();
 
     m_step_target = 0u;
+  }
+
+  void NDS::CreateCPUCores() {
+    const arm::AttachCPn attach_cp15{.id = 15, .coprocessor = m_arm9.cp15.get()};
+
+    switch(m_cpu_execution_engine) {
+      case CPUExecutionEngine::Interpreter: {
+        m_arm9.cpu = std::make_unique<arm::ARM>(m_arm9.bus, m_scheduler, m_arm9.cycle_counter, arm::CPU::Model::ARM9, std::span<const arm::AttachCPn>{{attach_cp15}});
+        m_arm7.cpu = std::make_unique<arm::ARM>(m_arm7.bus, m_scheduler, m_arm7.cycle_counter, arm::CPU::Model::ARM7);
+        break;
+      }
+#ifdef DUAL_ENABLE_JIT
+      case CPUExecutionEngine::JIT: {
+        m_arm9.cpu = std::make_unique<arm::LunaticCPU>(m_arm9.bus, m_arm9.cycle_counter, arm::CPU::Model::ARM9, std::span<const arm::AttachCPn>{{attach_cp15}});
+        m_arm7.cpu = std::make_unique<arm::LunaticCPU>(m_arm7.bus, m_arm7.cycle_counter, arm::CPU::Model::ARM7);
+        break;
+      }
+#endif
+      default: ATOM_PANIC("unknown CPU emulator");
+    }
+
+    m_arm9.irq.SetCPU(m_arm9.cpu.get());
+    m_arm7.irq.SetCPU(m_arm7.cpu.get());
   }
 
   void NDS::Step(int cycles_to_run) {

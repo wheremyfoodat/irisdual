@@ -32,6 +32,7 @@ namespace dual::nds {
       NDS();
 
       void Reset();
+      void SetCPUExecutionEngine(CPUExecutionEngine cpu_execution_engine);
       void Step(int cycles_to_run);
       void LoadBootROM9(std::span<u8, 0x8000> data);
       void LoadBootROM7(std::span<u8, 0x4000> data);
@@ -50,6 +51,8 @@ namespace dual::nds {
       void SetTouchState(bool pen_down, u8 x, u8 y);
 
     private:
+      void CreateCPUCores();
+
       Scheduler m_scheduler{};
 
       SystemMemory m_memory{};
@@ -123,6 +126,8 @@ namespace dual::nds {
       std::shared_ptr<ROM> m_rom;
 
       u64 m_step_target{};
+
+      CPUExecutionEngine m_cpu_execution_engine{CPUExecutionEngine::Interpreter};
   };
 
 } // namespace dual::nds

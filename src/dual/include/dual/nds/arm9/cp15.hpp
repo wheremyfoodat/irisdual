@@ -9,9 +9,10 @@ namespace dual::nds::arm9 {
 
   class CP15 final : public arm::Coprocessor {
     public:
-      CP15(arm::CPU* cpu, MemoryBus* bus);
+      explicit CP15(MemoryBus* bus);
 
       void Reset() override;
+      void SetCPU(arm::CPU* cpu) override;
       void DirectBoot();
       u32  MRC(int opc1, int cn, int cm, int opc2) override;
       void MCR(int opc1, int cn, int cm, int opc2, u32 value) override;

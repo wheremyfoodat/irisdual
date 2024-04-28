@@ -7,12 +7,16 @@
 
 namespace dual::nds::arm9 {
 
-  CP15::CP15(arm::CPU* cpu, MemoryBus* bus) : m_cpu{cpu}, m_bus{bus} {
+  CP15::CP15(MemoryBus* bus) : m_bus{bus} {
   }
 
   void CP15::Reset() {
     // @todo: refer to ARM9 manual to figure out correct initialization values
     DirectBoot();
+  }
+
+  void CP15::SetCPU(arm::CPU* cpu) {
+    m_cpu = cpu;
   }
 
   void CP15::DirectBoot() {
@@ -75,6 +79,16 @@ namespace dual::nds::arm9 {
       }
       case ID(0, 7, 0, 4): { // Wait for IRQ
         m_cpu->SetWaitingForIRQ(true);
+        break;
+      }
+      case ID(0, 7, 5, 0): { // Invalidate ICache
+        m_cpu->InvalidateICache();
+        break;
+      }
+      case ID(0, 7, 5, 1): { // Invalidate ICache Line
+        const u32 address_lo = value & ~0x1Fu;
+        const u32 address_hi = address_lo + 0x1Fu;
+        m_cpu->InvalidateICacheRange(address_lo, address_hi);
         break;
       }
       case ID(0, 9, 1, 0): { // DTCM region register

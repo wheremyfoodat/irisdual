@@ -31,7 +31,8 @@ namespace dual::nds {
         const u32 address_hi = address + size;
 
         if(address_hi > m_size || address_hi < address) {
-          ATOM_PANIC("out-of-bounds ROM read request: address=0x{:08X}, size={}", address, size);
+          //ATOM_PANIC("out-of-bounds ROM read request: address=0x{:08X}, size={}", address, size);
+          return;
         }
         std::memcpy(destination, &m_data[address], size);
       }

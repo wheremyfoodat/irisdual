@@ -7,7 +7,8 @@ namespace dual::arm {
     Memory& memory,
     Scheduler& scheduler,
     CycleCounter& cycle_counter,
-    Model model
+    Model model,
+    std::span<const AttachCPn> coprocessor_table
   )   : m_memory{memory}
       , m_scheduler{scheduler}
       , m_cycle_counter{cycle_counter}
@@ -17,7 +18,10 @@ namespace dual::arm {
     BuildConditionTable();
     Reset();
 
-    m_coprocessors.fill(nullptr);
+    for(auto& attach_cp_n : coprocessor_table) {
+      m_coprocessors.at(attach_cp_n.id) = attach_cp_n.coprocessor;
+      attach_cp_n.coprocessor->SetCPU(this);
+    }
   }
 
   void ARM::Reset() {
