@@ -49,7 +49,7 @@ namespace dual::arm {
       }
 
       u32 GetExceptionBase() const override {
-        ATOM_PANIC("unimplemented");
+        return m_lunatic_cpu->GetExceptionBase();
       };
 
       void SetExceptionBase(u32 address) override {
